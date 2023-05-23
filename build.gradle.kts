@@ -35,8 +35,14 @@ dependencies {
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
+    implementation("net.logstash.logback:logstash-logback-encoder:7.3")
+
+    val kotestVerstion = "5.6.2"
+    testImplementation("io.kotest:kotest-assertions-core:$kotestVerstion")
+    testImplementation("io.kotest:kotest-assertions-json:$kotestVerstion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
+    testImplementation("org.testcontainers:testcontainers:1.18.1")
 }
 
 tasks {

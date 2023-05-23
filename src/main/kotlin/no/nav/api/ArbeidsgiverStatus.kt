@@ -6,6 +6,7 @@ import io.ktor.server.routing.*
 
 fun Route.status() {
     get("status") {
+        call.application.log.info("Hei fra backend")
         call.respond("Hei")
     }
 }
