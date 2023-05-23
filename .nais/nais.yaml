@@ -8,6 +8,8 @@ metadata:
 spec:
   image: {{image}}
   ingresses:
-  {{#each ingresses as |url|}}
+    {{#each ingresses as |url|}}
     - {{url}}
-  {{/each}}
+    {{/each}}
+  tokenx:
+    enabled: true
