@@ -9,7 +9,7 @@ import no.nav.api.status
 fun Application.configureRouting() {
     routing {
         helse()
-        authenticate {
+        authenticate("tokenx") {
             status()
         }
     }
