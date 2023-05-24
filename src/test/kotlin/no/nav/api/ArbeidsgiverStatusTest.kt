@@ -22,14 +22,14 @@ class ArbeidsgiverStatusTest {
     @Test
     fun `skal få 401 (Unauthorized) dersom man går mot status uten innlogging`() {
         runBlocking {
-            fiaArbeidsgiverApi.performGet("status").status shouldBe HttpStatusCode.Unauthorized
+            fiaArbeidsgiverApi.performGet("status/123456789").status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
     @Test
     fun `skal få 401 (Unauthorized) dersom man går mot status og har for lav ACR level`() {
         runBlocking {
-            fiaArbeidsgiverApi.performGet("status") {
+            fiaArbeidsgiverApi.performGet("status/123456789") {
                 header("Bearer", TestContainerHelper.accessToken(
                     subject = "123",
                     audience = "hei",
@@ -45,7 +45,7 @@ class ArbeidsgiverStatusTest {
     @Test
     fun `skal få 200 (OK) dersom man går mot status med gyldig token`() {
         runBlocking {
-            fiaArbeidsgiverApi.performGet("status", withToken()).status shouldBe HttpStatusCode.OK
+            fiaArbeidsgiverApi.performGet("status/123456789", withToken()).status shouldBe HttpStatusCode.OK
         }
     }
 }

@@ -30,12 +30,15 @@ dependencies {
     implementation("io.ktor:ktor-server-content-negotiation-jvm:$ktor_version")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jvm:$ktor_version")
-    implementation("io.ktor:ktor-client-core-jvm:$ktor_version")
-    implementation("io.ktor:ktor-client-apache-jvm:$ktor_version")
+    implementation("io.ktor:ktor-client-core:$ktor_version")
+    implementation("io.ktor:ktor-client-cio:$ktor_version")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktor_version")
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("net.logstash.logback:logstash-logback-encoder:7.3")
+
+    // altinn-klient
+    implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
@@ -46,6 +49,7 @@ dependencies {
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
     testImplementation("org.testcontainers:testcontainers:1.18.1")
+    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:0.5.8")
 }

@@ -10,8 +10,14 @@ fun Application.configureRouting() {
     routing {
         helse()
         authenticate("tokenx") {
-            status()
+            medVerifisertAltinnTilgang {
+                status()
+            }
         }
     }
+}
 
+fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {
+    install(AuthorizationPlugin)
+    authorizedRoutes()
 }

@@ -18,7 +18,10 @@ class TestContainerHelper {
     companion object {
         val log: Logger = LoggerFactory.getLogger(TestContainerHelper::class.java)
         val network = Network.newNetwork()
+
         val authServer = AuthContainer(network)
+        val altinnProxy = AltinnProxyContainer()
+
         val fiaArbeidsgiverApi =
             GenericContainer(
                 ImageFromDockerfile().withDockerfile(Path("./Dockerfile"))
@@ -26,7 +29,10 @@ class TestContainerHelper {
             .withNetwork(network)
             .withExposedPorts(8080)
             .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
-            .withEnv(authServer.getEnv())
+            .withEnv(
+                authServer.getEnv() +
+                    altinnProxy.getEnv()
+            )
             .dependsOn(authServer.container)
             .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
             .apply {
