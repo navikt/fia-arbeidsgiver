@@ -13,3 +13,8 @@ spec:
     {{/each}}
   tokenx:
     enabled: true
+  accessPolicy:
+    outbound:
+      rules:
+        - application: altinn-rettigheter-proxy
+          namespace: arbeidsgiver
