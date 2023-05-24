@@ -4,7 +4,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import no.nav.helper.TestContainerHelper
+import no.nav.helper.*
 import no.nav.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.helper.performGet
 import no.nav.helper.withToken
@@ -29,7 +29,7 @@ class ArbeidsgiverStatusTest {
     @Test
     fun `skal få 401 (Unauthorized) dersom man går mot status og har for lav ACR level`() {
         runBlocking {
-            fiaArbeidsgiverApi.performGet("status/123456789") {
+            fiaArbeidsgiverApi.performGet("status/$ALTINN_ORGNR_1") {
                 header("Bearer", TestContainerHelper.accessToken(
                     subject = "123",
                     audience = "hei",
@@ -43,9 +43,20 @@ class ArbeidsgiverStatusTest {
     }
 
     @Test
-    fun `skal få 200 (OK) dersom man går mot status med gyldig token`() {
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn tilgang`() {
         runBlocking {
-            fiaArbeidsgiverApi.performGet("status/123456789", withToken()).status shouldBe HttpStatusCode.OK
+            fiaArbeidsgiverApi.performGet(
+                "status/$ALTINN_ORGNR_1", withToken()
+            ).status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilgang`() {
+        runBlocking {
+            fiaArbeidsgiverApi.performGet(
+                "status/$ORGNR_UTEN_TILKNYTNING", withToken()
+            ).status shouldBe HttpStatusCode.Forbidden
         }
     }
 }

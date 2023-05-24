@@ -6,6 +6,11 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import org.apache.http.protocol.HTTP.CONTENT_TYPE
 import org.testcontainers.Testcontainers
 
+const val ALTINN_ORGNR_1 = "311111111"
+const val ALTINN_ORGNR_2 = "322222222"
+const val ORGNR_UTEN_TILKNYTNING = "300000000"
+const val ALTINN_OVERORDNET_ORGNR = "400000000"
+
 class AltinnProxyContainer {
     private val wireMock = WireMockServer(WireMockConfiguration.options().dynamicPort()).also {
         it.stubFor(
@@ -16,18 +21,18 @@ class AltinnProxyContainer {
                         .withBody(
                             """[
                                 {
-                                    "Name": "BALLSTAD OG HAMARØY",
+                                    "Name": "Spenstig Tiger",
                                      "Type": "Business",
-                                     "OrganizationNumber": "811076732",
-                                     "ParentOrganizationNumber": "811076112",
+                                     "OrganizationNumber": "$ALTINN_ORGNR_1",
+                                     "ParentOrganizationNumber": "$ALTINN_OVERORDNET_ORGNR",
                                      "OrganizationForm": "BEDR",
                                      "Status": "Active"
                                 }, 
                                 {
                                     "Name": "FIKTIVIA",
                                      "Type": "Business",
-                                     "OrganizationNumber": "315829062",
-                                     "ParentOrganizationNumber": "811076112",
+                                     "OrganizationNumber": "$ALTINN_ORGNR_2",
+                                     "ParentOrganizationNumber": "$ALTINN_OVERORDNET_ORGNR",
                                      "OrganizationForm": "BEDR",
                                      "Status": "Active"
                                 }

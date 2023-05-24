@@ -7,7 +7,7 @@ import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
 import no.nav.api.ORGNR
 
-private fun removeBearerPrefix(bearer: String?) = bearer?.split(" ")?.first()
+private fun removeBearerPrefix(bearer: String?) = bearer?.split(" ")?.get(1)
 
 fun ApplicationRequest.hentToken() = removeBearerPrefix(this.headers[HttpHeaders.Authorization])
 fun ApplicationRequest.tokenSubject() = call.principal<JWTPrincipal>()?.get("pid")
