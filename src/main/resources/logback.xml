@@ -6,5 +6,5 @@
     <root level="INFO">
         <appender-ref ref="stdout_json"/>
     </root>
-    <logger name="io.ktor.auth.jwt" level="TRACE" />
+    <logger name="io.ktor.server.auth" level="TRACE" />
 </configuration>
