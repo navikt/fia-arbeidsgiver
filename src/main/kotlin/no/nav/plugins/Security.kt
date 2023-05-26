@@ -5,7 +5,6 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import no.nav.Miljø
-import org.slf4j.LoggerFactory
 import java.net.URI
 import java.util.concurrent.TimeUnit
 
@@ -14,18 +13,14 @@ fun Application.configureSecurity() {
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
-    val logger = LoggerFactory.getLogger(this::class.java)
     authentication {
         jwt(name = "tokenx") {
             val tokenFortsattGyldigFørUtløpISekunder = 3L
             verifier(jwkProvider, issuer = Miljø.tokenxIssuer) {
-                logger.info("Inn i verifier")
-                logger.info("MILJØ issuer: ${Miljø.tokenxIssuer}, clientId: ${Miljø.tokenxClientId}")
                 acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
                 withAudience(Miljø.tokenxClientId)
                 withClaim("acr", "Level4")
                 withClaimPresence("sub")
-                logger.info("Ut av verifier")
             }
             validate { token ->
                 application.log.info("TOKEN Issuer: ${token.issuer}, Audience: ${token.audience}, acr: ${token["acr"]}, sub: ${token["sub"]}")
