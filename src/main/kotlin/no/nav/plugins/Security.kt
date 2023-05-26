@@ -4,6 +4,8 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import no.nav.Miljø
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -23,7 +25,10 @@ fun Application.configureSecurity() {
                 withClaimPresence("sub")
             }
             validate { token ->
-                JWTPrincipal(token.payload)
+                application.log.debug("Validerer token ${Json.encodeToString(token)}")
+                val principal = JWTPrincipal(token.payload)
+                application.log.debug("pricipal: ${Json.encodeToString(principal)}")
+                principal
             }
         }
     }
