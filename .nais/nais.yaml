@@ -11,6 +11,11 @@ spec:
     {{#each ingresses as |url|}}
     - {{url}}
     {{/each}}
+  idporten:
+    enabled: true
+    sidecar:
+      enabled: true
+      autoLogin: true
   tokenx:
     enabled: true
   accessPolicy:
