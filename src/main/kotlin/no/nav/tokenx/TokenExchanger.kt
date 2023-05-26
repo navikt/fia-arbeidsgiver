@@ -9,17 +9,14 @@ import io.ktor.client.request.forms.*
 import io.ktor.http.*
 import no.nav.Miljø
 import no.nav.http.HttpClient
-import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.Instant
 import java.util.*
 
 object TokenExchanger {
     private val privateKey = RSAKey.parse(Miljø.tokenxPrivateJwk).toRSAPrivateKey()
-    private val logger = LoggerFactory.getLogger(this.javaClass)
 
     internal suspend fun exchangeToken(token: String, audience: String): String {
-        logger.info("token før: $token")
         return try {
             HttpClient.client.post(URI.create(Miljø.tokenXTokenEndpoint).toURL()) {
                 val now = Instant.now()

@@ -4,8 +4,6 @@ import com.auth0.jwk.JwkProviderBuilder
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.Miljø
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -25,9 +23,10 @@ fun Application.configureSecurity() {
                 withClaimPresence("sub")
             }
             validate { token ->
-                application.log.debug("Validerer token ${Json.encodeToString(token)}")
+                application.log.info("MILJØ issuer: ${Miljø.tokenxIssuer}, clientId: ${Miljø.tokenxClientId}")
+                application.log.info("TOKEN Issuer: ${token.issuer}, Audience: ${token.audience}, acr: ${token["acr"]}, sub: ${token["sub"]}")
                 val principal = JWTPrincipal(token.payload)
-                application.log.debug("pricipal: ${Json.encodeToString(principal)}")
+                application.log.info("PRINCIPAL nbf: ${principal.notBefore}, iat: ${principal.issuedAt}, exp: ${principal.expiresAt}")
                 principal
             }
         }
