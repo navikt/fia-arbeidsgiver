@@ -18,8 +18,9 @@ fun Application.configureSecurity() {
             val tokenFortsattGyldigFørUtløpISekunder = 3L
             verifier(jwkProvider, issuer = Miljø.idportenIssuer) {
                 acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
-                withAudience(Miljø.idportenClientId)
+                withAudience(Miljø.idportenAudience)
                 withClaim("acr", "Level4")
+                withClaim("client_id", Miljø.idportenClientId)
                 withClaimPresence("sub")
             }
             validate { token ->
