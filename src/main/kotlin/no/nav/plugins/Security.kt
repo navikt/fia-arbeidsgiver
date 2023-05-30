@@ -24,10 +24,7 @@ fun Application.configureSecurity() {
                 withClaimPresence("pid")
             }
             validate { token ->
-                application.log.info("TOKEN Issuer: ${token.issuer}, Audience: ${token.audience}, acr: ${token["acr"]}, sub: ${token["sub"]}")
-                val principal = JWTPrincipal(token.payload)
-                application.log.info("PRINCIPAL nbf: ${principal.notBefore}, iat: ${principal.issuedAt}, exp: ${principal.expiresAt}")
-                principal
+                JWTPrincipal(token.payload)
             }
         }
     }
