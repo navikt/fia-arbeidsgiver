@@ -3,7 +3,7 @@ package no.nav.helper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeoutOrNull
-import no.nav.kafka.Kafka
+import no.nav.kafka.Kafka.Companion.topic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -45,7 +45,7 @@ class KafkaTestContainer(network: Network) {
         .apply {
             start()
             adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
-            createTopic(Kafka.topic)
+            createTopic()
             kafkaProducer = producer()
         }
 
@@ -82,10 +82,10 @@ class KafkaTestContainer(network: Network) {
         return offsetMetadata[offsetMetadata.keys.firstOrNull{ it.topic().contains(topic) }]?.offset() ?: -1
     }
 
-    private fun createTopic(vararg topics: String) {
-        val newTopics = topics
-            .map { topic -> NewTopic(topic, 1, 1.toShort()) }
-        adminClient.createTopics(newTopics)
+    private fun createTopic() {
+        adminClient.createTopics(listOf(
+            NewTopic(topic, 1, 1.toShort())
+        ))
     }
 
     private fun KafkaContainer.producer(): KafkaProducer<String, String> =
