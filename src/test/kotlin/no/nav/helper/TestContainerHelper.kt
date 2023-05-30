@@ -1,5 +1,6 @@
 package no.nav.helper
 
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.request.*
@@ -20,6 +21,7 @@ class TestContainerHelper {
         val network = Network.newNetwork()
 
         val authServer = AuthContainer(network)
+        val kafka = KafkaTestContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
         val fiaArbeidsgiverApi =
@@ -31,9 +33,10 @@ class TestContainerHelper {
             .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
             .withEnv(
                 authServer.getEnv() +
-                    altinnProxy.getEnv()
+                altinnProxy.getEnv() +
+                kafka.getEnv()
             )
-            .dependsOn(authServer.container)
+            .dependsOn(authServer.container, kafka.container)
             .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
             .apply {
                 start()
@@ -52,6 +55,8 @@ class TestContainerHelper {
             audience = audience,
             claims = claims
         )
+
+        infix fun GenericContainer<*>.shouldContainLog(regex: Regex) = logs shouldContain regex
     }
 }
 

@@ -23,6 +23,8 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
+  kafka:
+    pool: {{kafkaPool}}
   env:
     - name: ALTINN_RETTIGHETER_PROXY_CLIENT_ID
       value: {{altinnRettigheterProxyClientId}}

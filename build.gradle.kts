@@ -36,6 +36,10 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktor_version")
     implementation("ch.qos.logback:logback-classic:$logback_version")
     implementation("net.logstash.logback:logstash-logback-encoder:7.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+
+    // Kafka
+    implementation("org.apache.kafka:kafka-clients:3.4.0")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
@@ -48,7 +52,9 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    testImplementation("org.testcontainers:testcontainers:1.18.1")
+    val testcontainersVersion = "1.18.1"
+    testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
+    testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:0.5.8")
