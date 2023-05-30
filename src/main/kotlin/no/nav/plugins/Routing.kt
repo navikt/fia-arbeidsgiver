@@ -10,9 +10,9 @@ fun Application.configureRouting() {
     routing {
         helse()
         authenticate("tokenx") {
-//            medVerifisertAltinnTilgang {
+            medVerifisertAltinnTilgang {
                 status()
-//            }
+            }
         }
     }
 }

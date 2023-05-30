@@ -67,12 +67,12 @@ class ArbeidsgiverStatusTest {
         }
     }
 
-//    @Test
-//    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilgang`() {
-//        runBlocking {
-//            fiaArbeidsgiverApi.performGet(
-//                "status/$ORGNR_UTEN_TILKNYTNING", withToken()
-//            ).status shouldBe HttpStatusCode.Forbidden
-//        }
-//    }
+    @Test
+    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilgang`() {
+        runBlocking {
+            fiaArbeidsgiverApi.performGet(
+                "status/$ORGNR_UTEN_TILKNYTNING", withToken()
+            ).status shouldBe HttpStatusCode.Forbidden
+        }
+    }
 }
