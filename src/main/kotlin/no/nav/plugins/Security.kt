@@ -21,7 +21,7 @@ fun Application.configureSecurity() {
                 withAudience(Miljø.idportenAudience)
                 withClaim("acr", "Level4")
                 withClaim("client_id", Miljø.idportenClientId)
-                withClaimPresence("sub")
+                withClaimPresence("pid")
             }
             validate { token ->
                 application.log.info("TOKEN Issuer: ${token.issuer}, Audience: ${token.audience}, acr: ${token["acr"]}, sub: ${token["sub"]}")

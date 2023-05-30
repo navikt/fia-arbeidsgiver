@@ -44,7 +44,8 @@ class TestContainerHelper {
             audience: String = "hei",
             claims: Map<String, String> = mapOf(
                 "acr" to "Level4",
-                "pid" to subject
+                "pid" to subject,
+                "client_id" to "hei",
             ),
         ) = authServer.issueToken(
             subject = subject,

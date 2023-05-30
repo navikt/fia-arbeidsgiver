@@ -87,5 +87,6 @@ class AuthContainer(network: Network) {
         "IDPORTEN_ISSUER" to "http://$networkalias:$port/default",
         "IDPORTEN_JWKS_URI" to "http://$networkalias:$port/default/jwks",
         "IDPORTEN_CLIENT_ID" to "hei",
+        "IDPORTEN_AUDIENCE" to "hei",
     )
 }
