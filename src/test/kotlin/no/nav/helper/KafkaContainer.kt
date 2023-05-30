@@ -3,6 +3,7 @@ package no.nav.helper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeoutOrNull
+import no.nav.kafka.Kafka
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -44,7 +45,7 @@ class KafkaTestContainer(network: Network) {
         .apply {
             start()
             adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
-            createTopic("ia-sak-status-v1")
+            createTopic(Kafka.topic)
             kafkaProducer = producer()
         }
 

@@ -7,10 +7,10 @@ import org.apache.kafka.common.config.SslConfigs
 
 class Kafka {
     companion object {
-        private val brokers: String = System.getenv("KAFKA_BROKERS")
-        private val truststoreLocation: String = System.getenv("KAFKA_TRUSTSTORE_PATH")
-        private val keystoreLocation: String = System.getenv("KAFKA_KEYSTORE_PATH")
-        private val credstorePassword: String = System.getenv("KAFKA_CREDSTORE_PASSWORD")
+        private val brokers: String by lazy { System.getenv("KAFKA_BROKERS") }
+        private val truststoreLocation: String by lazy { System.getenv("KAFKA_TRUSTSTORE_PATH") }
+        private val keystoreLocation: String by lazy { System.getenv("KAFKA_KEYSTORE_PATH") }
+        private val credstorePassword: String by lazy { System.getenv("KAFKA_CREDSTORE_PASSWORD") }
         val topicPrefix: String = "pia"
         val topic: String = "ia-sak-status-v1"
         const val clientId: String = "fia-arbeidsgiver"

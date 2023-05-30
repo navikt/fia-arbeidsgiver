@@ -16,7 +16,7 @@ class FiaArbeidsgiverKonsumentTest {
         val iaStatusOppdatering = IASakStatus(orgnr = orgnr, saksnummer = "sak", status = "VURDERES", sistOppdatert = LocalDateTime.now().toKotlinLocalDateTime())
         val somString = Json.encodeToString(iaStatusOppdatering)
 
-        TestContainerHelper.kafka.sendOgVentTilKonsumert(orgnr, somString, "pia.ia-sak-status-v1", "ia-sak-status_fia-arbeidsgiver")
+        TestContainerHelper.kafka.sendOgVentTilKonsumert(orgnr, somString, "${Kafka.topicPrefix}.${Kafka.topic}", Kafka.consumerGroupId)
         TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Fikk melding om virksomhet .*$orgnr.*".toRegex()
     }
 
