@@ -22,7 +22,7 @@ import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.util.*
 
-class KafkaTestContainer(network: Network) {
+class KafkaContainer(network: Network) {
     private val kafkaNetworkAlias = "kafkaContainer"
     private var adminClient: AdminClient
     private var kafkaProducer: KafkaProducer<String, String>

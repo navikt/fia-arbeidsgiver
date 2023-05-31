@@ -41,6 +41,9 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka-clients:3.4.0")
 
+    // Lettuce - Redis client
+    implementation("io.lettuce:lettuce-core:6.2.4.RELEASE")
+
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
@@ -65,5 +68,8 @@ tasks {
         manifest {
             attributes(Pair("Main-Class", "no.nav.lydia.AppKt"))
         }
+    }
+    withType<Test> {
+        dependsOn("shadowJar")
     }
 }

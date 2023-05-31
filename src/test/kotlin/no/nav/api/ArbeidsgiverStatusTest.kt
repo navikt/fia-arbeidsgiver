@@ -5,6 +5,8 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import no.nav.helper.*
+import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
+import no.nav.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING
 import no.nav.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.helper.performGet
 import no.nav.helper.withToken
@@ -30,14 +32,16 @@ class ArbeidsgiverStatusTest {
     fun `skal få 401 (Unauthorized) dersom man går mot status med ugyldig token`() {
         runBlocking {
             fiaArbeidsgiverApi.performGet("status/123456789") {
-                header(HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
-                    subject = "123",
-                    audience = "NEI OG NEI",
-                    claims = mapOf(
-                        "pid" to "123",
-                        "acr" to "Level4"
-                    ),
-                ).serialize())
+                header(
+                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
+                        subject = "123",
+                        audience = "NEI OG NEI",
+                        claims = mapOf(
+                            "pid" to "123",
+                            "acr" to "Level4"
+                        ),
+                    ).serialize()
+                )
             }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
@@ -46,14 +50,16 @@ class ArbeidsgiverStatusTest {
     fun `skal få 401 (Unauthorized) dersom man går mot status og har for lav ACR level`() {
         runBlocking {
             fiaArbeidsgiverApi.performGet("status/$ALTINN_ORGNR_1") {
-                header(HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
-                    subject = "123",
-                    audience = "hei",
-                    claims = mapOf(
-                        "pid" to "123",
-                        "acr" to "Level3"
-                    ),
-                ).serialize())
+                header(
+                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
+                        subject = "123",
+                        audience = "hei",
+                        claims = mapOf(
+                            "pid" to "123",
+                            "acr" to "Level3"
+                        ),
+                    ).serialize()
+                )
             }.status shouldBe HttpStatusCode.Unauthorized
         }
     }

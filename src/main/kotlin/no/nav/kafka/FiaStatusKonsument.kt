@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.konfigurasjon.Kafka
+import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -12,7 +13,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
-class FiaStatusKonsument : CoroutineScope {
+class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
 
@@ -41,9 +42,8 @@ class FiaStatusKonsument : CoroutineScope {
 
                         records.forEach {record ->
                             val payload = Json.decodeFromString<IASakStatus>(record.value())
-                            // -- TODO faktisk håndter meldinger
                             logger.info("Fikk melding om virksomhet $payload")
-                            // -- TODO end
+                            redisService.lagre(payload)
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.topic}")
                         consumer.commitAsync()

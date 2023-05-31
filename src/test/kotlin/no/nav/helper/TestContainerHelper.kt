@@ -21,26 +21,28 @@ class TestContainerHelper {
         val network = Network.newNetwork()
 
         val authServer = AuthContainer(network)
-        val kafka = KafkaTestContainer(network)
+        val kafka = KafkaContainer(network)
+        val redis = RedisContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
         val fiaArbeidsgiverApi =
             GenericContainer(
                 ImageFromDockerfile().withDockerfile(Path("./Dockerfile"))
             )
-            .withNetwork(network)
-            .withExposedPorts(8080)
-            .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
-            .withEnv(
-                authServer.getEnv() +
-                altinnProxy.getEnv() +
-                kafka.getEnv()
-            )
-            .dependsOn(authServer.container, kafka.container)
-            .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
-            .apply {
-                start()
-            }
+                .withNetwork(network)
+                .withExposedPorts(8080)
+                .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
+                .withEnv(
+                    authServer.getEnv() +
+                            altinnProxy.getEnv() +
+                            kafka.getEnv() +
+                            redis.getEnv()
+                )
+                .dependsOn(authServer.container, kafka.container, redis.container)
+                .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
+                .apply {
+                    start()
+                }
 
         internal fun accessToken(
             subject: String = "123",
@@ -62,13 +64,16 @@ class TestContainerHelper {
 
 private val httpClient = HttpClient(CIO)
 
-private suspend fun GenericContainer<*>.performRequest(url: String, config: HttpRequestBuilder.() -> Unit = {}) =
+private suspend fun GenericContainer<*>.performRequest(
+    url: String,
+    config: HttpRequestBuilder.() -> Unit = {}
+) =
     httpClient.request {
         config()
         url {
             protocol = URLProtocol.HTTP
             host = this@performRequest.host
-            port = getMappedPort(8080)
+            port = firstMappedPort
             path(url)
         }
     }
