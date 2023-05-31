@@ -4,8 +4,8 @@ metadata:
   labels:
     team: pia
   annotations:
+    nais.io/run-as-group: "0"
     nais.io/read-only-file-system: "false"
-    nais.io/run-as-user: "999"
   name: fia-arbeidsgiver-redis
   namespace: pia
 spec:
