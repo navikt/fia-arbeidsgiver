@@ -31,4 +31,4 @@ spec:
     - name: ALTINN_RETTIGHETER_PROXY_URL
       value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
     - name: REDIS_PORT
-      value: 6379
+      value: "6379"
