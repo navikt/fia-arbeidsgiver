@@ -23,12 +23,17 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
+        - application: fia-arbeidsgiver-redis
   kafka:
     pool: {{kafkaPool}}
+  redis:
+    enabled: true
   env:
     - name: ALTINN_RETTIGHETER_PROXY_CLIENT_ID
       value: {{altinnRettigheterProxyClientId}}
     - name: ALTINN_RETTIGHETER_PROXY_URL
       value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
+    - name: REDIS_HOST
+      value: fia-arbeidsgiver-redis.pia.svc.cluster.local
     - name: REDIS_PORT
       value: "6379"
