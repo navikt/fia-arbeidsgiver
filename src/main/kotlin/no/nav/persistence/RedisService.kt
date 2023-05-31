@@ -10,13 +10,14 @@ import no.nav.kafka.IASakStatus
 import no.nav.konfigurasjon.Redis
 
 
-class RedisService(host: String = Redis.redisHost, port: Int = Redis.redisPort) {
+class RedisService(host: String = Redis.redisHost, port: Int = Redis.redisPort, password: String = Redis.redisPassword) {
     val redisUri: RedisURI
     val sync: RedisCommands<String, String>
     val defaultTimeToLiveSeconds: Long
 
     init {
         redisUri = RedisURI.Builder.redis(host, port)
+            .withPassword(password as CharSequence)
             .build()
         val redisClient = RedisClient.create(redisUri)
         val connection = redisClient.connect()

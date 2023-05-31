@@ -33,7 +33,11 @@ class FiaArbeidsgiverKonsumentTest {
         )
         TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Fikk melding om virksomhet .*$orgnr.*".toRegex()
         runBlocking {
-            val result = RedisService(TestContainerHelper.redis.container.host, TestContainerHelper.redis.container.firstMappedPort).henteSakStatus(orgnr)
+            val result = RedisService(
+                TestContainerHelper.redis.container.host,
+                TestContainerHelper.redis.container.firstMappedPort,
+                TestContainerHelper.redis.redisPassord
+            ).henteSakStatus(orgnr)
             result.orgnr shouldBe orgnr
         }
     }

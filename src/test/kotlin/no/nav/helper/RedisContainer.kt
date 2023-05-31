@@ -9,10 +9,12 @@ private const val REDIS_PORT = 6379
 
 class RedisContainer(network: Network) {
     val networkAlias = "redisContainer"
+    val redisPassord = "redislokaltpassord"
 
     fun getEnv() = mapOf(
         "REDIS_HOST" to networkAlias,
-        "REDIS_PORT" to REDIS_PORT.toString()
+        "REDIS_PORT" to REDIS_PORT.toString(),
+        "REDIS_PASSWORD" to redisPassord
     )
 
     val container = GenericContainer(
