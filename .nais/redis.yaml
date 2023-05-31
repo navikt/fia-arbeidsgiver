@@ -9,7 +9,7 @@ metadata:
   name: fia-arbeidsgiver-redis
   namespace: pia
 spec:
-  image: cgr.dev/chainguard/redis:7.0.11
+  image: bitnami/redis:6.2.12
   port: 6379
   replicas: # A single Redis-app doesn't scale
     min: 1
