@@ -37,3 +37,5 @@ spec:
       value: fia-arbeidsgiver-redis.pia.svc.cluster.local
     - name: REDIS_PORT
       value: "6379"
+  envFrom:
+    - secret: fia-arbeidsgiver-redis-password
