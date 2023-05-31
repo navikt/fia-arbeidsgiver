@@ -1,4 +1,4 @@
-package no.nav.kafka
+package no.nav.konfigurasjon
 
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.consumer.ConsumerConfig

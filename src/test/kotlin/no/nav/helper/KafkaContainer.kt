@@ -3,7 +3,7 @@ package no.nav.helper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeoutOrNull
-import no.nav.kafka.Kafka.Companion.topic
+import no.nav.konfigurasjon.Kafka.Companion.topic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig

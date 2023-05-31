@@ -7,7 +7,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.request.forms.*
 import io.ktor.http.*
-import no.nav.Miljø
+import no.nav.konfigurasjon.Miljø
 import no.nav.http.HttpClient
 import java.net.URI
 import java.time.Instant

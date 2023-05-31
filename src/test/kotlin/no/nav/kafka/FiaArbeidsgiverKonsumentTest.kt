@@ -5,6 +5,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helper.TestContainerHelper
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
+import no.nav.konfigurasjon.Kafka
 import java.time.LocalDateTime
 import kotlin.test.Test
 

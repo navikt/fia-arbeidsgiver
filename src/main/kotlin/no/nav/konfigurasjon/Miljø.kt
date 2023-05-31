@@ -1,4 +1,4 @@
-package no.nav
+package no.nav.konfigurasjon
 
 internal object Miljø {
     val tokenxClientId: String = System.getenv("TOKEN_X_CLIENT_ID")
