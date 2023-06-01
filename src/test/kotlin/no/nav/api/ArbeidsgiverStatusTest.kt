@@ -91,7 +91,7 @@ class ArbeidsgiverStatusTest {
     }
 
     @Test
-    fun `skal få ut samarbeidsstatus "IKKE_I_SAMARBEID" for virksomhet i status != "VI_BISTÅR"`() {
+    fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
         runBlocking {
             val orgnr = ALTINN_ORGNR_1
             sendStatusOppdateringForVirksomhet(orgnr, "VURDERES")
@@ -105,7 +105,7 @@ class ArbeidsgiverStatusTest {
     }
 
     @Test
-    fun `skal få ut samarbeidsstatus "I_SAMARBEID" for virksomhet i status "VI_BISTÅR"`() {
+    fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
         runBlocking {
             val orgnr = ALTINN_ORGNR_1
             sendStatusOppdateringForVirksomhet(orgnr, "VI_BISTÅR")
@@ -119,7 +119,7 @@ class ArbeidsgiverStatusTest {
     }
 
     @Test
-    fun `skal få samarbeidsstatus "IKKE_I_SAMARBEID" dersom vi ikke har noen data for virksomhet`() {
+    fun `skal få samarbeidsstatus IKKE_I_SAMARBEID dersom vi ikke har noen data for virksomhet`() {
         runBlocking {
             val orgnr = ALTINN_ORGNR_2
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
