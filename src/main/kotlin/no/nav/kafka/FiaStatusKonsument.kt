@@ -33,6 +33,8 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
             ).use { consumer ->
                 consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.topic}"))
                 logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.topic}")
+                consumer.seekToBeginning(emptyList())
+                logger.info("Forespurt tilbakestilling av offset for alle partisjoner")
 
                 while (job.isActive) {
                     try {
