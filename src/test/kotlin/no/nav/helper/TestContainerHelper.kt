@@ -70,6 +70,7 @@ private suspend fun GenericContainer<*>.performRequest(
 ) =
     httpClient.request {
         config()
+        header(HttpHeaders.Accept, "application/json")
         url {
             protocol = URLProtocol.HTTP
             host = this@performRequest.host

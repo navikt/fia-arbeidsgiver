@@ -7,7 +7,6 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helper.TestContainerHelper
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
-import no.nav.konfigurasjon.Kafka
 import no.nav.persistence.RedisService
 import java.time.LocalDateTime
 import kotlin.test.Test
@@ -26,10 +25,8 @@ class FiaArbeidsgiverKonsumentTest {
         val somString = Json.encodeToString(iaStatusOppdatering)
 
         TestContainerHelper.kafka.sendOgVentTilKonsumert(
-            orgnr,
-            somString,
-            "${Kafka.topicPrefix}.${Kafka.topic}",
-            Kafka.consumerGroupId
+            nøkkel = orgnr,
+            melding = somString,
         )
         TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Fikk melding om virksomhet .*$orgnr.*".toRegex()
         runBlocking {
@@ -38,7 +35,7 @@ class FiaArbeidsgiverKonsumentTest {
                 TestContainerHelper.redis.container.firstMappedPort,
                 TestContainerHelper.redis.redisPassord
             ).henteSakStatus(orgnr)
-            result.orgnr shouldBe orgnr
+            result?.orgnr shouldBe orgnr
         }
     }
 

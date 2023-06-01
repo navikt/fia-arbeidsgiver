@@ -3,6 +3,7 @@ package no.nav.helper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeoutOrNull
+import no.nav.konfigurasjon.Kafka
 import no.nav.konfigurasjon.Kafka.Companion.topic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
@@ -56,7 +57,12 @@ class KafkaContainer(network: Network) {
         "KAFKA_CREDSTORE_PASSWORD" to "",
     )
 
-    fun sendOgVentTilKonsumert(nøkkel: String, melding: String, topic: String, konsumentGruppeId: String) {
+    fun sendOgVentTilKonsumert(
+        nøkkel: String,
+        melding: String,
+        topic: String = "${Kafka.topicPrefix}.${Kafka.topic}",
+        konsumentGruppeId: String = Kafka.consumerGroupId,
+    ) {
         runBlocking {
             val sendtMelding = kafkaProducer.send(ProducerRecord(topic, nøkkel, melding)).get()
             ventTilKonsumert(

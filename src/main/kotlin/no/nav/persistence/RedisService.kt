@@ -29,8 +29,10 @@ class RedisService(host: String = Redis.redisHost, port: Int = Redis.redisPort, 
         lagre(iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
     }
 
-    fun henteSakStatus(orgnr: String): IASakStatus {
-        return Json.decodeFromString(hente(orgnr))
+    fun henteSakStatus(orgnr: String): IASakStatus? {
+        return hente(orgnr)?.let {
+            Json.decodeFromString(it)
+        }
     }
 
 
@@ -38,7 +40,7 @@ class RedisService(host: String = Redis.redisHost, port: Int = Redis.redisPort, 
         sync.setex(nøkkel, ttl, verdi)
     }
 
-    private fun hente(nøkkel: String): String {
-        return sync.get(nøkkel) ?: throw RuntimeException("Finner ikke verdi for nøkkel: $nøkkel")
+    private fun hente(nøkkel: String): String? {
+        return sync.get(nøkkel)
     }
 }

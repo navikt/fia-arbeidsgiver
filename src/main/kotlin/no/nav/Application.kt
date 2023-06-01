@@ -19,5 +19,5 @@ fun Application.module() {
     configureMonitoring()
     configureSerialization()
     configureSecurity()
-    configureRouting()
+    configureRouting(redisService = RedisService())
 }
