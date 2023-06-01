@@ -1,5 +1,6 @@
 package no.nav.helper
 
+import no.nav.persistence.RedisService
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -16,6 +17,13 @@ class RedisContainer(network: Network) {
         "REDIS_PORT" to REDIS_PORT.toString(),
         "REDIS_PASSWORD" to redisPassord
     )
+
+    val redisService
+        get() = RedisService(
+            TestContainerHelper.redis.container.host,
+            TestContainerHelper.redis.container.firstMappedPort,
+            TestContainerHelper.redis.redisPassord
+        )
 
     val container = GenericContainer(
         DockerImageName.parse("redis:6.2.12-alpine")

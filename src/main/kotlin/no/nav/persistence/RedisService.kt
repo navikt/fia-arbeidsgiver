@@ -26,7 +26,9 @@ class RedisService(host: String = Redis.redisHost, port: Int = Redis.redisPort, 
     }
 
     fun lagre(iaSakStatus: IASakStatus) {
-        lagre(iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
+        val gammelStatus = henteSakStatus(iaSakStatus.orgnr)
+        if (gammelStatus == null || gammelStatus.sistOppdatert <= iaSakStatus.sistOppdatert)
+            lagre(iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {

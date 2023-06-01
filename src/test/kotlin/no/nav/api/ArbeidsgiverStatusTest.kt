@@ -5,19 +5,15 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.helper.*
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_2
 import no.nav.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING
+import no.nav.helper.TestContainerHelper
 import no.nav.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.helper.performGet
 import no.nav.helper.withToken
-import no.nav.kafka.IASakStatus
-import java.time.LocalDateTime
 import kotlin.test.Test
 
 class ArbeidsgiverStatusTest {
@@ -94,7 +90,7 @@ class ArbeidsgiverStatusTest {
     fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
         runBlocking {
             val orgnr = ALTINN_ORGNR_1
-            sendStatusOppdateringForVirksomhet(orgnr, "VURDERES")
+            TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VURDERES")
 
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
                 url = "status/$orgnr", config = withToken()
@@ -108,7 +104,7 @@ class ArbeidsgiverStatusTest {
     fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
         runBlocking {
             val orgnr = ALTINN_ORGNR_1
-            sendStatusOppdateringForVirksomhet(orgnr, "VI_BISTÅR")
+            TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VI_BISTÅR")
 
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
                 url = "status/$orgnr", config = withToken()
@@ -128,21 +124,5 @@ class ArbeidsgiverStatusTest {
 
             Json.decodeFromString<IASamarbeidDTO>(responsSomTekst) shouldBe IASamarbeidDTO(orgnr, Samarbeid.IKKE_I_SAMARBEID)
         }
-    }
-
-    private fun sendStatusOppdateringForVirksomhet(
-        orgnr: String,
-        status: String,
-    ) {
-        val iaStatusOppdatering = IASakStatus(
-            orgnr = orgnr,
-            saksnummer = "sak",
-            status = status,
-            sistOppdatert = LocalDateTime.now().toKotlinLocalDateTime()
-        )
-        TestContainerHelper.kafka.sendOgVentTilKonsumert(
-            nøkkel = orgnr,
-            melding = Json.encodeToString(iaStatusOppdatering)
-        )
     }
 }

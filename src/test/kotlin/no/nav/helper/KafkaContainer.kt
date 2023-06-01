@@ -3,6 +3,10 @@ package no.nav.helper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeoutOrNull
+import kotlinx.datetime.toKotlinLocalDateTime
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import no.nav.kafka.IASakStatus
 import no.nav.konfigurasjon.Kafka
 import no.nav.konfigurasjon.Kafka.Companion.topic
 import org.apache.kafka.clients.CommonClientConfigs
@@ -21,6 +25,7 @@ import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
+import java.time.LocalDateTime
 import java.util.*
 
 class KafkaContainer(network: Network) {
@@ -56,6 +61,23 @@ class KafkaContainer(network: Network) {
         "KAFKA_KEYSTORE_PATH" to "",
         "KAFKA_CREDSTORE_PASSWORD" to "",
     )
+
+    fun sendStatusOppdateringForVirksomhet(
+        orgnr: String,
+        status: String,
+        sistOppdatert: LocalDateTime = LocalDateTime.now()
+    ) {
+        val iaStatusOppdatering = IASakStatus(
+            orgnr = orgnr,
+            saksnummer = "sak",
+            status = status,
+            sistOppdatert = sistOppdatert.toKotlinLocalDateTime()
+        )
+        TestContainerHelper.kafka.sendOgVentTilKonsumert(
+            nøkkel = orgnr,
+            melding = Json.encodeToString(iaStatusOppdatering)
+        )
+    }
 
     fun sendOgVentTilKonsumert(
         nøkkel: String,
