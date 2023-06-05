@@ -5,12 +5,13 @@ on:
       - main
     paths:
       - .nais/redis.yaml
+      - .github/workflows/deploy-redis.yaml
 
 jobs:
   deploy-redis:
     strategy:
       matrix:
-        cluster: [dev]
+        cluster: [dev, prod]
     name: "Deploy redis instance to ${{ matrix.cluster }}"
     if: github.ref == 'refs/heads/main'
     runs-on: "ubuntu-latest"
