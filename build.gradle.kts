@@ -50,6 +50,9 @@ dependencies {
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.31")
 
+    // audit log
+    implementation("com.papertrailapp:logback-syslog4j:1.0.0")
+
     val kotestVersion = "5.6.2"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
