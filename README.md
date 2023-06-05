@@ -1,11 +1,15 @@
 fia-arbeidsgiver
 ================
 
-Kort beskrivelse av hva prosjektet dreier seg om.
+Api for å kommunisere IA-samarbeidsstatus mellom fagsystemet Fia og innloggede arbeidsgivere.
 
 # Komme i gang
 
-Hvordan bygge, teste og kjøre koden viss aktuelt.
+Koden kan enn så lenge ikke kjøres lokalt.
+
+Tester kjøres med (trenger en kjørende docker runtime):
+
+`./gradlew test`
 
 ---
 
