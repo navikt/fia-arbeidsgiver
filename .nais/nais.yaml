@@ -26,8 +26,6 @@ spec:
         - application: fia-arbeidsgiver-redis
   kafka:
     pool: {{kafkaPool}}
-  redis:
-    enabled: true
   env:
     - name: ALTINN_RETTIGHETER_PROXY_CLIENT_ID
       value: {{altinnRettigheterProxyClientId}}
