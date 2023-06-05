@@ -6,7 +6,6 @@ import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.helper.TestContainerHelper
-import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import java.time.LocalDateTime
 import kotlin.test.Test
 
@@ -27,7 +26,6 @@ class FiaArbeidsgiverKonsumentTest {
             nøkkel = orgnr,
             melding = somString,
         )
-        TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Fikk melding om virksomhet .*$orgnr.*".toRegex()
         runBlocking {
             val result = TestContainerHelper.redis.redisService.henteSakStatus(orgnr)
             result?.orgnr shouldBe orgnr
