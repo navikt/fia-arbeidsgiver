@@ -44,7 +44,6 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
 
                         records.forEach {record ->
                             val payload = Json.decodeFromString<IASakStatus>(record.value())
-                            logger.info("Fikk melding om virksomhet $payload")
                             redisService.lagre(payload)
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.topic}")
