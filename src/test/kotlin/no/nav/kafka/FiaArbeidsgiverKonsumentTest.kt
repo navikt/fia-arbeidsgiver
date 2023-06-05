@@ -22,7 +22,7 @@ class FiaArbeidsgiverKonsumentTest {
         )
         val somString = Json.encodeToString(iaStatusOppdatering)
 
-        TestContainerHelper.kafka.sendOgVentTilKonsumert(
+        TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = somString,
         )

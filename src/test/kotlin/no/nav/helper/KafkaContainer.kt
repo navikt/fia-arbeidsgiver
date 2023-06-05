@@ -2,7 +2,6 @@ package no.nav.helper
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.time.withTimeoutOrNull
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -16,7 +15,6 @@ import org.apache.kafka.clients.admin.NewTopic
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
-import org.apache.kafka.clients.producer.RecordMetadata
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 import org.testcontainers.containers.KafkaContainer
@@ -24,7 +22,6 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
-import java.time.Duration
 import java.time.LocalDateTime
 import java.util.*
 
@@ -73,41 +70,21 @@ class KafkaContainer(network: Network) {
             status = status,
             sistOppdatert = sistOppdatert.toKotlinLocalDateTime()
         )
-        TestContainerHelper.kafka.sendOgVentTilKonsumert(
+        TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = Json.encodeToString(iaStatusOppdatering)
         )
     }
 
-    fun sendOgVentTilKonsumert(
+    fun sendOgVent(
         nøkkel: String,
         melding: String,
         topic: String = "${Kafka.topicPrefix}.${Kafka.topic}",
-        konsumentGruppeId: String = Kafka.consumerGroupId,
     ) {
         runBlocking {
-            val sendtMelding = kafkaProducer.send(ProducerRecord(topic, nøkkel, melding)).get()
-            ventTilKonsumert(
-                konsumentGruppeId = konsumentGruppeId,
-                recordMetadata = sendtMelding
-            )
+            kafkaProducer.send(ProducerRecord(topic, nøkkel, melding)).get()
+            delay(timeMillis = 20L)
         }
-    }
-
-    private suspend fun ventTilKonsumert(
-        konsumentGruppeId: String,
-        recordMetadata: RecordMetadata
-    ) =
-        withTimeoutOrNull(Duration.ofSeconds(5)) {
-            do {
-                delay(timeMillis = 10L)
-            } while (consumerSinOffset(consumerGroup = konsumentGruppeId, topic = recordMetadata.topic()) <= recordMetadata.offset())
-        }
-
-    private fun consumerSinOffset(consumerGroup: String, topic: String): Long {
-        val offsetMetadata = adminClient.listConsumerGroupOffsets(consumerGroup)
-            .partitionsToOffsetAndMetadata().get()
-        return offsetMetadata[offsetMetadata.keys.firstOrNull{ it.topic().contains(topic) }]?.offset() ?: -1
     }
 
     private fun createTopic() {
