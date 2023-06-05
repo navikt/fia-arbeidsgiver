@@ -33,8 +33,6 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
             ).use { consumer ->
                 consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.topic}"))
                 logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.topic}")
-                consumer.seekToBeginning(emptyList())
-                logger.info("Forespurt tilbakestilling av offset for alle partisjoner")
 
                 while (job.isActive) {
                     try {
@@ -43,8 +41,12 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                         logger.info("Fant ${records.count()} nye meldinger i topic: ${Kafka.topic}")
 
                         records.forEach {record ->
-                            val payload = Json.decodeFromString<IASakStatus>(record.value())
-                            redisService.lagre(payload)
+                            try {
+                                val payload = Json.decodeFromString<IASakStatus>(record.value())
+                                redisService.lagre(payload)
+                            } catch (e: IllegalArgumentException) {
+                                logger.error("Mottok feil formatert kafkamelding")
+                            }
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.topic}")
                     } catch (e: RetriableException) {
