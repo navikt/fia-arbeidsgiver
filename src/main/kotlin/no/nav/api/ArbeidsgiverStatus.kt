@@ -7,9 +7,10 @@ import io.ktor.server.routing.*
 import no.nav.persistence.RedisService
 
 const val ORGNR = "orgnr"
+const val STATUS_PATH = "/fia-arbeidsgiver/status"
 
 fun Route.status(redisService: RedisService) {
-    get("status/{$ORGNR}") {
+    get("$STATUS_PATH/{$ORGNR}") {
         val orgnr = call.parameters["orgnr"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val iaSakStatus = redisService.henteSakStatus(orgnr)
         call.respond(
