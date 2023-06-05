@@ -48,7 +48,6 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                             redisService.lagre(payload)
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.topic}")
-                        consumer.commitAsync()
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
