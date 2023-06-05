@@ -12,6 +12,9 @@ fun Route.status(redisService: RedisService) {
     get("status/{$ORGNR}") {
         val orgnr = call.parameters["orgnr"] ?: return@get call.respond(HttpStatusCode.BadRequest)
         val iaSakStatus = redisService.henteSakStatus(orgnr)
-        call.respond(iaSakStatus?.tilSamarbeid() ?: IASamarbeidDTO(orgnr, Samarbeid.IKKE_I_SAMARBEID))
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = iaSakStatus?.tilSamarbeid() ?: IASamarbeidDTO(orgnr, Samarbeid.IKKE_I_SAMARBEID)
+        )
     }
 }

@@ -11,11 +11,18 @@ fun Application.configureRouting(redisService: RedisService) {
     routing {
         helse()
         authenticate("tokenx") {
-            medVerifisertAltinnTilgang {
-                status(redisService = redisService)
+            auditLogged {
+                medVerifisertAltinnTilgang {
+                    status(redisService = redisService)
+                }
             }
         }
     }
+}
+
+fun Route.auditLogged(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {
+    install(AuditLogged)
+    authorizedRoutes()
 }
 
 fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {

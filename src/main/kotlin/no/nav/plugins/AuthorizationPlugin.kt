@@ -44,7 +44,7 @@ val AuthorizationPlugin = createRouteScopedPlugin(
             )
 
             if (virksomheterSomBrukerHarTilgangTil.none { it.organizationNumber == orgnr })
-                call.respond(HttpStatusCode.Forbidden)
+                call.respond(status = HttpStatusCode.Forbidden, message = "Ikke tilgang til orgnummer")
         }
     }
 }

@@ -36,7 +36,10 @@ class TestContainerHelper {
                     authServer.getEnv() +
                             altinnProxy.getEnv() +
                             kafka.getEnv() +
-                            redis.getEnv()
+                            redis.getEnv() +
+                        mapOf(
+                            "NAIS_CLUSTER_NAME" to "lokal"
+                        )
                 )
                 .dependsOn(authServer.container, kafka.container, redis.container)
                 .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))

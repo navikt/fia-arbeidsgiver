@@ -1,9 +1,13 @@
 package no.nav.konfigurasjon
 
+enum class Cluster {
+    `prod-gcp`, `dev-gcp`, lokal
+}
+
 internal object Miljø {
+    val cluster = Cluster.valueOf(System.getenv("NAIS_CLUSTER_NAME") ?: "prod-gcp")
+
     val tokenxClientId: String = System.getenv("TOKEN_X_CLIENT_ID")
-    val tokenxIssuer: String = System.getenv("TOKEN_X_ISSUER")
-    val tokenxJwkPath: String = System.getenv("TOKEN_X_JWKS_URI")
     val tokenxPrivateJwk: String = System.getenv("TOKEN_X_PRIVATE_JWK")
     val tokenXTokenEndpoint: String = System.getenv("TOKEN_X_TOKEN_ENDPOINT")
     val idportenIssuer: String = System.getenv("IDPORTEN_ISSUER")
