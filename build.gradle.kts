@@ -1,4 +1,4 @@
-val ktor_version = "2.3.0"
+val ktor_version = "2.3.1"
 val kotlin_version = "1.8.21"
 val logback_version = "1.4.7"
 val prometeus_version  = "1.11.0"
@@ -58,7 +58,7 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktor_version")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlin_version")
-    val testcontainersVersion = "1.18.1"
+    val testcontainersVersion = "1.18.3"
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
