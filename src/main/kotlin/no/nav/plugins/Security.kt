@@ -1,6 +1,8 @@
 package no.nav.plugins
 
 import com.auth0.jwk.JwkProviderBuilder
+import com.auth0.jwt.interfaces.Claim
+import com.auth0.jwt.interfaces.DecodedJWT
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
@@ -19,7 +21,9 @@ fun Application.configureSecurity() {
             verifier(jwkProvider, issuer = Miljø.idportenIssuer) {
                 acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
                 withAudience(Miljø.idportenAudience)
-                withClaim("acr", "Level4")
+                withClaim("acr") { claim: Claim, _: DecodedJWT ->
+                    claim.asString().equals("Level4") || claim.asString().equals("idporten-loa-high")
+                }
                 withClaim("client_id", Miljø.idportenClientId)
                 withClaimPresence("pid")
             }

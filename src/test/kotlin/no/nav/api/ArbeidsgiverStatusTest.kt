@@ -5,7 +5,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_2
@@ -42,7 +41,8 @@ class ArbeidsgiverStatusTest {
                         audience = "NEI OG NEI",
                         claims = mapOf(
                             "pid" to "123",
-                            "acr" to "Level4"
+                            "acr" to "Level4",
+                            "client_id" to "hei",
                         ),
                     ).serialize()
                 )
@@ -60,7 +60,8 @@ class ArbeidsgiverStatusTest {
                         audience = "hei",
                         claims = mapOf(
                             "pid" to "123",
-                            "acr" to "Level3"
+                            "acr" to "Level3",
+                            "client_id" to "hei",
                         ),
                     ).serialize()
                 )
@@ -74,6 +75,44 @@ class ArbeidsgiverStatusTest {
             fiaArbeidsgiverApi.performGet(
                 "$STATUS_PATH/$ALTINN_ORGNR_1", withToken()
             ).status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token, gammel acr og altinn tilgang`() {
+        runBlocking {
+            fiaArbeidsgiverApi.performGet("$STATUS_PATH/$ALTINN_ORGNR_1") {
+                header(
+                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
+                        subject = "123",
+                        audience = "hei",
+                        claims = mapOf(
+                            "pid" to "123",
+                            "acr" to "Level4",
+                            "client_id" to "hei",
+                        ),
+                    ).serialize()
+                )
+            }.status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token, ny acr og altinn tilgang`() {
+        runBlocking {
+            fiaArbeidsgiverApi.performGet("$STATUS_PATH/$ALTINN_ORGNR_1") {
+                header(
+                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.accessToken(
+                        subject = "123",
+                        audience = "hei",
+                        claims = mapOf(
+                            "pid" to "123",
+                            "acr" to "idporten-loa-high",
+                            "client_id" to "hei",
+                        ),
+                    ).serialize()
+                )
+            }.status shouldBe HttpStatusCode.OK
         }
     }
 
