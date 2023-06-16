@@ -7,18 +7,13 @@ metadata:
     "team": "pia"
 spec:
   image: {{image}}
-  ingresses:
-    {{#each ingresses as |url|}}
-    - {{url}}
-    {{/each}}
-  idporten:
-    enabled: true
-    sidecar:
-      enabled: true
-      autoLogin: true
   tokenx:
     enabled: true
   accessPolicy:
+    inbound:
+      rules:
+        - application: min-ia
+          namespace: teamia
     outbound:
       rules:
         - application: altinn-rettigheter-proxy

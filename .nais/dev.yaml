@@ -1,4 +1,2 @@
-ingresses:
-- "https://arbeidsgiver.intern.dev.nav.no/fia-arbeidsgiver"
 altinnRettigheterProxyClientId: "dev-gcp:arbeidsgiver:altinn-rettigheter-proxy"
 kafkaPool: nav-dev
