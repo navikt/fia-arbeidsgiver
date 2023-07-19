@@ -39,7 +39,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.4.0")
+    implementation("org.apache.kafka:kafka-clients:3.5.0")
 
     // Lettuce - Redis client
     implementation("io.lettuce:lettuce-core:6.2.5.RELEASE")
