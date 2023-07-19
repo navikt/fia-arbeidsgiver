@@ -65,7 +65,7 @@ dependencies {
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:0.5.8")
     constraints {
-        implementation("net.minidev:json-smart:2.4.11") {
+        implementation("net.minidev:json-smart:2.5.0") {
             because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
         }
     }
