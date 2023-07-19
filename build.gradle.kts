@@ -1,7 +1,7 @@
 val ktorVersion = "2.3.2"
 val kotlinVersion = "1.8.22"
-val logbackVersion = "1.4.7"
-val prometeusVersion  = "1.11.0"
+val logbackVersion = "1.4.8"
+val prometeusVersion  = "1.11.2"
 
 plugins {
     kotlin("jvm") version "1.8.22"
@@ -42,7 +42,7 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:3.4.0")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.2.4.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.2.5.RELEASE")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
