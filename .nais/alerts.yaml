@@ -1,0 +1,21 @@
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: fia-arbeidsgiver-alerts
+  namespace: pia
+  labels:
+    team: pia
+spec:
+  groups:
+    - name: fia-arbeidsgiver-alerts
+      rules:
+        - alert: InstanceDown
+          expr: kube_deployment_status_replicas_available{namespace="pia", deployment="fia-arbeidsgiver"} == 0
+          for: 5m
+          annotations:
+            consequence: Application is unavailable
+            action: "`kubectl describe pod <podname>` -> `kubectl logs <podname>`"
+          labels:
+            namespace: pia # required
+            severity: critical
