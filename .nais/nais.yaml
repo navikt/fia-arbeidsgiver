@@ -21,6 +21,9 @@ spec:
         - application: fia-arbeidsgiver-redis
   kafka:
     pool: {{kafkaPool}}
+  prometheus:
+    enabled: true
+    path: /metrics
   env:
     - name: ALTINN_RETTIGHETER_PROXY_CLIENT_ID
       value: {{altinnRettigheterProxyClientId}}
