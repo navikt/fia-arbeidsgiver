@@ -7,7 +7,6 @@ plugins {
     kotlin("jvm") version "1.9.0"
     id("io.ktor.plugin") version "2.3.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.22"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "no.nav"
@@ -71,13 +70,8 @@ dependencies {
     }
 }
 
-tasks {
-    shadowJar {
-        manifest {
-            attributes(Pair("Main-Class", "no.nav.lydia.AppKt"))
-        }
-    }
-    withType<Test> {
-        dependsOn("shadowJar")
+ktor {
+    fatJar {
+        archiveFileName.set("fia-arbeidsgiver-all.jar")
     }
 }
