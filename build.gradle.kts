@@ -1,11 +1,11 @@
-val ktorVersion = "2.3.2"
+val ktorVersion = "2.3.3"
 val kotlinVersion = "1.8.22"
 val logbackVersion = "1.4.8"
 val prometeusVersion  = "1.11.2"
 
 plugins {
     kotlin("jvm") version "1.9.0"
-    id("io.ktor.plugin") version "2.3.2"
+    id("io.ktor.plugin") version "2.3.3"
     id("org.jetbrains.kotlin.plugin.serialization") version "1.8.22"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
