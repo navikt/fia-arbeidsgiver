@@ -1,12 +1,12 @@
 val ktorVersion = "2.3.3"
-val kotlinVersion = "1.8.22"
+val kotlinVersion = "1.9.0"
 val logbackVersion = "1.4.8"
 val prometeusVersion  = "1.11.2"
 
 plugins {
     kotlin("jvm") version "1.9.0"
+    kotlin("plugin.serialization") version "1.9.0"
     id("io.ktor.plugin") version "2.3.3"
-    id("org.jetbrains.kotlin.plugin.serialization") version "1.8.22"
 }
 
 group = "no.nav"
