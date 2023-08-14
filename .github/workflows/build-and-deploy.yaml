@@ -1,10 +1,12 @@
 name: "Build and deploy fia-arbeidsgiver"
 on: [ push ]
 
-permissions: read-all
 
 jobs:
   build:
+    permissions:
+      contents: read
+      id-token: write
     name: "build"
     runs-on: "ubuntu-latest"
     steps:
@@ -39,6 +41,8 @@ jobs:
       image: ${{ steps.docker-push.outputs.image }}
 
   deploy:
+    permissions:
+      contents: read
     strategy:
       matrix:
         cluster: [dev, prod]
