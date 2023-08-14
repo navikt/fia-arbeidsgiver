@@ -4,6 +4,8 @@ on: [ push ]
 env:
   "IMAGE": "ghcr.io/${{ github.repository }}:${{ github.sha }}"
 
+permissions: read-all
+
 jobs:
   build:
     name: "build"
