@@ -9,6 +9,10 @@ jobs:
     name: "build"
     runs-on: "ubuntu-latest"
     steps:
+      - name: Sjekk hvilke permissions som trengs på GITHUB_TOKEN
+        uses: GitHubSecurityLab/actions-permissions/monitor@v1
+        with:
+          config: ${{ vars.PERMISSIONS_CONFIG }}
       - uses: "actions/checkout@v3"
       - uses: "gradle/wrapper-validation-action@v1"
       - uses: "actions/cache@v3"
@@ -51,6 +55,10 @@ jobs:
     if: github.ref == 'refs/heads/main'
     runs-on: "ubuntu-latest"
     steps:
+      - name: Sjekk hvilke permissions som trengs på GITHUB_TOKEN
+        uses: GitHubSecurityLab/actions-permissions/monitor@v1
+        with:
+          config: ${{ vars.PERMISSIONS_CONFIG }}
       - uses: "actions/checkout@v3"
       - name: "Deploy application to ${{ matrix.cluster }}"
         uses: "nais/deploy/actions/deploy@v1"
