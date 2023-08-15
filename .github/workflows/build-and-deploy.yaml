@@ -5,7 +5,6 @@ on: [ push ]
 jobs:
   build:
     permissions:
-      contents: read
       id-token: write
     name: "build"
     runs-on: "ubuntu-latest"
@@ -41,8 +40,7 @@ jobs:
       image: ${{ steps.docker-push.outputs.image }}
 
   deploy:
-    permissions:
-      contents: read
+    permissions: {}
     strategy:
       matrix:
         cluster: [dev, prod]
