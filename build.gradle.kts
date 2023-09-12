@@ -60,7 +60,7 @@ dependencies {
     val testcontainersVersion = "1.19.0"
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
-    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:2.35.0")
+    testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:1.0.0")
     constraints {
