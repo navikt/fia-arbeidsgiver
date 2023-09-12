@@ -1,7 +1,7 @@
 val ktorVersion = "2.3.4"
 val kotlinVersion = "1.9.10"
-val logbackVersion = "1.4.8"
-val prometeusVersion  = "1.11.2"
+val logbackVersion = "1.4.11"
+val prometeusVersion  = "1.11.4"
 
 plugins {
     kotlin("jvm") version "1.9.10"
@@ -35,13 +35,13 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.5.0")
+    implementation("org.apache.kafka:kafka-clients:3.5.1")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.2.5.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.2.6.RELEASE")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
@@ -52,7 +52,7 @@ dependencies {
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
 
-    val kotestVersion = "5.6.2"
+    val kotestVersion = "5.7.2"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
