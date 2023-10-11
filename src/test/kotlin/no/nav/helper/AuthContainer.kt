@@ -26,7 +26,7 @@ class AuthContainer(network: Network) {
     private val baseEndpointUrl = "http://$networkalias:$port"
     private val oAuth2Config = OAuth2Config()
 
-    val container = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:0.5.8"))
+    val container = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.0.0"))
         .withNetwork(network)
         .withNetworkAliases(networkalias)
         .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix("authContainer").withSeparateOutputStreams())

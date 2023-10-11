@@ -1,7 +1,7 @@
-val ktorVersion = "2.3.4"
+val ktorVersion = "2.3.5"
 val kotlinVersion = "1.9.10"
 val logbackVersion = "1.4.11"
-val prometeusVersion  = "1.11.4"
+val prometeusVersion  = "1.11.5"
 
 plugins {
     kotlin("jvm") version "1.9.10"
@@ -31,7 +31,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.5.1")
+    implementation("org.apache.kafka:kafka-clients:3.6.0")
 
     // Lettuce - Redis client
     implementation("io.lettuce:lettuce-core:6.2.6.RELEASE")
@@ -40,7 +40,7 @@ dependencies {
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.31")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.36")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -50,12 +50,12 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-    val testcontainersVersion = "1.19.0"
+    val testcontainersVersion = "1.19.1"
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("com.github.tomakehurst:wiremock-jre8-standalone:3.0.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:1.0.0")
+    testImplementation("no.nav.security:mock-oauth2-server:2.0.0")
     constraints {
         implementation("net.minidev:json-smart:2.5.0") {
             because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
