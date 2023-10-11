@@ -6,17 +6,10 @@ val prometeusVersion  = "1.11.4"
 plugins {
     kotlin("jvm") version "1.9.10"
     kotlin("plugin.serialization") version "1.9.10"
-    id("io.ktor.plugin") version "2.3.4"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "no.nav"
-version = "0.0.1"
-application {
-    mainClass.set("no.nav.ApplicationKt")
-
-    val isDevelopment: Boolean = project.ext.has("development")
-    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=$isDevelopment")
-}
 
 repositories {
     mavenCentral()
@@ -70,8 +63,13 @@ dependencies {
     }
 }
 
-ktor {
-    fatJar {
-        archiveFileName.set("fia-arbeidsgiver-all.jar")
+tasks {
+    shadowJar {
+        manifest {
+            attributes("Main-Class" to "no.nav.ApplicationKt")
+        }
+    }
+    test {
+        dependsOn(shadowJar)
     }
 }
