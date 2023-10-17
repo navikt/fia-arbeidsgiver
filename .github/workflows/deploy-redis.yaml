@@ -1,4 +1,4 @@
-name: "Deploy Redis instance"
+name: Deploy Redis instance
 on:
   push:
     branches:
@@ -14,14 +14,14 @@ jobs:
     strategy:
       matrix:
         cluster: [dev, prod]
-    name: "Deploy redis instance to ${{ matrix.cluster }}"
+    name: Deploy redis instance to ${{ matrix.cluster }}
     if: github.ref == 'refs/heads/main'
-    runs-on: "ubuntu-latest"
+    runs-on: ubuntu-latest
     steps:
-      - uses: "actions/checkout@v3"
-      - name: "Deploy redis instance to ${{ matrix.cluster }}"
-        uses: "nais/deploy/actions/deploy@v1"
+      - uses: actions/checkout@v3
+      - name: Deploy redis instance to ${{ matrix.cluster }}
+        uses: nais/deploy/actions/deploy@v1
         env:
-          "APIKEY": "${{ secrets.NAIS_DEPLOY_APIKEY }}"
-          "CLUSTER": "${{ matrix.cluster }}-gcp"
-          "RESOURCE": ".nais/redis.yaml"
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: ${{ matrix.cluster }}-gcp
+          RESOURCE: .nais/redis.yaml
