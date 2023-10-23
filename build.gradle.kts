@@ -25,6 +25,14 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktorVersion")
+    constraints {
+        implementation("com.google.guava:guava") {
+            version {
+                require("32.1.3-jre")
+            }
+            because("ktor-server-auth-jwt:2.3.5 inkluderer guava 30.x.x som er sårbar for cve-2023-2976")
+        }
+    }
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
@@ -40,7 +48,7 @@ dependencies {
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.36")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -57,14 +65,11 @@ dependencies {
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.0.0")
     constraints {
-        implementation("net.minidev:json-smart:2.5.0") {
-            because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
-        }
-        implementation("com.google.guava:guava") {
+        implementation("net.minidev:json-smart") {
             version {
-                require("32.0.1-jre")
+                require("2.5.0")
             }
-            because("ktor-server-auth-jwt:2.3.5 inkluderer guava 30.x.x som er sårbar for cve-2023-2976")
+            because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
         }
     }
 }
