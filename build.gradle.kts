@@ -71,6 +71,12 @@ dependencies {
             }
             because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
         }
+        implementation("io.netty:netty-codec-http2") {
+            version {
+                require("4.1.100.Final")
+            }
+            because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
+        }
     }
 }
 
