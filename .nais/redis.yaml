@@ -9,7 +9,7 @@ metadata:
   name: fia-arbeidsgiver-redis
   namespace: pia
 spec:
-  image: bitnami/redis:6.2.12
+  image: redis:7-alpine # or a custom Redis-image
   port: 6379
   replicas: # A single Redis-app doesn't scale
     min: 1
