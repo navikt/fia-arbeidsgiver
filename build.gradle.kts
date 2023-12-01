@@ -1,6 +1,6 @@
 val ktorVersion = "2.3.5"
 val kotlinVersion = "1.9.20"
-val logbackVersion = "1.4.11"
+val logbackVersion = "1.4.12"
 val prometeusVersion  = "1.11.5"
 
 plugins {
