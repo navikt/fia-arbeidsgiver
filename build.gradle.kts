@@ -1,11 +1,11 @@
-val ktorVersion = "2.3.5"
-val kotlinVersion = "1.9.20"
-val logbackVersion = "1.4.12"
-val prometeusVersion  = "1.11.5"
+val ktorVersion = "2.3.6"
+val kotlinVersion = "1.9.21"
+val logbackVersion = "1.4.14"
+val prometeusVersion  = "1.12.0"
 
 plugins {
-    kotlin("jvm") version "1.9.20"
-    kotlin("plugin.serialization") version "1.9.20"
+    kotlin("jvm") version "1.9.21"
+    kotlin("plugin.serialization") version "1.9.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -36,34 +36,34 @@ dependencies {
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.4.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.6.0")
+    implementation("org.apache.kafka:kafka-clients:3.6.1")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.2.6.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
 
-    val kotestVersion = "5.7.2"
+    val kotestVersion = "5.8.0"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-    val testcontainersVersion = "1.19.1"
+    val testcontainersVersion = "1.19.3"
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.3.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.0.0")
+    testImplementation("no.nav.security:mock-oauth2-server:2.0.1")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
@@ -73,7 +73,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.100.Final")
+                require("4.1.101.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }

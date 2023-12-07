@@ -31,7 +31,7 @@ class KafkaContainer(network: Network) {
     private var kafkaProducer: KafkaProducer<String, String>
 
     val container = KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.2.2")
+        DockerImageName.parse("confluentinc/cp-kafka:7.4.3")
     )
         .withNetwork(network)
         .withNetworkAliases(kafkaNetworkAlias)
