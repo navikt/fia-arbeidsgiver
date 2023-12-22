@@ -22,6 +22,9 @@ spec:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
         - application: fia-arbeidsgiver-redis
+  redis:
+    - instance: status
+      access: readwrite
   kafka:
     pool: {{kafkaPool}}
   prometheus:
@@ -32,9 +35,5 @@ spec:
       value: {{altinnRettigheterProxyClientId}}
     - name: ALTINN_RETTIGHETER_PROXY_URL
       value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
-    - name: REDIS_HOST
-      value: fia-arbeidsgiver-redis.pia.svc.cluster.local
-    - name: REDIS_PORT
-      value: "6379"
   envFrom:
     - secret: fia-arbeidsgiver-redis-password
