@@ -14,14 +14,14 @@ class RedisContainer(network: Network) {
     val redisPassord = "redislokaltpassord"
 
     fun getEnv() = mapOf(
-        "REDIS_URI_STATUS" to "rediss://$networkAlias:$REDIS_PORT",
+        "REDIS_URI_STATUS" to "redis://$networkAlias:$REDIS_PORT",
         "REDIS_USERNAME_STATUS" to redisUsername,
         "REDIS_PASSWORD_STATUS" to redisPassord
     )
 
     val redisService
         get() = RedisService(
-            url = "rediss://${TestContainerHelper.redis.container.host}:${TestContainerHelper.redis.container.firstMappedPort}",
+            url = "redis://${TestContainerHelper.redis.container.host}:${TestContainerHelper.redis.container.firstMappedPort}",
             username = redisUsername,
             password = redisPassord,
         )
