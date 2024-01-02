@@ -1,7 +1,6 @@
 package no.nav.kafka
 
 import kotlinx.coroutines.*
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import no.nav.konfigurasjon.Kafka
 import no.nav.persistence.RedisService
@@ -54,6 +53,7 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${Kafka.topic}", e)
                         job.cancel(CancellationException(e.message))
+                        job.join()
                         throw e
                     }
                 }
