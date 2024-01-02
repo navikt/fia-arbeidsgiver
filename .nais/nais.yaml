@@ -23,7 +23,7 @@ spec:
           namespace: arbeidsgiver
         - application: fia-arbeidsgiver-redis
   redis:
-    - instance: status
+    - instance: fia-samarbeidsstatus
       access: readwrite
   kafka:
     pool: {{kafkaPool}}
