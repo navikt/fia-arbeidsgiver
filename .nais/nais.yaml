@@ -21,7 +21,6 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
-        - application: fia-arbeidsgiver-redis
   redis:
     - instance: fia-samarbeidsstatus
       access: readwrite
@@ -35,5 +34,3 @@ spec:
       value: {{altinnRettigheterProxyClientId}}
     - name: ALTINN_RETTIGHETER_PROXY_URL
       value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
-  envFrom:
-    - secret: fia-arbeidsgiver-redis-password
