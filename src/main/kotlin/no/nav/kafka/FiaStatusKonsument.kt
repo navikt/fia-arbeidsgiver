@@ -15,6 +15,11 @@ import kotlin.coroutines.CoroutineContext
 class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
+    private val kafkaConsumer = KafkaConsumer(
+        Kafka.consumerProperties(),
+        StringDeserializer(),
+        StringDeserializer()
+    )
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + job
@@ -25,11 +30,7 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
 
     fun run() {
         launch {
-            KafkaConsumer(
-                Kafka.consumerProperties(),
-                StringDeserializer(),
-                StringDeserializer()
-            ).use { consumer ->
+            kafkaConsumer.use { consumer ->
                 consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.topic}"))
                 logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.topic}")
 
@@ -59,9 +60,10 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
         }
     }
 
-    private fun cancel() {
+    private fun cancel() = runBlocking {
         logger.info("Stopping kafka consumer job for ${Kafka.topicPrefix}.${Kafka.topic}")
-        job.cancel()
+        kafkaConsumer.wakeup()
+        job.cancelAndJoin()
         logger.info("Stopped kafka consumer job for ${Kafka.topicPrefix}.${Kafka.topic}")
     }
 }
