@@ -14,9 +14,9 @@ class RedisContainer(network: Network) {
     val redisPassord = "redislokaltpassord"
 
     fun getEnv() = mapOf(
-        "REDIS_URI_STATUS" to "redis://$networkAlias:$REDIS_PORT",
-        "REDIS_USERNAME_STATUS" to redisUsername,
-        "REDIS_PASSWORD_STATUS" to redisPassord
+        "REDIS_URI_FIA_SAMARBEIDSSTATUS" to "redis://$networkAlias:$REDIS_PORT",
+        "REDIS_USERNAME_FIA_SAMARBEIDSSTATUS" to redisUsername,
+        "REDIS_PASSWORD_FIA_SAMARBEIDSSTATUS" to redisPassord
     )
 
     val redisService
