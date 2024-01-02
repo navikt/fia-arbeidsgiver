@@ -2,6 +2,7 @@ package no.nav.persistence
 
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
+import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -15,10 +16,9 @@ class RedisService(url: String = Redis.redisUrl, username: String = Redis.redisU
     val defaultTimeToLiveSeconds: Long
 
     init {
-        val tmpUrl = RedisURI.create(url)
-        redisUri = RedisURI.Builder.redis(tmpUrl.host, tmpUrl.port)
-            .withAuthentication(username, password)
-            .build()
+        redisUri = RedisURI.create(url)
+        redisUri.credentialsProvider = StaticCredentialsProvider(username, password?.toCharArray())
+
         val redisClient = RedisClient.create(redisUri)
         val connection = redisClient.connect()
         sync = connection.sync()
