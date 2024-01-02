@@ -64,6 +64,23 @@ jobs:
           VARS: .nais/${{ matrix.cluster }}.yaml
           VAR: image=${{ needs.build.outputs.image }}
 
+  deploy-dev:
+    permissions: {}
+    name: Deploy app to dev
+    needs: build
+    if: github.ref == 'refs/heads/aiven-redis'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy application to dev
+        uses: nais/deploy/actions/deploy@v1
+        env:
+          APIKEY: ${{ secrets.NAIS_DEPLOY_APIKEY }}
+          CLUSTER: dev-gcp
+          RESOURCE: .nais/nais.yaml
+          VARS: .nais/dev.yaml
+          VAR: image=${{ needs.build.outputs.image }}
+
   trivy-scan:
     name: Scanner docker image med Trivy
     if: github.ref == 'refs/heads/main'
