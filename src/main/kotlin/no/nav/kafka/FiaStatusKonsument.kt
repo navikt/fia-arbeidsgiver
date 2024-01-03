@@ -9,6 +9,7 @@ import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.IOException
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
@@ -53,7 +54,7 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${Kafka.topic}", e)
-                        throw CancellationException("CancellationException: ${e.message}", e)
+                        throw IOException("IOException: ${e.message}", e)
                     }
                 }
             }
