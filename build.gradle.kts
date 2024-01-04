@@ -47,6 +47,9 @@ dependencies {
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
 
+    // altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet
+    implementation("commons-codec:commons-codec:1.16.0")
+
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
 
