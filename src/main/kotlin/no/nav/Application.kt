@@ -12,15 +12,9 @@ import org.slf4j.LoggerFactory
 private val logger: Logger = LoggerFactory.getLogger("Application::main")
 
 fun main() {
-    try {
-
-        val redisService = RedisService()
-        FiaStatusKonsument(redisService).run()
-        embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module).start(wait = true)
-
-    } catch (e: Exception) {
-        logger.error("Failed to start application", e)
-    }
+    val redisService = RedisService()
+    FiaStatusKonsument(redisService).run()
+    embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::module).start(wait = true)
 }
 
 fun Application.module() {

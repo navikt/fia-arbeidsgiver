@@ -6,10 +6,10 @@ import no.nav.konfigurasjon.Kafka
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
+import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.io.IOException
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
@@ -50,12 +50,15 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                             }
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.topic}")
+                    } catch (e: WakeupException) {
+                        logger.info("FiaStatusKonsument is shutting down")
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${Kafka.topic}", e)
-                        job.cancelAndJoin()
-                        throw IOException("IOException: ${e.message}", e)
+                        job.cancel(CancellationException(e.message))
+                        job.join()
+                        throw e
                     }
                 }
             }
