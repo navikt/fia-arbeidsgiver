@@ -1,11 +1,11 @@
-val ktorVersion = "2.3.6"
-val kotlinVersion = "1.9.21"
+val ktorVersion = "2.3.7"
+val kotlinVersion = "1.9.22"
 val logbackVersion = "1.4.14"
-val prometeusVersion  = "1.12.0"
+val prometeusVersion  = "1.12.1"
 
 plugins {
-    kotlin("jvm") version "1.9.21"
-    kotlin("plugin.serialization") version "1.9.21"
+    kotlin("jvm") version "1.9.22"
+    kotlin("plugin.serialization") version "1.9.22"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -25,14 +25,6 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-server-auth-jwt-jvm:$ktorVersion")
-    constraints {
-        implementation("com.google.guava:guava") {
-            version {
-                require("32.1.3-jre")
-            }
-            because("ktor-server-auth-jwt:2.3.5 inkluderer guava 30.x.x som er sårbar for cve-2023-2976")
-        }
-    }
     implementation("io.ktor:ktor-server-netty-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:7.4")
@@ -51,7 +43,7 @@ dependencies {
     implementation("commons-codec:commons-codec:1.16.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.37.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.37.3")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -66,7 +58,7 @@ dependencies {
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.3.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.0.1")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.0")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
@@ -76,7 +68,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.101.Final")
+                require("4.1.104.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
