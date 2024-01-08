@@ -12,7 +12,8 @@ class Kafka {
         private val keystoreLocation: String by lazy { System.getenv("KAFKA_KEYSTORE_PATH") }
         private val credstorePassword: String by lazy { System.getenv("KAFKA_CREDSTORE_PASSWORD") }
         val topicPrefix: String = "pia"
-        val topic: String = "ia-sak-status-v1"
+        val sakStatusTopic: String = "ia-sak-status-v1"
+        val kartleggingTopic: String = "kartlegging-v1"
         const val clientId: String = "fia-arbeidsgiver"
         const val consumerGroupId = "ia-sak-status_$clientId"
 

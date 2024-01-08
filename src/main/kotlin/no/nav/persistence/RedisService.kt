@@ -7,10 +7,16 @@ import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.kafka.IASakStatus
+import no.nav.kafka.Spørreundersøkelse
 import no.nav.konfigurasjon.Redis
+import java.util.*
 
 
-class RedisService(url: String = Redis.redisUrl, username: String = Redis.redisUsername, password: String? = Redis.redisPassword) {
+class RedisService(
+    url: String = Redis.redisUrl,
+    username: String = Redis.redisUsername,
+    password: String? = Redis.redisPassword
+) {
     val redisUri: RedisURI
     val sync: RedisCommands<String, String>
     val defaultTimeToLiveSeconds: Long
@@ -31,12 +37,21 @@ class RedisService(url: String = Redis.redisUrl, username: String = Redis.redisU
             lagre(iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
     }
 
+    fun lagre(spørreundersøkelse: Spørreundersøkelse) {
+        lagre("spørreundersøkelse-${spørreundersøkelse.id}", Json.encodeToString(spørreundersøkelse))
+    }
+
     fun henteSakStatus(orgnr: String): IASakStatus? {
         return hente(orgnr)?.let {
             Json.decodeFromString(it)
         }
     }
 
+    fun henteSpørreundersøkelse(id: UUID): Spørreundersøkelse? {
+        return hente("spørreundersøkelse-${id}")?.let {
+            Json.decodeFromString(it)
+        }
+    }
 
     private fun lagre(nøkkel: String, verdi: String, ttl: Long = defaultTimeToLiveSeconds) {
         sync.setex(nøkkel, ttl, verdi)
