@@ -7,7 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.kafka.IASakStatus
 import no.nav.konfigurasjon.Kafka
-import no.nav.konfigurasjon.Kafka.Companion.topic
+import no.nav.konfigurasjon.Kafka.Companion.sakStatusTopic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -79,17 +79,17 @@ class KafkaContainer(network: Network) {
     fun sendOgVent(
         nøkkel: String,
         melding: String,
-        topic: String = "${Kafka.topicPrefix}.${Kafka.topic}",
+        topic: String = sakStatusTopic,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord(topic, nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord("${Kafka.topicPrefix}.$topic", nøkkel, melding)).get()
             delay(timeMillis = 20L)
         }
     }
 
     private fun createTopic() {
         adminClient.createTopics(listOf(
-            NewTopic(topic, 1, 1.toShort())
+            NewTopic(sakStatusTopic, 1, 1.toShort())
         ))
     }
 

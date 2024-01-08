@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
-class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
+class FiaKartleggingKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val kafkaConsumer = KafkaConsumer(
@@ -32,30 +32,30 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.sakStatusTopic}"))
-                logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+                consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.kartleggingTopic}"))
+                logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.kartleggingTopic}")
 
                 while (job.isActive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${Kafka.sakStatusTopic}")
+                        logger.info("Fant ${records.count()} nye meldinger i topic: ${Kafka.kartleggingTopic}")
 
                         records.forEach {record ->
                             try {
-                                val payload = Json.decodeFromString<IASakStatus>(record.value())
+                                val payload = Json.decodeFromString<Spørreundersøkelse>(record.value())
                                 redisService.lagre(payload)
                             } catch (e: IllegalArgumentException) {
-                                logger.error("Mottok feil formatert kafkamelding")
+                                logger.error("Mottok feil formatert kafkamelding i topic: ${Kafka.kartleggingTopic}")
                             }
                         }
-                        logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.sakStatusTopic}")
+                        logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.kartleggingTopic}")
                     } catch (e: WakeupException) {
-                        logger.info("FiaStatusKonsument is shutting down")
+                        logger.info("FiaKartleggingKonsument is shutting down")
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
-                        logger.error("Exception is shutting down kafka listner for ${Kafka.sakStatusTopic}", e)
+                        logger.error("Exception is shutting down kafka listner for ${Kafka.kartleggingTopic}", e)
                         job.cancel(CancellationException(e.message))
                         job.join()
                         throw e
@@ -66,9 +66,9 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     }
 
     private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+        logger.info("Stopping kafka consumer job for ${Kafka.topicPrefix}.${Kafka.kartleggingTopic}")
         kafkaConsumer.wakeup()
         job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+        logger.info("Stopped kafka consumer job for ${Kafka.topicPrefix}.${Kafka.kartleggingTopic}")
     }
 }
