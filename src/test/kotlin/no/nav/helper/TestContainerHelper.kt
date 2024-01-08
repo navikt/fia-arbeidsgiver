@@ -91,3 +91,10 @@ internal suspend fun GenericContainer<*>.performGet(url: String, config: HttpReq
         config()
         method = HttpMethod.Get
     }
+
+internal suspend fun GenericContainer<*>.performPost(url: String, body: String, config: HttpRequestBuilder.() -> Unit = {}) =
+    performRequest(url) {
+        config()
+        method = HttpMethod.Post
+        setBody(body)
+    }

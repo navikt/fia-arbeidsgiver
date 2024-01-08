@@ -2,15 +2,7 @@ package no.nav.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.toKotlinLocalDate
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import no.nav.domene.kartlegging.Spørreundersøkelse
-import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
-import no.nav.domene.kartlegging.Svaralternativ
 import no.nav.helper.TestContainerHelper
-import no.nav.konfigurasjon.Kafka
-import java.time.LocalDate.now
 import java.util.*
 import kotlin.test.Test
 
@@ -18,38 +10,12 @@ import kotlin.test.Test
 class FiaKartleggingKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger`() {
-        val spørreundersøkelse = Spørreundersøkelse(
-            id = UUID.randomUUID(),
-            pinKode = "123456",
-            spørsmålOgSvaralternativer = listOf(
-                SpørsmålOgSvaralternativer(
-                    id = UUID.randomUUID(),
-                    spørsmål = "Hva gjør dere med IA?",
-                    svaralternativer = listOf (
-                        Svaralternativ(
-                            id = UUID.randomUUID(),
-                            "ingenting"
-                        ),
-                        Svaralternativ(
-                            id = UUID.randomUUID(),
-                            "alt"
-                        ),
-                    )
-                )
-            ),
-            status = "aktiv",
-            avslutningsdato = now().toKotlinLocalDate()
-        )
-        val somString = Json.encodeToString(spørreundersøkelse)
+        val id = UUID.randomUUID()
+        TestContainerHelper.kafka.sendKartlegging(id = id)
 
-        TestContainerHelper.kafka.sendOgVent(
-            nøkkel = spørreundersøkelse.id.toString(),
-            melding = somString,
-            topic = Kafka.kartleggingTopic
-        )
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(spørreundersøkelse.id)
-            result?.id shouldBe spørreundersøkelse.id
+            val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(id)
+            result?.id shouldBe id
         }
     }
 }

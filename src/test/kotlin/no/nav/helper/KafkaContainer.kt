@@ -2,9 +2,13 @@ package no.nav.helper
 
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.domene.kartlegging.Spørreundersøkelse
+import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
+import no.nav.domene.kartlegging.Svaralternativ
 import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.konfigurasjon.Kafka
 import no.nav.konfigurasjon.Kafka.Companion.sakStatusTopic
@@ -22,6 +26,7 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 
@@ -77,7 +82,38 @@ class KafkaContainer(network: Network) {
         )
     }
 
-    fun sendOgVent(
+    fun sendKartlegging(id: UUID, pinKode: String = "123456") {
+        val spørreundersøkelse = Spørreundersøkelse(
+            id = id,
+            pinKode = pinKode,
+            spørsmålOgSvaralternativer = listOf(
+                SpørsmålOgSvaralternativer(
+                    id = UUID.randomUUID(),
+                    spørsmål = "Hva gjør dere med IA?",
+                    svaralternativer = listOf (
+                        Svaralternativ(
+                            id = UUID.randomUUID(),
+                            "ingenting"
+                        ),
+                        Svaralternativ(
+                            id = UUID.randomUUID(),
+                            "alt"
+                        ),
+                    )
+                )
+            ),
+            status = "aktiv",
+            avslutningsdato = LocalDate.now().toKotlinLocalDate()
+        )
+        val somString = Json.encodeToString(spørreundersøkelse)
+        sendOgVent(
+            nøkkel = spørreundersøkelse.id.toString(),
+            melding = somString,
+            topic = Kafka.kartleggingTopic
+        )
+    }
+
+    private fun sendOgVent(
         nøkkel: String,
         melding: String,
         topic: String,
