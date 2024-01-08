@@ -7,10 +7,6 @@ import no.nav.kafka.FiaKartleggingKonsument
 import no.nav.kafka.FiaStatusKonsument
 import no.nav.persistence.RedisService
 import no.nav.plugins.*
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
-private val logger: Logger = LoggerFactory.getLogger("Application::main")
 
 fun main() {
     val redisService = RedisService()
