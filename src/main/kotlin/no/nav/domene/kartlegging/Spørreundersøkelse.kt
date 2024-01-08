@@ -1,4 +1,4 @@
-package no.nav.kafka
+package no.nav.domene.kartlegging
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.KSerializer

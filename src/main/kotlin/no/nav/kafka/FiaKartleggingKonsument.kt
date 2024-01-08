@@ -2,6 +2,7 @@ package no.nav.kafka
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
+import no.nav.domene.kartlegging.Spørreundersøkelse
 import no.nav.konfigurasjon.Kafka
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer

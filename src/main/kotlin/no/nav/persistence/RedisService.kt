@@ -6,8 +6,8 @@ import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.kafka.IASakStatus
-import no.nav.kafka.Spørreundersøkelse
+import no.nav.domene.samarbeidsstatus.IASakStatus
+import no.nav.domene.kartlegging.Spørreundersøkelse
 import no.nav.konfigurasjon.Redis
 import java.util.*
 

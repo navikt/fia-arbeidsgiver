@@ -1,7 +1,7 @@
 package no.nav.audit
 
 import kotlinx.coroutines.runBlocking
-import no.nav.api.STATUS_PATH
+import no.nav.api.samarbeidsstatus.STATUS_PATH
 import no.nav.helper.AltinnProxyContainer
 import no.nav.helper.TestContainerHelper
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog

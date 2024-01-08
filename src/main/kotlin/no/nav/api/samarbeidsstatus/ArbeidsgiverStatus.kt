@@ -1,4 +1,4 @@
-package no.nav.api
+package no.nav.api.samarbeidsstatus
 
 import io.ktor.http.*
 import io.ktor.server.application.*

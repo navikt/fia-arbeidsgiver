@@ -1,7 +1,7 @@
-package no.nav.api
+package no.nav.api.samarbeidsstatus
 
 import kotlinx.serialization.Serializable
-import no.nav.kafka.IASakStatus
+import no.nav.domene.samarbeidsstatus.IASakStatus
 
 enum class Samarbeid {
     IKKE_I_SAMARBEID, I_SAMARBEID;

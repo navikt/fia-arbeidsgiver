@@ -1,4 +1,4 @@
-package no.nav.kafka
+package no.nav.domene.samarbeidsstatus
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable

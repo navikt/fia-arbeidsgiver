@@ -6,6 +6,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import no.nav.api.samarbeidsstatus.IASamarbeidDTO
+import no.nav.api.samarbeidsstatus.STATUS_PATH
+import no.nav.api.samarbeidsstatus.Samarbeid
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_2
 import no.nav.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING

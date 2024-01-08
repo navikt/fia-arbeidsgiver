@@ -2,30 +2,21 @@ package no.nav.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.toKotlinLocalDateTime
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.helper.TestContainerHelper
 import java.time.LocalDateTime
 import kotlin.test.Test
 
 
-class FiaArbeidsgiverKonsumentTest {
+class FiaStatusKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger`() {
         val orgnr = "123456789"
-        val iaStatusOppdatering = IASakStatus(
-            orgnr = orgnr,
-            saksnummer = "sak",
-            status = "VURDERES",
-            sistOppdatert = LocalDateTime.now().toKotlinLocalDateTime()
-        )
-        val somString = Json.encodeToString(iaStatusOppdatering)
 
-        TestContainerHelper.kafka.sendOgVent(
-            nøkkel = orgnr,
-            melding = somString,
+        TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(
+            orgnr = orgnr,
+            status = "VURDERES",
         )
+
         runBlocking {
             val result = TestContainerHelper.redis.redisService.henteSakStatus(orgnr)
             result?.orgnr shouldBe orgnr

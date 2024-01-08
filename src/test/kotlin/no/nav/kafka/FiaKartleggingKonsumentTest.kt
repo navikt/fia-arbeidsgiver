@@ -5,6 +5,9 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.domene.kartlegging.Spørreundersøkelse
+import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
+import no.nav.domene.kartlegging.Svaralternativ
 import no.nav.helper.TestContainerHelper
 import no.nav.konfigurasjon.Kafka
 import java.time.LocalDate.now

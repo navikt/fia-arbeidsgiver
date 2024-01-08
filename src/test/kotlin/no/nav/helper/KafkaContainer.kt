@@ -5,7 +5,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.kafka.IASakStatus
+import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.konfigurasjon.Kafka
 import no.nav.konfigurasjon.Kafka.Companion.sakStatusTopic
 import org.apache.kafka.clients.CommonClientConfigs
@@ -72,14 +72,15 @@ class KafkaContainer(network: Network) {
         )
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
-            melding = Json.encodeToString(iaStatusOppdatering)
+            melding = Json.encodeToString(iaStatusOppdatering),
+            topic = sakStatusTopic
         )
     }
 
     fun sendOgVent(
         nøkkel: String,
         melding: String,
-        topic: String = sakStatusTopic,
+        topic: String,
     ) {
         runBlocking {
             kafkaProducer.send(ProducerRecord("${Kafka.topicPrefix}.$topic", nøkkel, melding)).get()

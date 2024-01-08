@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import io.ktor.server.auth.jwt.*
 import io.ktor.server.request.*
-import no.nav.api.ORGNR
+import no.nav.api.samarbeidsstatus.ORGNR
 
 private fun removeBearerPrefix(bearer: String?) = bearer?.split(" ")?.get(1)
 
