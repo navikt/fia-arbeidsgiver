@@ -34,30 +34,42 @@ class RedisService(
     fun lagre(iaSakStatus: IASakStatus) {
         val gammelStatus = henteSakStatus(iaSakStatus.orgnr)
         if (gammelStatus == null || gammelStatus.sistOppdatert <= iaSakStatus.sistOppdatert)
-            lagre(iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
+            lagre(Type.SAMARBEIDSSTATUS, iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
     }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
-        lagre("spørreundersøkelse-${spørreundersøkelse.id}", Json.encodeToString(spørreundersøkelse))
+        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.id.toString(), Json.encodeToString(spørreundersøkelse))
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {
-        return hente(orgnr)?.let {
+        return hente(Type.SAMARBEIDSSTATUS, orgnr)?.let {
             Json.decodeFromString(it)
         }
     }
 
     fun henteSpørreundersøkelse(id: UUID): Spørreundersøkelse? {
-        return hente("spørreundersøkelse-${id}")?.let {
+        return hente(Type.SPØRREUNDERSØKELSE, id.toString())?.let {
             Json.decodeFromString(it)
         }
     }
 
-    private fun lagre(nøkkel: String, verdi: String, ttl: Long = defaultTimeToLiveSeconds) {
-        sync.setex(nøkkel, ttl, verdi)
+    private fun lagre(
+        type: Type,
+        nøkkel: String,
+        verdi: String,
+        ttl: Long = defaultTimeToLiveSeconds,
+    ) {
+        sync.setex("${type.name}-$nøkkel", ttl, verdi)
     }
 
-    private fun hente(nøkkel: String): String? {
-        return sync.get(nøkkel)
+    private fun hente(
+        type: Type,
+        nøkkel: String
+    ): String? {
+        return sync.get("${type.name}-$nøkkel")
     }
+}
+
+enum class Type {
+    SAMARBEIDSSTATUS, SPØRREUNDERSØKELSE
 }
