@@ -9,6 +9,9 @@ import no.nav.helper.TestContainerHelper
 import no.nav.helper.performPost
 import java.util.*
 import kotlin.test.Test
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.toJavaDuration
+import kotlinx.coroutines.time.delay
 
 class KartleggingApiTest {
 
@@ -28,4 +31,26 @@ class KartleggingApiTest {
             Json.decodeFromString<SpørreundersøkelseDTO>(body).id shouldBe id.toString()
         }
     }
+
+    @Test
+    fun `skal begrense antall forespørsler mot kartlegging-bli-med`() {
+
+        runBlocking {
+            delay(3.seconds.toJavaDuration())
+            repeat(5) {
+                val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                    url = "$PATH/${UUID.randomUUID()}",
+                    body = "tullogtøys"
+                )
+                response.status shouldBe HttpStatusCode.NotFound
+            }
+            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$PATH/${UUID.randomUUID()}",
+                body = "tullogtøys"
+            )
+            response.status shouldBe HttpStatusCode.TooManyRequests
+        }
+    }
+
+    //TODO: skriv test som takler ugyldig UUID
 }
