@@ -29,6 +29,7 @@ class KartleggingApiTest {
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
             Json.decodeFromString<SpørreundersøkelseDTO>(body).id shouldBe id.toString()
+            //TODO: sjekk resten av feltene
         }
     }
 
@@ -53,4 +54,5 @@ class KartleggingApiTest {
     }
 
     //TODO: skriv test som takler ugyldig UUID
+    //TODO: skriv test som takler feil pin
 }
