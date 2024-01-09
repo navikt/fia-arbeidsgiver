@@ -1,5 +1,6 @@
 package no.nav.api.kartlegging
 
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
@@ -13,25 +14,26 @@ import kotlin.test.Test
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
+import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
 
 class KartleggingApiTest {
 
     @Test
-    fun `skal kunne hente ut kartlegging`() {
+    fun `skal kunne starte kartlegging`() {
         val id = UUID.randomUUID()
         val pinKode = "123456"
         TestContainerHelper.kafka.sendKartlegging(id = id, pinKode = pinKode)
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$PATH/$id",
+                url = "$BLI_MED_PATH/$id",
                 body = pinKode
             )
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
-            val spørreundersøkelseDTO = Json.decodeFromString<SpørreundersøkelseDTO>(body)
-            spørreundersøkelseDTO.id shouldBe id.toString()
-            spørreundersøkelseDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
+            val bliMedDTO = Json.decodeFromString<BliMedDTO>(body)
+            bliMedDTO.id shouldBe id.toString()
+            bliMedDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
     }
 
@@ -42,13 +44,13 @@ class KartleggingApiTest {
             delay(3.seconds.toJavaDuration())
             repeat(5) {
                 val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                    url = "$PATH/${UUID.randomUUID()}",
+                    url = "$BLI_MED_PATH/${UUID.randomUUID()}",
                     body = "tullogtøys"
                 )
                 response.status shouldBe HttpStatusCode.NotFound
             }
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$PATH/${UUID.randomUUID()}",
+                url = "$BLI_MED_PATH/${UUID.randomUUID()}",
                 body = "tullogtøys"
             )
             response.status shouldBe HttpStatusCode.TooManyRequests
@@ -61,7 +63,7 @@ class KartleggingApiTest {
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$PATH/tullogtøys",
+                url = "$BLI_MED_PATH/tullogtøys",
                 body = "654321"
             )
             response.status shouldBe HttpStatusCode.BadRequest
@@ -79,7 +81,7 @@ class KartleggingApiTest {
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$PATH/$id",
+                url = "$BLI_MED_PATH/$id",
                 body = "654321"
             )
             response.status shouldBe HttpStatusCode.Unauthorized
@@ -88,4 +90,56 @@ class KartleggingApiTest {
             body shouldBe ""
         }
     }
+
+    @Test
+    fun `skal kunne hente spørsmål og svar`() {
+        val id = UUID.randomUUID()
+        val pinKode = "123456"
+        TestContainerHelper.kafka.sendKartlegging(id = id, pinKode = pinKode)
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$BLI_MED_PATH/$id",
+                body = pinKode
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.OK
+            val bliMedBody = bliMedRespons.bodyAsText()
+            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$id",
+                body = bliMedDTO.sesjonsId
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativer>>(body)
+
+            spørsmålOgSvaralternativer shouldHaveSize 1
+            spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
+        }
+    }
+
+    @Test
+    fun `skal ikke få spørsmål og svar dersom sesjonsId er ukjent`() {
+        val id = UUID.randomUUID()
+        val pinKode = "123456"
+        val sesjonsId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendKartlegging(id = id, pinKode = pinKode)
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$BLI_MED_PATH/$id",
+                body = pinKode
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.OK
+
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$id",
+                body = sesjonsId.toString()
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    //TODO: skal få 404 ved ukjent id
 }
