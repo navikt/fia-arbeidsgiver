@@ -43,31 +43,34 @@ fun Route.kartlegging(redisService: RedisService) {
         }
     }
 
-    post("$SPØRSMÅL_OG_SVAR_PATH/{id}") {
-        val idString = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.NotFound)
-        val sesjonsIdString = call.receive(String::class)
+    rateLimit(RateLimitName("kartlegging")) {
+        post("$SPØRSMÅL_OG_SVAR_PATH/{id}") {
+            val idString = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.NotFound)
+            val sesjonsIdString = call.receive(String::class)
 
-        val id = try {
-            UUID.fromString(idString)
-        } catch (e: IllegalArgumentException) {
-            return@post call.response.status(HttpStatusCode.BadRequest)
+            val id = try {
+                UUID.fromString(idString)
+            } catch (e: IllegalArgumentException) {
+                return@post call.response.status(HttpStatusCode.BadRequest)
+            }
+
+            val sesjonsId = try {
+                UUID.fromString(sesjonsIdString)
+            } catch (e: IllegalArgumentException) {
+                return@post call.response.status(HttpStatusCode.BadRequest)
+            }
+
+            if (redisService.henteSesjon(sesjonsId) != id) {
+                return@post call.response.status(HttpStatusCode.Unauthorized)
+            }
+
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
+                ?: return@post call.response.status(HttpStatusCode.NotFound)
+
+            call.respond(
+                HttpStatusCode.OK,
+                spørreundersøkelse.spørsmålOgSvaralternativer
+            )
         }
-
-        val sesjonsId = try {
-            UUID.fromString(sesjonsIdString)
-        } catch (e: IllegalArgumentException) {
-            return@post call.response.status(HttpStatusCode.BadRequest)
-        }
-
-        if (redisService.henteSesjon(sesjonsId) != id) {
-            return@post call.response.status(HttpStatusCode.Unauthorized)
-        }
-
-        val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
-            ?: return@post call.response.status(HttpStatusCode.NotFound)
-
-        call.respond(HttpStatusCode.OK,
-            spørreundersøkelse.spørsmålOgSvaralternativer)
     }
-
 }

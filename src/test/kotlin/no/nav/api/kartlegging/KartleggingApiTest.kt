@@ -42,7 +42,7 @@ class KartleggingApiTest {
 
         runBlocking {
             delay(RateLimitKonfig.refillPeriod.toJavaDuration())
-            repeat(RateLimitKonfig.limit) {
+            repeat(RateLimitKonfig.bliMedLimit) {
                 val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                     url = "$BLI_MED_PATH/${UUID.randomUUID()}",
                     body = "tullogtøys"
@@ -141,5 +141,4 @@ class KartleggingApiTest {
         }
     }
 
-    //TODO: skal få 404 ved ukjent id
 }

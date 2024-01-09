@@ -23,8 +23,11 @@ fun Application.module() {
     configureSerialization()
     configureSecurity()
     install(RateLimit) {
+        register(RateLimitName("kartlegging")){
+            rateLimiter(limit = RateLimitKonfig.generellLimit, refillPeriod = RateLimitKonfig.refillPeriod)
+        }
         register(RateLimitName("kartlegging-bli-med")){
-            rateLimiter(limit = RateLimitKonfig.limit, refillPeriod = RateLimitKonfig.refillPeriod)
+            rateLimiter(limit = RateLimitKonfig.bliMedLimit, refillPeriod = RateLimitKonfig.refillPeriod)
         }
     }
     configureRouting(redisService = RedisService())
