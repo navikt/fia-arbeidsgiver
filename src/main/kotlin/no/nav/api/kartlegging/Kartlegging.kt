@@ -9,6 +9,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.persistence.RedisService
+import java.lang.IllegalArgumentException
 import java.util.*
 
 const val PATH = "/fia-arbeidsgiver/kartlegging/bli-med"
@@ -19,7 +20,13 @@ fun Route.kartlegging(redisService: RedisService) {
             val id = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.NotFound)
             val pin = call.receive(String::class)
 
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(UUID.fromString(id))
+            val uuid = try {
+                UUID.fromString(id)
+            } catch (e: IllegalArgumentException) {
+                return@post call.response.status(HttpStatusCode.BadRequest)
+            }
+
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(uuid)
                 ?: return@post call.response.status(HttpStatusCode.NotFound)
             if (spørreundersøkelse.pinKode != pin)
                 return@post call.response.status(HttpStatusCode.Unauthorized)

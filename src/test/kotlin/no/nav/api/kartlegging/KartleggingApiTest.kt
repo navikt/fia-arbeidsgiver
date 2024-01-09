@@ -1,6 +1,7 @@
 package no.nav.api.kartlegging
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
@@ -28,8 +29,9 @@ class KartleggingApiTest {
             )
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
-            Json.decodeFromString<SpørreundersøkelseDTO>(body).id shouldBe id.toString()
-            //TODO: sjekk resten av feltene
+            val spørreundersøkelseDTO = Json.decodeFromString<SpørreundersøkelseDTO>(body)
+            spørreundersøkelseDTO.id shouldBe id.toString()
+            spørreundersøkelseDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
     }
 
@@ -50,9 +52,40 @@ class KartleggingApiTest {
                 body = "tullogtøys"
             )
             response.status shouldBe HttpStatusCode.TooManyRequests
+            delay(3.seconds.toJavaDuration())
         }
     }
 
-    //TODO: skriv test som takler ugyldig UUID
-    //TODO: skriv test som takler feil pin
+    @Test
+    fun `returnerer BAD_REQUEST dersom UUID er feil formatert`() {
+
+        runBlocking {
+            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$PATH/tullogtøys",
+                body = "654321"
+            )
+            response.status shouldBe HttpStatusCode.BadRequest
+            val body = response.bodyAsText()
+
+            body shouldBe ""
+        }
+    }
+
+    @Test
+    fun `returnerer UNAUTHORIZED dersom pin er feil`() {
+        val id = UUID.randomUUID()
+        val pinKode = "123456"
+        TestContainerHelper.kafka.sendKartlegging(id = id, pinKode = pinKode)
+
+        runBlocking {
+            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$PATH/$id",
+                body = "654321"
+            )
+            response.status shouldBe HttpStatusCode.Unauthorized
+            val body = response.bodyAsText()
+
+            body shouldBe ""
+        }
+    }
 }
