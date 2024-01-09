@@ -5,9 +5,9 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import io.ktor.server.plugins.ratelimit.RateLimit
 import io.ktor.server.plugins.ratelimit.RateLimitName
-import kotlin.time.Duration.Companion.seconds
 import no.nav.kafka.FiaKartleggingKonsument
 import no.nav.kafka.FiaStatusKonsument
+import no.nav.konfigurasjon.RateLimitKonfig
 import no.nav.persistence.RedisService
 import no.nav.plugins.*
 
@@ -24,7 +24,7 @@ fun Application.module() {
     configureSecurity()
     install(RateLimit) {
         register(RateLimitName("kartlegging-bli-med")){
-            rateLimiter(limit = 5, refillPeriod = 3.seconds)
+            rateLimiter(limit = RateLimitKonfig.limit, refillPeriod = RateLimitKonfig.refillPeriod)
         }
     }
     configureRouting(redisService = RedisService())

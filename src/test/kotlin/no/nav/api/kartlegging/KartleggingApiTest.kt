@@ -11,10 +11,10 @@ import no.nav.helper.TestContainerHelper
 import no.nav.helper.performPost
 import java.util.*
 import kotlin.test.Test
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
 import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
+import no.nav.konfigurasjon.RateLimitKonfig
 
 class KartleggingApiTest {
 
@@ -41,8 +41,8 @@ class KartleggingApiTest {
     fun `skal begrense antall forespørsler mot kartlegging-bli-med`() {
 
         runBlocking {
-            delay(3.seconds.toJavaDuration())
-            repeat(5) {
+            delay(RateLimitKonfig.refillPeriod.toJavaDuration())
+            repeat(RateLimitKonfig.limit) {
                 val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                     url = "$BLI_MED_PATH/${UUID.randomUUID()}",
                     body = "tullogtøys"
@@ -54,7 +54,7 @@ class KartleggingApiTest {
                 body = "tullogtøys"
             )
             response.status shouldBe HttpStatusCode.TooManyRequests
-            delay(3.seconds.toJavaDuration())
+            delay(RateLimitKonfig.refillPeriod.toJavaDuration())
         }
     }
 
