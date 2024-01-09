@@ -69,7 +69,7 @@ fun Route.kartlegging(redisService: RedisService) {
 
             call.respond(
                 HttpStatusCode.OK,
-                spørreundersøkelse.spørsmålOgSvaralternativer
+                SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
             )
         }
     }

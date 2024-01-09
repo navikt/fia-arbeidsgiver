@@ -13,7 +13,6 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
-import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
 import no.nav.konfigurasjon.RateLimitKonfig
 
 class KartleggingApiTest {
@@ -112,7 +111,7 @@ class KartleggingApiTest {
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativer>>(body)
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
 
             spørsmålOgSvaralternativer shouldHaveSize 1
             spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
