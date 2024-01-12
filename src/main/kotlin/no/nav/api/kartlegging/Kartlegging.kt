@@ -19,7 +19,7 @@ const val SPØRSMÅL_OG_SVAR_PATH = "${KARTLEGGING_PATH}/sporsmal-og-svar"
 fun Route.kartlegging(redisService: RedisService) {
     rateLimit(RateLimitName("kartlegging-bli-med")){
         post("$BLI_MED_PATH/{id}") {
-            val id = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.NotFound)
+            val id = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.BadRequest)
             val pin = call.receive(String::class)
 
             val uuid = try {
@@ -31,7 +31,7 @@ fun Route.kartlegging(redisService: RedisService) {
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(uuid)
                 ?: return@post call.response.status(HttpStatusCode.NotFound)
             if (spørreundersøkelse.pinKode != pin)
-                return@post call.response.status(HttpStatusCode.Unauthorized)
+                return@post call.response.status(HttpStatusCode.Forbidden)
 
             val sesjonsId = UUID.randomUUID()
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
@@ -45,7 +45,7 @@ fun Route.kartlegging(redisService: RedisService) {
 
     rateLimit(RateLimitName("kartlegging")) {
         post("$SPØRSMÅL_OG_SVAR_PATH/{id}") {
-            val idString = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.NotFound)
+            val idString = call.parameters["id"] ?: return@post call.response.status(HttpStatusCode.BadRequest)
             val sesjonsIdString = call.receive(String::class)
 
             val id = try {
@@ -61,7 +61,7 @@ fun Route.kartlegging(redisService: RedisService) {
             }
 
             if (redisService.henteSesjon(sesjonsId) != id) {
-                return@post call.response.status(HttpStatusCode.Unauthorized)
+                return@post call.response.status(HttpStatusCode.Forbidden)
             }
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)

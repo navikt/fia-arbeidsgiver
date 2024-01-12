@@ -83,7 +83,7 @@ class KartleggingApiTest {
                 url = "$BLI_MED_PATH/$id",
                 body = "654321"
             )
-            response.status shouldBe HttpStatusCode.Unauthorized
+            response.status shouldBe HttpStatusCode.Forbidden
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -136,7 +136,7 @@ class KartleggingApiTest {
                 url = "$SPØRSMÅL_OG_SVAR_PATH/$id",
                 body = sesjonsId.toString()
             )
-            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Unauthorized
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
         }
     }
 
