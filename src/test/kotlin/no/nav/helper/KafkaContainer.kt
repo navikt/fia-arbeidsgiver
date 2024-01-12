@@ -120,7 +120,7 @@ class KafkaContainer(network: Network) {
     ) {
         runBlocking {
             kafkaProducer.send(ProducerRecord("${Kafka.topicPrefix}.$topic", nøkkel, melding)).get()
-            delay(timeMillis = 20L)
+            delay(timeMillis = 30L)
         }
     }
 

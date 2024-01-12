@@ -73,7 +73,7 @@ class KartleggingApiTest {
     }
 
     @Test
-    fun `returnerer UNAUTHORIZED dersom pin er feil`() {
+    fun `returnerer FORBIDDEN dersom pin er feil`() {
         val id = UUID.randomUUID()
         val pinKode = "123456"
         TestContainerHelper.kafka.sendKartlegging(id = id, pinKode = pinKode)
