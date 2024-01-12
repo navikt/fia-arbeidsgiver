@@ -20,20 +20,18 @@ const val SPØRSMÅL_OG_SVAR_PATH = "${KARTLEGGING_PATH}/sporsmal-og-svar"
 
 fun Route.kartlegging(redisService: RedisService) {
     rateLimit(RateLimitName("kartlegging-bli-med")){
-        post("$BLI_MED_PATH/{id}") {
-            val idString = call.parameters["id"] ?:
-                return@post call.loggOgSendFeil("manglende id", HttpStatusCode.BadRequest, null)
-            val pin = call.receive(String::class)
+        post(BLI_MED_PATH) {
+            val bliMedRequest = call.receive(BliMedRequest::class)
 
             val id = try {
-                UUID.fromString(idString)
+                UUID.fromString(bliMedRequest.spørreundersøkelseId)
             } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, idString)
+                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, bliMedRequest.spørreundersøkelseId)
             }
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
                 ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.NotFound, id.toString())
-            if (spørreundersøkelse.pinKode != pin)
+            if (spørreundersøkelse.pinKode != bliMedRequest.pinkode)
                 return@post call.loggOgSendFeil("feil pinkode", HttpStatusCode.Forbidden, id.toString())
 
             val sesjonsId = UUID.randomUUID()
@@ -47,19 +45,17 @@ fun Route.kartlegging(redisService: RedisService) {
     }
 
     rateLimit(RateLimitName("kartlegging")) {
-        post("$SPØRSMÅL_OG_SVAR_PATH/{id}") {
-            val idString = call.parameters["id"] ?:
-                return@post call.loggOgSendFeil("manglende id", HttpStatusCode.BadRequest, null)
-            val sesjonsIdString = call.receive(String::class)
+        post(SPØRSMÅL_OG_SVAR_PATH) {
+            val spørsmålOgSvarRequest = call.receive(SpørsmålOgSvarRequest::class)
 
             val id = try {
-                UUID.fromString(idString)
+                UUID.fromString(spørsmålOgSvarRequest.spørreundersøkelseId)
             } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, idString)
+                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, spørsmålOgSvarRequest.spørreundersøkelseId)
             }
 
             val sesjonsId = try {
-                UUID.fromString(sesjonsIdString)
+                UUID.fromString(spørsmålOgSvarRequest.sesjonsId)
             } catch (e: IllegalArgumentException) {
                 return@post call.loggOgSendFeil("ugyldig formatert sesjonsId", HttpStatusCode.BadRequest, id.toString())
             }

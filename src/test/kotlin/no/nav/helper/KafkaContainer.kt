@@ -82,10 +82,10 @@ class KafkaContainer(network: Network) {
         )
     }
 
-    fun sendKartlegging(id: UUID, pinKode: String = "123456") {
+    fun sendKartlegging(id: UUID, pinkode: String = "123456") {
         val spørreundersøkelse = Spørreundersøkelse(
             id = id,
-            pinKode = pinKode,
+            pinKode = pinkode,
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),

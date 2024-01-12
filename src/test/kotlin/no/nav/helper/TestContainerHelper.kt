@@ -3,8 +3,10 @@ package no.nav.helper
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
 import io.ktor.http.*
+import io.ktor.serialization.kotlinx.json.json
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -65,7 +67,11 @@ class TestContainerHelper {
     }
 }
 
-private val httpClient = HttpClient(CIO)
+private val httpClient = HttpClient(CIO) {
+    install(ContentNegotiation) {
+        json()
+    }
+}
 
 private suspend fun GenericContainer<*>.performRequest(
     url: String,
@@ -92,9 +98,10 @@ internal suspend fun GenericContainer<*>.performGet(url: String, config: HttpReq
         method = HttpMethod.Get
     }
 
-internal suspend fun GenericContainer<*>.performPost(url: String, body: String, config: HttpRequestBuilder.() -> Unit = {}) =
+internal suspend inline fun<reified T> GenericContainer<*>.performPost(url: String, body: T, crossinline config: HttpRequestBuilder.() -> Unit = {}) =
     performRequest(url) {
         config()
         method = HttpMethod.Post
+        header(HttpHeaders.ContentType, ContentType.Application.Json)
         setBody(body)
     }
