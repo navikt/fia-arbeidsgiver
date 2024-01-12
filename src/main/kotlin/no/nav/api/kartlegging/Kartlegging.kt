@@ -17,6 +17,7 @@ import java.util.*
 const val KARTLEGGING_PATH = "/fia-arbeidsgiver/kartlegging"
 const val BLI_MED_PATH = "${KARTLEGGING_PATH}/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "${KARTLEGGING_PATH}/sporsmal-og-svar"
+const val SVAR_PATH = "${KARTLEGGING_PATH}/svar"
 
 fun Route.kartlegging(redisService: RedisService) {
     rateLimit(RateLimitName("kartlegging-bli-med")){
@@ -71,6 +72,38 @@ fun Route.kartlegging(redisService: RedisService) {
                 HttpStatusCode.OK,
                 SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
             )
+        }
+
+        post(SVAR_PATH) {
+            val svarRequest = call.receive(SvarRequest::class)
+
+            val id = try {
+                UUID.fromString(svarRequest.spørreundersøkelseId)
+            } catch (e: IllegalArgumentException) {
+                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, svarRequest.spørreundersøkelseId)
+            }
+
+            val spørsmålId = try {
+                UUID.fromString(svarRequest.spørsmålId)
+            } catch (e: IllegalArgumentException) {
+                return@post call.loggOgSendFeil("ugyldig formatert spørsmålId", HttpStatusCode.BadRequest, svarRequest.spørsmålId)
+            }
+
+            val svarId = try {
+                UUID.fromString(svarRequest.svarId)
+            } catch (e: IllegalArgumentException) {
+                return@post call.loggOgSendFeil("ugyldig formatert svarId", HttpStatusCode.BadRequest, svarRequest.svarId)
+            }
+
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
+                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, id.toString())
+
+            if (spørreundersøkelse.spørsmålOgSvaralternativer.first { it.id == spørsmålId }
+                .svaralternativer.none { it.id == svarId }) {
+                return@post call.loggOgSendFeil("ukjent svar ($svarId)", HttpStatusCode.Forbidden, id.toString())
+            }
+
+            call.application.log.info("Har fått inn svar $svarId")
         }
     }
 }
