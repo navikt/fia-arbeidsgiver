@@ -17,10 +17,12 @@ spec:
       rules:
         - application: min-ia
           namespace: teamia
+        - application: fia-arbeidsgiver-frontend
     outbound:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
+        - application: fia-arbeidsgiver-frontend
   redis:
     - instance: fia-samarbeidsstatus
       access: readwrite
