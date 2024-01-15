@@ -172,8 +172,12 @@ class KartleggingApiTest {
 
             val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
-                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    spørsmålId = spørsmål.id.toString(), svaralternativ.id.toString())
+                body = SvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    spørsmålId = spørsmål.id.toString(),
+                    svarId = svaralternativ.id.toString()
+                )
             )
             svarRespons.status shouldBe HttpStatusCode.OK
         }
@@ -186,8 +190,12 @@ class KartleggingApiTest {
         runBlocking {
             val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
-                body = SvarRequest(spørreundersøkelseId = UUID.randomUUID().toString(),
-                    spørsmålId = UUID.randomUUID().toString(), UUID.randomUUID().toString())
+                body = SvarRequest(
+                    spørreundersøkelseId = UUID.randomUUID().toString(),
+                    sesjonsId = UUID.randomUUID().toString(),
+                    spørsmålId = UUID.randomUUID().toString(),
+                    svarId = UUID.randomUUID().toString()
+                )
             )
             svarRespons.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørreundersøkelse ".toRegex()
@@ -223,8 +231,12 @@ class KartleggingApiTest {
             val ukjentSpørsmålId = UUID.randomUUID()
             val svarRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
-                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    spørsmålId = ukjentSpørsmålId.toString(), svaralternativ.id.toString())
+                body = SvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    spørsmålId = ukjentSpørsmålId.toString(),
+                    svarId =  svaralternativ.id.toString(),
+                    )
             )
             svarRespons1.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørsmål .$ukjentSpørsmålId.".toRegex()
@@ -232,8 +244,12 @@ class KartleggingApiTest {
             val ukjentSvarId = UUID.randomUUID()
             val svarRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
-                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    spørsmålId = spørsmål.id.toString(), ukjentSvarId.toString())
+                body = SvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    spørsmålId = spørsmål.id.toString(),
+                    svarId = ukjentSvarId.toString(),
+                )
             )
             svarRespons2.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent svar .$ukjentSvarId.".toRegex()

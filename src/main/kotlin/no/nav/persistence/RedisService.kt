@@ -57,7 +57,7 @@ class RedisService(
         }
     }
 
-    fun henteSesjon(sesjonsId: UUID): UUID? {
+    fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {
         return hente(Type.SESJON, sesjonsId.toString())?.let {
             UUID.fromString(it)
         }

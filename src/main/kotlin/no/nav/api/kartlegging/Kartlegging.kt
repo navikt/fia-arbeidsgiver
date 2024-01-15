@@ -10,6 +10,8 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
+import no.nav.kafka.KartleggingSvar
+import no.nav.kafka.KartleggingSvarProdusent
 import no.nav.persistence.RedisService
 import java.lang.IllegalArgumentException
 import java.util.*
@@ -20,6 +22,7 @@ const val SPØRSMÅL_OG_SVAR_PATH = "${KARTLEGGING_PATH}/sporsmal-og-svar"
 const val SVAR_PATH = "${KARTLEGGING_PATH}/svar"
 
 fun Route.kartlegging(redisService: RedisService) {
+    val kartleggingSvarProdusent = KartleggingSvarProdusent()
     rateLimit(RateLimitName("kartlegging-bli-med")){
         post(BLI_MED_PATH) {
             val bliMedRequest = call.receive(BliMedRequest::class)
@@ -61,7 +64,7 @@ fun Route.kartlegging(redisService: RedisService) {
                 return@post call.loggOgSendFeil("ugyldig formatert sesjonsId", HttpStatusCode.BadRequest, id.toString())
             }
 
-            if (redisService.henteSesjon(sesjonsId) != id) {
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != id) {
                 return@post call.loggOgSendFeil("ugyldig sesjonsId", HttpStatusCode.Forbidden, id.toString())
             }
 
@@ -77,10 +80,20 @@ fun Route.kartlegging(redisService: RedisService) {
         post(SVAR_PATH) {
             val svarRequest = call.receive(SvarRequest::class)
 
-            val id = try {
+            val spørreundersøkelseId = try {
                 UUID.fromString(svarRequest.spørreundersøkelseId)
             } catch (e: IllegalArgumentException) {
                 return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, svarRequest.spørreundersøkelseId)
+            }
+
+            val sesjonsId = try {
+                UUID.fromString(svarRequest.sesjonsId)
+            } catch (e: IllegalArgumentException) {
+                return@post call.loggOgSendFeil("ugyldig formatert sesjonsId (${svarRequest.sesjonsId})", HttpStatusCode.BadRequest, svarRequest.spørsmålId)
+            }
+
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId) {
+                return@post call.loggOgSendFeil("ugyldig sesjonsId", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
             }
 
             val spørsmålId = try {
@@ -95,18 +108,25 @@ fun Route.kartlegging(redisService: RedisService) {
                 return@post call.loggOgSendFeil("ugyldig formatert svarId", HttpStatusCode.BadRequest, svarRequest.svarId)
             }
 
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
-                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, id.toString())
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
+                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
 
             val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
-            if (spørsmål == null) {
-                return@post call.loggOgSendFeil("ukjent spørsmål ($spørsmålId)", HttpStatusCode.Forbidden, id.toString())
-            }
+                ?: return@post call.loggOgSendFeil("ukjent spørsmål ($spørsmålId)", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
+
             if (spørsmål.svaralternativer.none { it.id == svarId }) {
-                return@post call.loggOgSendFeil("ukjent svar ($svarId)", HttpStatusCode.Forbidden, id.toString())
+                return@post call.loggOgSendFeil("ukjent svar ($svarId)", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
             }
 
             call.application.log.info("Har fått inn svar $svarId")
+            kartleggingSvarProdusent.sendSvar(
+                KartleggingSvar(
+                    spørreundersøkelseId = spørreundersøkelse.id.toString(),
+                    sesjonId = sesjonsId.toString(),
+                    spørsmålId = spørsmålId.toString(),
+                    svarId = svarId.toString()
+                )
+            )
 
             call.respond(
                 HttpStatusCode.OK,
