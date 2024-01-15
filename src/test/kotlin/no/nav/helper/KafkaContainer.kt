@@ -10,8 +10,8 @@ import no.nav.domene.kartlegging.Spørreundersøkelse
 import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
 import no.nav.domene.kartlegging.Svaralternativ
 import no.nav.domene.samarbeidsstatus.IASakStatus
-import no.nav.konfigurasjon.Kafka
-import no.nav.konfigurasjon.Kafka.Companion.sakStatusTopic
+import no.nav.konfigurasjon.KafkaConfig
+import no.nav.konfigurasjon.KafkaConfig.sakStatusTopic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -109,7 +109,7 @@ class KafkaContainer(network: Network) {
         sendOgVent(
             nøkkel = spørreundersøkelse.id.toString(),
             melding = somString,
-            topic = Kafka.kartleggingTopic
+            topic = KafkaConfig.kartleggingTopic
         )
     }
 
@@ -119,7 +119,7 @@ class KafkaContainer(network: Network) {
         topic: String,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord("${Kafka.topicPrefix}.$topic", nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord("${KafkaConfig.topicPrefix}.$topic", nøkkel, melding)).get()
             delay(timeMillis = 30L)
         }
     }

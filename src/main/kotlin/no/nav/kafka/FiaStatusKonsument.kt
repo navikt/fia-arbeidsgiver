@@ -3,7 +3,7 @@ package no.nav.kafka
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.domene.samarbeidsstatus.IASakStatus
-import no.nav.konfigurasjon.Kafka
+import no.nav.konfigurasjon.KafkaConfig
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
@@ -18,7 +18,7 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val kafkaConsumer = KafkaConsumer(
-        Kafka.consumerProperties(),
+        KafkaConfig.consumerProperties(),
         StringDeserializer(),
         StringDeserializer()
     )
@@ -33,14 +33,14 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf("${Kafka.topicPrefix}.${Kafka.sakStatusTopic}"))
-                logger.info("Kafka consumer subscribed to ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+                consumer.subscribe(listOf("${KafkaConfig.topicPrefix}.${KafkaConfig.sakStatusTopic}"))
+                logger.info("Kafka consumer subscribed to ${KafkaConfig.topicPrefix}.${KafkaConfig.sakStatusTopic}")
 
                 while (job.isActive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${Kafka.sakStatusTopic}")
+                        logger.info("Fant ${records.count()} nye meldinger i topic: ${KafkaConfig.sakStatusTopic}")
 
                         records.forEach {record ->
                             try {
@@ -50,13 +50,13 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                                 logger.error("Mottok feil formatert kafkamelding")
                             }
                         }
-                        logger.info("Lagret ${records.count()} meldinger i topic: ${Kafka.sakStatusTopic}")
+                        logger.info("Lagret ${records.count()} meldinger i topic: ${KafkaConfig.sakStatusTopic}")
                     } catch (e: WakeupException) {
                         logger.info("FiaStatusKonsument is shutting down")
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
-                        logger.error("Exception is shutting down kafka listner for ${Kafka.sakStatusTopic}", e)
+                        logger.error("Exception is shutting down kafka listner for ${KafkaConfig.sakStatusTopic}", e)
                         job.cancel(CancellationException(e.message))
                         job.join()
                         throw e
@@ -67,9 +67,9 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     }
 
     private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+        logger.info("Stopping kafka consumer job for ${KafkaConfig.topicPrefix}.${KafkaConfig.sakStatusTopic}")
         kafkaConsumer.wakeup()
         job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${Kafka.topicPrefix}.${Kafka.sakStatusTopic}")
+        logger.info("Stopped kafka consumer job for ${KafkaConfig.topicPrefix}.${KafkaConfig.sakStatusTopic}")
     }
 }
