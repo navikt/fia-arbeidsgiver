@@ -13,6 +13,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
+import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.konfigurasjon.RateLimitKonfig
 
 class KartleggingApiTest {
@@ -66,6 +67,7 @@ class KartleggingApiTest {
                 body = BliMedRequest(spørreundersøkelseId = "tullogtøys", pinkode =  "654321")
             )
             response.status shouldBe HttpStatusCode.BadRequest
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ugyldig formatert id".toRegex()
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -84,6 +86,7 @@ class KartleggingApiTest {
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode = "654321")
             )
             response.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk feil pinkode".toRegex()
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -137,6 +140,7 @@ class KartleggingApiTest {
                 body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = sesjonsId.toString())
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ugyldig sesjonsId".toRegex()
         }
     }
 
@@ -186,8 +190,8 @@ class KartleggingApiTest {
                     spørsmålId = UUID.randomUUID().toString(), UUID.randomUUID().toString())
             )
             svarRespons.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørreundersøkelse ".toRegex()
         }
-
     }
 
     @Test
@@ -216,19 +220,23 @@ class KartleggingApiTest {
             val spørsmål = spørsmålOgSvaralternativer.first()
             val svaralternativ = spørsmål.svaralternativer.first()
 
+            val ukjentSpørsmålId = UUID.randomUUID()
             val svarRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
                 body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    spørsmålId = UUID.randomUUID().toString(), svaralternativ.id.toString())
+                    spørsmålId = ukjentSpørsmålId.toString(), svaralternativ.id.toString())
             )
             svarRespons1.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørsmål .$ukjentSpørsmålId.".toRegex()
 
+            val ukjentSvarId = UUID.randomUUID()
             val svarRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
                 body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    spørsmålId = spørsmål.id.toString(), UUID.randomUUID().toString())
+                    spørsmålId = spørsmål.id.toString(), ukjentSvarId.toString())
             )
             svarRespons2.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent svar .$ukjentSvarId.".toRegex()
         }
     }
 
