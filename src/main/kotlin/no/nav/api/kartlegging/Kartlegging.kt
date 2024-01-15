@@ -98,12 +98,19 @@ fun Route.kartlegging(redisService: RedisService) {
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
                 ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, id.toString())
 
-            if (spørreundersøkelse.spørsmålOgSvaralternativer.first { it.id == spørsmålId }
-                .svaralternativer.none { it.id == svarId }) {
+            val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
+            if (spørsmål == null) {
+                return@post call.loggOgSendFeil("ukjent spørsmål ($spørsmålId)", HttpStatusCode.Forbidden, id.toString())
+            }
+            if (spørsmål.svaralternativer.none { it.id == svarId }) {
                 return@post call.loggOgSendFeil("ukjent svar ($svarId)", HttpStatusCode.Forbidden, id.toString())
             }
 
             call.application.log.info("Har fått inn svar $svarId")
+
+            call.respond(
+                HttpStatusCode.OK,
+            )
         }
     }
 }

@@ -140,4 +140,96 @@ class KartleggingApiTest {
         }
     }
 
+    @Test
+    fun `skal kunne sende inn et gyldig svar`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val pinkode = "123456"
+        TestContainerHelper.kafka.sendKartlegging(id = spørreundersøkelseId, pinkode = pinkode)
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = BLI_MED_PATH,
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode =  pinkode)
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.OK
+            val bliMedBody = bliMedRespons.bodyAsText()
+            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SPØRSMÅL_OG_SVAR_PATH,
+                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+
+            val spørsmål = spørsmålOgSvaralternativer.first()
+            val svaralternativ = spørsmål.svaralternativer.first()
+
+            val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SVAR_PATH,
+                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    spørsmålId = spørsmål.id.toString(), svaralternativ.id.toString())
+            )
+            svarRespons.status shouldBe HttpStatusCode.OK
+        }
+
+    }
+
+    @Test
+    fun `skal få feilkode ved ukjent spørreundersøkelse`(){
+
+        runBlocking {
+            val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SVAR_PATH,
+                body = SvarRequest(spørreundersøkelseId = UUID.randomUUID().toString(),
+                    spørsmålId = UUID.randomUUID().toString(), UUID.randomUUID().toString())
+            )
+            svarRespons.status shouldBe HttpStatusCode.Forbidden
+        }
+
+    }
+
+    @Test
+    fun `skal få feilkode ved ukjent svar og svaralternativ`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val pinkode = "123456"
+        TestContainerHelper.kafka.sendKartlegging(id = spørreundersøkelseId, pinkode = pinkode)
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = BLI_MED_PATH,
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode =  pinkode)
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.OK
+            val bliMedBody = bliMedRespons.bodyAsText()
+            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SPØRSMÅL_OG_SVAR_PATH,
+                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+
+            val spørsmål = spørsmålOgSvaralternativer.first()
+            val svaralternativ = spørsmål.svaralternativer.first()
+
+            val svarRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SVAR_PATH,
+                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    spørsmålId = UUID.randomUUID().toString(), svaralternativ.id.toString())
+            )
+            svarRespons1.status shouldBe HttpStatusCode.Forbidden
+
+            val svarRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SVAR_PATH,
+                body = SvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    spørsmålId = spørsmål.id.toString(), UUID.randomUUID().toString())
+            )
+            svarRespons2.status shouldBe HttpStatusCode.Forbidden
+        }
+    }
+
 }
