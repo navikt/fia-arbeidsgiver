@@ -36,3 +36,7 @@ spec:
       value: {{altinnRettigheterProxyClientId}}
     - name: ALTINN_RETTIGHETER_PROXY_URL
       value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
+    - name: BLI_MED_LIMIT
+      value: "5"
+    - name: GENERELL_LIMIT
+      value: "20"

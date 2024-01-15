@@ -11,7 +11,7 @@ class FiaKartleggingKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger`() {
         val id = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(id = id)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = id)
 
         runBlocking {
             val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(id)
