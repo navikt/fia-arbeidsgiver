@@ -19,19 +19,19 @@ class KartleggingApiTest {
 
     @Test
     fun `skal kunne starte kartlegging`() {
-        val id = UUID.randomUUID()
+        val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
-        TestContainerHelper.kafka.sendKartlegging(id = id, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = id.toString(), pinkode =  pinkode)
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode =  pinkode)
             )
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
             val bliMedDTO = Json.decodeFromString<BliMedDTO>(body)
-            bliMedDTO.id shouldBe id.toString()
+            bliMedDTO.id shouldBe spørreundersøkelseId.toString()
             bliMedDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
     }
@@ -74,14 +74,14 @@ class KartleggingApiTest {
 
     @Test
     fun `returnerer FORBIDDEN dersom pin er feil`() {
-        val id = UUID.randomUUID()
+        val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
-        TestContainerHelper.kafka.sendKartlegging(id = id, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = id.toString(), pinkode = "654321")
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode = "654321")
             )
             response.status shouldBe HttpStatusCode.Forbidden
             val body = response.bodyAsText()
@@ -92,14 +92,14 @@ class KartleggingApiTest {
 
     @Test
     fun `skal kunne hente spørsmål og svar`() {
-        val id = UUID.randomUUID()
+        val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
-        TestContainerHelper.kafka.sendKartlegging(id = id, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = id.toString(), pinkode =  pinkode)
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode =  pinkode)
             )
             bliMedRespons.status shouldBe HttpStatusCode.OK
             val bliMedBody = bliMedRespons.bodyAsText()
@@ -107,7 +107,7 @@ class KartleggingApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = id.toString(), sesjonsId = bliMedDTO.sesjonsId)
+                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
@@ -120,21 +120,21 @@ class KartleggingApiTest {
 
     @Test
     fun `skal ikke få spørsmål og svar dersom sesjonsId er ukjent`() {
-        val id = UUID.randomUUID()
+        val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
         val sesjonsId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(id = id, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = id.toString(), pinkode =  pinkode)
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode =  pinkode)
             )
             bliMedRespons.status shouldBe HttpStatusCode.OK
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = id.toString(), sesjonsId = sesjonsId.toString())
+                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = sesjonsId.toString())
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
         }
@@ -144,7 +144,7 @@ class KartleggingApiTest {
     fun `skal kunne sende inn et gyldig svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
-        TestContainerHelper.kafka.sendKartlegging(id = spørreundersøkelseId, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -194,7 +194,7 @@ class KartleggingApiTest {
     fun `skal få feilkode ved ukjent svar og svaralternativ`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val pinkode = "123456"
-        TestContainerHelper.kafka.sendKartlegging(id = spørreundersøkelseId, pinkode = pinkode)
+        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId, pinkode = pinkode)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(

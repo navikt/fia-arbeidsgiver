@@ -32,7 +32,7 @@ fun Route.kartlegging(redisService: RedisService) {
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
                 ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.NotFound, id.toString())
-            if (spørreundersøkelse.pinKode != bliMedRequest.pinkode)
+            if (spørreundersøkelse.pinkode != bliMedRequest.pinkode)
                 return@post call.loggOgSendFeil("feil pinkode", HttpStatusCode.Forbidden, id.toString())
 
             val sesjonsId = UUID.randomUUID()
