@@ -1,15 +1,14 @@
 package no.nav.api.kartlegging
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.application.log
 import io.ktor.server.plugins.ratelimit.RateLimitName
 import io.ktor.server.plugins.ratelimit.rateLimit
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.Route
-import io.ktor.server.routing.post
+import io.ktor.server.routing.*
+import no.nav.api.Feil
 import no.nav.kafka.KartleggingSvar
 import no.nav.kafka.KartleggingSvarProdusent
 import no.nav.persistence.RedisService
@@ -27,16 +26,12 @@ fun Route.kartlegging(redisService: RedisService) {
         post(BLI_MED_PATH) {
             val bliMedRequest = call.receive(BliMedRequest::class)
 
-            val id = try {
-                UUID.fromString(bliMedRequest.spørreundersøkelseId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, bliMedRequest.spørreundersøkelseId)
-            }
+            val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
-                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.NotFound, id.toString())
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
+                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.NotFound)
             if (spørreundersøkelse.pinkode != bliMedRequest.pinkode)
-                return@post call.loggOgSendFeil("feil pinkode", HttpStatusCode.Forbidden, id.toString())
+                throw Feil(feilmelding = "Feil pinkode", feilkode = HttpStatusCode.Forbidden)
 
             val sesjonsId = UUID.randomUUID()
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
@@ -52,24 +47,14 @@ fun Route.kartlegging(redisService: RedisService) {
         post(SPØRSMÅL_OG_SVAR_PATH) {
             val spørsmålOgSvarRequest = call.receive(SpørsmålOgSvarRequest::class)
 
-            val id = try {
-                UUID.fromString(spørsmålOgSvarRequest.spørreundersøkelseId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, spørsmålOgSvarRequest.spørreundersøkelseId)
-            }
+            val id = spørsmålOgSvarRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-            val sesjonsId = try {
-                UUID.fromString(spørsmålOgSvarRequest.sesjonsId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert sesjonsId", HttpStatusCode.BadRequest, id.toString())
-            }
-
-            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != id) {
-                return@post call.loggOgSendFeil("ugyldig sesjonsId", HttpStatusCode.Forbidden, id.toString())
-            }
+            val sesjonsId = spørsmålOgSvarRequest.sesjonsId.tilUUID("sesjonsId")
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != id)
+                throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
-                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, id.toString())
+                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse", feilkode = HttpStatusCode.Forbidden)
 
             call.respond(
                 HttpStatusCode.OK,
@@ -80,43 +65,22 @@ fun Route.kartlegging(redisService: RedisService) {
         post(SVAR_PATH) {
             val svarRequest = call.receive(SvarRequest::class)
 
-            val spørreundersøkelseId = try {
-                UUID.fromString(svarRequest.spørreundersøkelseId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert id", HttpStatusCode.BadRequest, svarRequest.spørreundersøkelseId)
-            }
+            val spørreundersøkelseId = svarRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-            val sesjonsId = try {
-                UUID.fromString(svarRequest.sesjonsId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert sesjonsId (${svarRequest.sesjonsId})", HttpStatusCode.BadRequest, svarRequest.spørsmålId)
-            }
+            val sesjonsId = svarRequest.sesjonsId.tilUUID("sesjonsId")
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
+                throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 
-            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId) {
-                return@post call.loggOgSendFeil("ugyldig sesjonsId", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
-            }
-
-            val spørsmålId = try {
-                UUID.fromString(svarRequest.spørsmålId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert spørsmålId", HttpStatusCode.BadRequest, svarRequest.spørsmålId)
-            }
-
-            val svarId = try {
-                UUID.fromString(svarRequest.svarId)
-            } catch (e: IllegalArgumentException) {
-                return@post call.loggOgSendFeil("ugyldig formatert svarId", HttpStatusCode.BadRequest, svarRequest.svarId)
-            }
-
+            val spørsmålId = svarRequest.spørsmålId.tilUUID("spørsmålId")
+            val svarId = svarRequest.svarId.tilUUID("svarId")
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
-                ?: return@post call.loggOgSendFeil("ukjent spørreundersøkelse", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
+                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse", feilkode = HttpStatusCode.Forbidden)
 
             val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
-                ?: return@post call.loggOgSendFeil("ukjent spørsmål ($spørsmålId)", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
+                ?: throw Feil(feilmelding = "Ukjent spørsmål ($spørsmålId)", feilkode = HttpStatusCode.Forbidden)
 
-            if (spørsmål.svaralternativer.none { it.id == svarId }) {
-                return@post call.loggOgSendFeil("ukjent svar ($svarId)", HttpStatusCode.Forbidden, spørreundersøkelseId.toString())
-            }
+            if (spørsmål.svaralternativer.none { it.id == svarId })
+                throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
 
             call.application.log.info("Har fått inn svar $svarId")
             kartleggingSvarProdusent.sendSvar(
@@ -135,7 +99,8 @@ fun Route.kartlegging(redisService: RedisService) {
     }
 }
 
-private fun ApplicationCall.loggOgSendFeil(beskrivelse: String, httpStatusCode: HttpStatusCode, spørreundersøkelseId : String?){
-    application.log.warn("Ugyldig forsøk $beskrivelse med STATUSKODE: $httpStatusCode, og ID: $spørreundersøkelseId")
-    response.status(httpStatusCode)
+private fun String.tilUUID(hvaErJeg: String) = try{
+    UUID.fromString(this)
+} catch (e: IllegalArgumentException) {
+    throw Feil("Ugyldig formatert UUID $hvaErJeg: $this", e, HttpStatusCode.BadRequest)
 }

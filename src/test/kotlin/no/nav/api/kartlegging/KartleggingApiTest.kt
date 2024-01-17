@@ -85,7 +85,7 @@ class KartleggingApiTest {
                 body = BliMedRequest(spørreundersøkelseId = "tullogtøys", pinkode =  "654321")
             )
             response.status shouldBe HttpStatusCode.BadRequest
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ugyldig formatert id".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig formatert UUID".toRegex()
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -104,7 +104,7 @@ class KartleggingApiTest {
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode = "654321")
             )
             response.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk feil pinkode".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Feil pinkode".toRegex()
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -158,7 +158,7 @@ class KartleggingApiTest {
                 body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = sesjonsId.toString())
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ugyldig sesjonsId".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig sesjonsId".toRegex()
         }
     }
 
@@ -230,7 +230,7 @@ class KartleggingApiTest {
                 )
             )
             svarRespons.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørreundersøkelse ".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent spørreundersøkelse ".toRegex()
         }
     }
 
@@ -271,7 +271,7 @@ class KartleggingApiTest {
                     )
             )
             svarRespons1.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent spørsmål .$ukjentSpørsmålId.".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent spørsmål .$ukjentSpørsmålId.".toRegex()
 
             val ukjentSvarId = UUID.randomUUID()
             val svarRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -284,7 +284,7 @@ class KartleggingApiTest {
                 )
             )
             svarRespons2.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig forsøk ukjent svar .$ukjentSvarId.".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent svar .$ukjentSvarId.".toRegex()
         }
     }
 

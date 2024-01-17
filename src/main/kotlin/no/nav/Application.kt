@@ -30,5 +30,6 @@ fun Application.module() {
             rateLimiter(limit = RateLimitKonfig.bliMedLimit, refillPeriod = RateLimitKonfig.refillPeriod)
         }
     }
+    configureStatusPages()
     configureRouting(redisService = RedisService())
 }
