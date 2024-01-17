@@ -1,7 +1,10 @@
 package no.nav.helper
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
@@ -10,22 +13,25 @@ import no.nav.domene.kartlegging.Spørreundersøkelse
 import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
 import no.nav.domene.kartlegging.Svaralternativ
 import no.nav.domene.samarbeidsstatus.IASakStatus
+import no.nav.kafka.Topic
 import no.nav.konfigurasjon.KafkaConfig
-import no.nav.konfigurasjon.KafkaConfig.sakStatusTopic
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
 import org.apache.kafka.clients.admin.NewTopic
+import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
+import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
@@ -42,11 +48,15 @@ class KafkaContainer(network: Network) {
         .withNetworkAliases(kafkaNetworkAlias)
         .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams())
         .withEnv(
-            mapOf(
+            mutableMapOf(
                 "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
                 "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
-                "TZ" to TimeZone.getDefault().id
-            )
+                "TZ" to TimeZone.getDefault().id,
+                "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
+                "KAFKA_TRUSTSTORE_PATH" to "",
+                "KAFKA_KEYSTORE_PATH" to "",
+                "KAFKA_CREDSTORE_PASSWORD" to "",
+                )
         )
         .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
         .waitingFor(HostPortWaitStrategy())
@@ -78,7 +88,7 @@ class KafkaContainer(network: Network) {
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = Json.encodeToString(iaStatusOppdatering),
-            topic = sakStatusTopic
+            topic = Topic.SAK_STATUS
         )
     }
 
@@ -109,24 +119,24 @@ class KafkaContainer(network: Network) {
         sendOgVent(
             nøkkel = spørreundersøkelse.id.toString(),
             melding = somString,
-            topic = KafkaConfig.kartleggingTopic
+            topic = Topic.KARTLEGGING_SPØRREUNDERSØKELSE
         )
     }
 
     private fun sendOgVent(
         nøkkel: String,
         melding: String,
-        topic: String,
+        topic: Topic,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord("${KafkaConfig.topicPrefix}.$topic", nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord(topic.navnMedPrefix(), nøkkel, melding)).get()
             delay(timeMillis = 30L)
         }
     }
 
     private fun createTopic() {
         adminClient.createTopics(listOf(
-            NewTopic(sakStatusTopic, 1, 1.toShort())
+            NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort())
         ))
     }
 
@@ -145,4 +155,37 @@ class KafkaContainer(network: Network) {
             StringSerializer(),
             StringSerializer()
         )
+
+    fun nyKonsument() =
+        KafkaConfig(
+            brokers = container.bootstrapServers,
+            truststoreLocation = "",
+            keystoreLocation = "",
+            credstorePassword = "",
+        )
+            .consumerProperties()
+            .let { config ->
+                KafkaConsumer(config, StringDeserializer(), StringDeserializer())
+            }
+
+    suspend fun ventOgKonsumerKafkaMeldinger(
+        key: String,
+        konsument: KafkaConsumer<String, String>,
+        block: (meldinger: List<String>) -> Unit,
+    ) {
+        withTimeout(Duration.ofSeconds(5)) {
+            launch {
+                while (this.isActive) {
+                    val records = konsument.poll(Duration.ofMillis(50))
+                    val meldinger = records
+                        .filter { it.key() == key }
+                        .map { it.value() }
+                    if (meldinger.isNotEmpty()) {
+                        block(meldinger)
+                        break
+                    }
+                }
+            }
+        }
+    }
 }

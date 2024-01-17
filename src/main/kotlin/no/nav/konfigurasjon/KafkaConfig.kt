@@ -7,19 +7,17 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 
-object KafkaConfig {
+class KafkaConfig(
+    val brokers: String = getEnvVar("KAFKA_BROKERS"),
+    val truststoreLocation: String = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
+    val keystoreLocation: String = getEnvVar("KAFKA_KEYSTORE_PATH"),
+    val credstorePassword: String = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
 
-    private val brokers: String by lazy { System.getenv("KAFKA_BROKERS") }
-    private val truststoreLocation: String by lazy { System.getenv("KAFKA_TRUSTSTORE_PATH") }
-    private val keystoreLocation: String by lazy { System.getenv("KAFKA_KEYSTORE_PATH") }
-    private val credstorePassword: String by lazy { System.getenv("KAFKA_CREDSTORE_PASSWORD") }
-
-    // TODO: Flytt topic-navn til enum
-    val topicPrefix: String = "pia"
-    val sakStatusTopic: String = "ia-sak-status-v1"
-    val kartleggingTopic: String = "kartlegging-v1"
-    const val clientId: String = "fia-arbeidsgiver"
-    const val consumerGroupId = "ia-sak-status_$clientId"
+    ) {
+    companion object {
+        const val clientId: String = "fia-arbeidsgiver"
+        const val consumerGroupId = "ia-sak-status_$clientId"
+    }
 
     private fun securityConfigs() =
         mapOf(
@@ -83,3 +81,7 @@ object KafkaConfig {
         return producerConfigs.toMap()
     }
 }
+
+fun getEnvVar(varName: String, defaultValue: String? = null) =
+    System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable $varName")
+

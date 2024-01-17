@@ -1,5 +1,7 @@
 package no.nav.api.kartlegging
 
+import io.kotest.inspectors.forAtLeastOne
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
@@ -14,9 +16,25 @@ import kotlin.test.Test
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
+import no.nav.kafka.KartleggingSvar
+import no.nav.kafka.Topic
 import no.nav.konfigurasjon.RateLimitKonfig
+import org.junit.After
+import org.junit.Before
 
 class KartleggingApiTest {
+    private val konsument = TestContainerHelper.kafka.nyKonsument()
+
+    @Before
+    fun setUp() {
+        konsument.subscribe(mutableListOf(Topic.KARTLEGGING_SVAR.navn))
+    }
+
+    @After
+    fun tearDown() {
+        konsument.unsubscribe()
+        konsument.close()
+    }
 
     @Test
     fun `skal kunne starte kartlegging`() {
@@ -180,8 +198,22 @@ class KartleggingApiTest {
                 )
             )
             svarRespons.status shouldBe HttpStatusCode.OK
+            TestContainerHelper.kafka.ventOgKonsumerKafkaMeldinger(
+                key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
+                konsument = konsument
+            ) { meldinger ->
+                val objektene = meldinger.map {
+                    Json.decodeFromString<KartleggingSvar>(it)
+                }
+                objektene shouldHaveAtLeastSize 1
+                objektene.forAtLeastOne {
+                    it.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
+                    it.sesjonId shouldBe bliMedDTO.sesjonsId
+                    it.spørsmålId shouldBe spørsmål.id.toString()
+                    it.svarId shouldBe svaralternativ.id.toString()
+                }
+            }
         }
-
     }
 
     @Test

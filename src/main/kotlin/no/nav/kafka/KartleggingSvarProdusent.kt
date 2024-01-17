@@ -5,7 +5,7 @@ import no.nav.konfigurasjon.KafkaConfig
 
 class KartleggingSvarProdusent {
 
-    private val kafkaProdusent = KafkaProdusent(kafkaConfig = KafkaConfig)
+    private val kafkaProdusent = KafkaProdusent(kafkaConfig = KafkaConfig())
 
     fun sendSvar(svar: KartleggingSvar) {
         val topic = Topic.KARTLEGGING_SVAR
