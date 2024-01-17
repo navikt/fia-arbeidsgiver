@@ -30,8 +30,6 @@ fun Route.kartlegging(redisService: RedisService) {
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
                 ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.NotFound)
-            if (spørreundersøkelse.pinkode != bliMedRequest.pinkode)
-                throw Feil(feilmelding = "Feil pinkode", feilkode = HttpStatusCode.Forbidden)
 
             val sesjonsId = UUID.randomUUID()
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.id)

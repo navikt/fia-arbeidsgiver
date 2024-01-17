@@ -41,7 +41,7 @@ class KafkaContainer(network: Network) {
     private var adminClient: AdminClient
     private var kafkaProducer: KafkaProducer<String, String>
 
-    val container = KafkaContainer(
+    val container: KafkaContainer = KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.4.3")
     )
         .withNetwork(network)
@@ -92,10 +92,9 @@ class KafkaContainer(network: Network) {
         )
     }
 
-    fun sendKartlegging(spørreundersøkelseId: UUID, pinkode: String = "123456") {
+    fun sendKartlegging(spørreundersøkelseId: UUID) {
         val spørreundersøkelse = Spørreundersøkelse(
             id = spørreundersøkelseId,
-            pinkode = pinkode,
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
