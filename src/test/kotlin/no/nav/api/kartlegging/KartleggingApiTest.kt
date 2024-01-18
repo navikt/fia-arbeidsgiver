@@ -24,17 +24,17 @@ import org.junit.After
 import org.junit.Before
 
 class KartleggingApiTest {
-    private val konsument = TestContainerHelper.kafka.nyKonsument()
+    private val kartleggingSvarKonsument = TestContainerHelper.kafka.nyKonsument(topic = Topic.KARTLEGGING_SVAR)
 
     @Before
     fun setUp() {
-        konsument.subscribe(mutableListOf(Topic.KARTLEGGING_SVAR.navn))
+        kartleggingSvarKonsument.subscribe(mutableListOf(Topic.KARTLEGGING_SVAR.navn))
     }
 
     @After
     fun tearDown() {
-        konsument.unsubscribe()
-        konsument.close()
+        kartleggingSvarKonsument.unsubscribe()
+        kartleggingSvarKonsument.close()
     }
 
     @Test
@@ -196,7 +196,7 @@ class KartleggingApiTest {
             svarRespons.status shouldBe HttpStatusCode.OK
             TestContainerHelper.kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
-                konsument = konsument
+                konsument = kartleggingSvarKonsument
             ) { meldinger ->
                 val objektene = meldinger.map {
                     Json.decodeFromString<KartleggingSvar>(it)
@@ -282,5 +282,4 @@ class KartleggingApiTest {
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent svar .$ukjentSvarId.".toRegex()
         }
     }
-
 }

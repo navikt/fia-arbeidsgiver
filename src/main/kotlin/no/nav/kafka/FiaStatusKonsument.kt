@@ -17,8 +17,9 @@ import kotlin.coroutines.CoroutineContext
 class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
+    private val topic = Topic.SAK_STATUS
     private val kafkaConsumer = KafkaConsumer(
-        KafkaConfig().consumerProperties(),
+        KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
         StringDeserializer()
     )
@@ -33,14 +34,14 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf(Topic.SAK_STATUS.navnMedPrefix()))
-                logger.info("Kafka consumer subscribed to ${Topic.SAK_STATUS.navnMedPrefix()}")
+                consumer.subscribe(listOf(topic.navnMedNamespace))
+                logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
 
                 while (job.isActive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${Topic.SAK_STATUS.navn}")
+                        logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
                         records.forEach {record ->
                             try {
@@ -50,13 +51,13 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                                 logger.error("Mottok feil formatert kafkamelding")
                             }
                         }
-                        logger.info("Lagret ${records.count()} meldinger i topic: ${Topic.SAK_STATUS.navn}")
+                        logger.info("Lagret ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
                         logger.info("FiaStatusKonsument is shutting down")
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
-                        logger.error("Exception is shutting down kafka listner for ${Topic.SAK_STATUS.navn}", e)
+                        logger.error("Exception is shutting down kafka listner for ${topic.navn}", e)
                         job.cancel(CancellationException(e.message))
                         job.join()
                         throw e
@@ -67,9 +68,9 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
     }
 
     private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${Topic.SAK_STATUS.navn}")
+        logger.info("Stopping kafka consumer job for ${topic.navn}")
         kafkaConsumer.wakeup()
         job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${Topic.SAK_STATUS.navn}")
+        logger.info("Stopped kafka consumer job for ${topic.navn}")
     }
 }

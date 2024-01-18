@@ -16,7 +16,6 @@ class KafkaConfig(
     ) {
     companion object {
         const val clientId: String = "fia-arbeidsgiver"
-        const val consumerGroupId = "ia-sak-status_$clientId"
     }
 
     private fun securityConfigs() =
@@ -32,8 +31,8 @@ class KafkaConfig(
             SslConfigs.SSL_KEY_PASSWORD_CONFIG to credstorePassword
         )
 
-    fun consumerProperties() =
-        baseConsumerProperties().apply {
+    fun consumerProperties(konsumentGruppe: String) =
+        baseConsumerProperties(konsumentGruppe).apply {
             // TODO: Finn smidigere måte å få tester til å kjøre
             if (truststoreLocation.isBlank()) {
                 put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "PLAINTEXT")
@@ -43,10 +42,10 @@ class KafkaConfig(
             }
         }
 
-    private fun baseConsumerProperties() =
+    private fun baseConsumerProperties(konsumentGruppe: String) =
         mapOf(
             CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers,
-            ConsumerConfig.GROUP_ID_CONFIG to consumerGroupId,
+            ConsumerConfig.GROUP_ID_CONFIG to konsumentGruppe,
             ConsumerConfig.CLIENT_ID_CONFIG to clientId,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.MAX_POLL_RECORDS_CONFIG to "1000",

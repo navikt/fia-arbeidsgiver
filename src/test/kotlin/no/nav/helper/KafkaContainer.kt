@@ -44,26 +44,24 @@ class KafkaContainer(network: Network) {
     val container: KafkaContainer = KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.4.3")
     )
+        .withKraft()
         .withNetwork(network)
         .withNetworkAliases(kafkaNetworkAlias)
         .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams())
         .withEnv(
             mutableMapOf(
+                "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
                 "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
                 "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
                 "TZ" to TimeZone.getDefault().id,
-                "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
-                "KAFKA_TRUSTSTORE_PATH" to "",
-                "KAFKA_KEYSTORE_PATH" to "",
-                "KAFKA_CREDSTORE_PASSWORD" to "",
-                )
+            )
         )
         .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
         .waitingFor(HostPortWaitStrategy())
         .apply {
             start()
             adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
-            createTopic()
+            createTopics()
             kafkaProducer = producer()
         }
 
@@ -128,14 +126,16 @@ class KafkaContainer(network: Network) {
         topic: Topic,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord(topic.navnMedPrefix(), nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord(topic.navnMedNamespace, nøkkel, melding)).get()
             delay(timeMillis = 30L)
         }
     }
 
-    private fun createTopic() {
+    private fun createTopics() {
         adminClient.createTopics(listOf(
-            NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort())
+            NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort()),
+            NewTopic(Topic.KARTLEGGING_SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
+            NewTopic(Topic.KARTLEGGING_SVAR.navn, 1, 1.toShort())
         ))
     }
 
@@ -155,14 +155,14 @@ class KafkaContainer(network: Network) {
             StringSerializer()
         )
 
-    fun nyKonsument() =
+    fun nyKonsument(topic: Topic) =
         KafkaConfig(
             brokers = container.bootstrapServers,
             truststoreLocation = "",
             keystoreLocation = "",
             credstorePassword = "",
         )
-            .consumerProperties()
+            .consumerProperties(konsumentGruppe = topic.konsumentGruppe)
             .let { config ->
                 KafkaConsumer(config, StringDeserializer(), StringDeserializer())
             }
