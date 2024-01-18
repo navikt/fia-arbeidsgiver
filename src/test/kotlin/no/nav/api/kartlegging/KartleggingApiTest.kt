@@ -50,7 +50,7 @@ class KartleggingApiTest {
             response.status shouldBe HttpStatusCode.OK
             val body = response.bodyAsText()
             val bliMedDTO = Json.decodeFromString<BliMedDTO>(body)
-            bliMedDTO.id shouldBe spørreundersøkelseId.toString()
+            bliMedDTO.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
             bliMedDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
     }

@@ -4,6 +4,6 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BliMedDTO (
-    val id: String,
+    val spørreundersøkelseId: String,
     val sesjonsId: String,
 )

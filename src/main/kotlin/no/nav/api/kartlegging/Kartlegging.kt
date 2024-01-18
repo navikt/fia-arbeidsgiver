@@ -35,7 +35,7 @@ fun Route.kartlegging(redisService: RedisService) {
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
 
             call.respond(HttpStatusCode.OK, BliMedDTO(
-                id = spørreundersøkelse.id.toString(),
+                spørreundersøkelseId = spørreundersøkelse.id.toString(),
                 sesjonsId = sesjonsId.toString()
             ))
         }
