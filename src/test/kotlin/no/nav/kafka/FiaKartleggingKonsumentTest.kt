@@ -15,7 +15,7 @@ class FiaKartleggingKonsumentTest {
 
         runBlocking {
             val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(id)
-            result?.id shouldBe id
+            result?.kartleggingId shouldBe id
         }
     }
 }

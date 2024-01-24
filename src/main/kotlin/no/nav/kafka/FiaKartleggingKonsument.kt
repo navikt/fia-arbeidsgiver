@@ -46,6 +46,7 @@ class FiaKartleggingKonsument(val redisService: RedisService) : CoroutineScope {
                         records.forEach {record ->
                             try {
                                 val payload = Json.decodeFromString<Spørreundersøkelse>(record.value())
+                                logger.info("Lagrer kartlegging med id: ${payload.kartleggingId}")
                                 redisService.lagre(payload)
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}")

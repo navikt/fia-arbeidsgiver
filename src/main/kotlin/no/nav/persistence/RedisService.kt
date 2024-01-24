@@ -38,7 +38,7 @@ class RedisService(
     }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
-        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.id.toString(), Json.encodeToString(spørreundersøkelse))
+        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.kartleggingId.toString(), Json.encodeToString(spørreundersøkelse))
     }
 
     fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {

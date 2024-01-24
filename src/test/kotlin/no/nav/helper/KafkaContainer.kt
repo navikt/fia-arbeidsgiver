@@ -92,7 +92,7 @@ class KafkaContainer(network: Network) {
 
     fun sendKartlegging(spørreundersøkelseId: UUID) {
         val spørreundersøkelse = Spørreundersøkelse(
-            id = spørreundersøkelseId,
+            kartleggingId = spørreundersøkelseId,
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
@@ -114,7 +114,7 @@ class KafkaContainer(network: Network) {
         )
         val somString = Json.encodeToString(spørreundersøkelse)
         sendOgVent(
-            nøkkel = spørreundersøkelse.id.toString(),
+            nøkkel = spørreundersøkelse.kartleggingId.toString(),
             melding = somString,
             topic = Topic.KARTLEGGING_SPØRREUNDERSØKELSE
         )

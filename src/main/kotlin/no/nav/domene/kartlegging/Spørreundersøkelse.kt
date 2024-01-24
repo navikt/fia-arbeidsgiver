@@ -23,7 +23,7 @@ data class Svaralternativ (
 @Serializable
 data class Spørreundersøkelse (
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID,
+    val kartleggingId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
     val status: String,
     val avslutningsdato: LocalDate

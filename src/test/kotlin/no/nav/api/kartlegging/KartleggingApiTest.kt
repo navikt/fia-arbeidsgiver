@@ -83,7 +83,7 @@ class KartleggingApiTest {
                     url = BLI_MED_PATH,
                     body = BliMedRequest(spørreundersøkelseId = UUID.randomUUID().toString())
                 )
-                response.status shouldBe HttpStatusCode.NotFound
+                response.status shouldBe HttpStatusCode.BadRequest
             }
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,

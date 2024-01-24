@@ -29,13 +29,13 @@ fun Route.kartlegging(redisService: RedisService) {
             val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
             val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
-                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.NotFound)
+                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
 
             val sesjonsId = UUID.randomUUID()
-            redisService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
+            redisService.lagreSesjon(sesjonsId, spørreundersøkelse.kartleggingId)
 
             call.respond(HttpStatusCode.OK, BliMedDTO(
-                spørreundersøkelseId = spørreundersøkelse.id.toString(),
+                spørreundersøkelseId = spørreundersøkelse.kartleggingId.toString(),
                 sesjonsId = sesjonsId.toString()
             ))
         }
@@ -83,7 +83,7 @@ fun Route.kartlegging(redisService: RedisService) {
             call.application.log.info("Har fått inn svar $svarId")
             kartleggingSvarProdusent.sendSvar(
                 KartleggingSvar(
-                    spørreundersøkelseId = spørreundersøkelse.id.toString(),
+                    spørreundersøkelseId = spørreundersøkelse.kartleggingId.toString(),
                     sesjonId = sesjonsId.toString(),
                     spørsmålId = spørsmålId.toString(),
                     svarId = svarId.toString()
