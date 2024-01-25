@@ -7,15 +7,15 @@ import java.util.*
 import kotlin.test.Test
 
 
-class FiaKartleggingKonsumentTest {
+class SpørreundersøkelseKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger`() {
         val id = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = id)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         runBlocking {
             val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(id)
-            result?.kartleggingId shouldBe id
+            result?.spørreundersøkelseId shouldBe id
         }
     }
 }

@@ -9,9 +9,9 @@ import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.domene.kartlegging.Spørreundersøkelse
-import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
-import no.nav.domene.kartlegging.Svaralternativ
+import no.nav.domene.sporreundersokelse.Spørreundersøkelse
+import no.nav.domene.sporreundersokelse.SpørsmålOgSvaralternativer
+import no.nav.domene.sporreundersokelse.Svaralternativ
 import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.KafkaConfig
@@ -90,9 +90,9 @@ class KafkaContainer(network: Network) {
         )
     }
 
-    fun sendKartlegging(spørreundersøkelseId: UUID) {
+    fun sendSpørreundersøkelse(spørreundersøkelseId: UUID) {
         val spørreundersøkelse = Spørreundersøkelse(
-            kartleggingId = spørreundersøkelseId,
+            spørreundersøkelseId = spørreundersøkelseId,
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
@@ -114,9 +114,9 @@ class KafkaContainer(network: Network) {
         )
         val somString = Json.encodeToString(spørreundersøkelse)
         sendOgVent(
-            nøkkel = spørreundersøkelse.kartleggingId.toString(),
+            nøkkel = spørreundersøkelse.spørreundersøkelseId.toString(),
             melding = somString,
-            topic = Topic.KARTLEGGING_SPØRREUNDERSØKELSE
+            topic = Topic.SPØRREUNDERSØKELSE
         )
     }
 
@@ -134,8 +134,8 @@ class KafkaContainer(network: Network) {
     private fun createTopics() {
         adminClient.createTopics(listOf(
             NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort()),
-            NewTopic(Topic.KARTLEGGING_SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-            NewTopic(Topic.KARTLEGGING_SVAR.navn, 1, 1.toShort())
+            NewTopic(Topic.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
+            NewTopic(Topic.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
         ))
     }
 

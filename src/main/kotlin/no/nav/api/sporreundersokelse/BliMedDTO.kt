@@ -1,8 +1,9 @@
-package no.nav.api.kartlegging
+package no.nav.api.sporreundersokelse
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class BliMedRequest (
+data class BliMedDTO (
     val spørreundersøkelseId: String,
+    val sesjonsId: String,
 )

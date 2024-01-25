@@ -2,7 +2,7 @@ package no.nav.kafka
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import no.nav.domene.kartlegging.Spørreundersøkelse
+import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.konfigurasjon.KafkaConfig
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
-class FiaKartleggingKonsument(val redisService: RedisService) : CoroutineScope {
+class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
-    private val topic = Topic.KARTLEGGING_SPØRREUNDERSØKELSE
+    private val topic = Topic.SPØRREUNDERSØKELSE
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
@@ -46,7 +46,7 @@ class FiaKartleggingKonsument(val redisService: RedisService) : CoroutineScope {
                         records.forEach {record ->
                             try {
                                 val payload = Json.decodeFromString<Spørreundersøkelse>(record.value())
-                                logger.info("Lagrer kartlegging med id: ${payload.kartleggingId}")
+                                logger.info("Lagrer spørreundersøkelse med id: ${payload.spørreundersøkelseId}")
                                 redisService.lagre(payload)
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}")
@@ -54,7 +54,7 @@ class FiaKartleggingKonsument(val redisService: RedisService) : CoroutineScope {
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
-                        logger.info("FiaKartleggingKonsument is shutting down")
+                        logger.info("SpørreundersøkelseKonsument is shutting down")
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {

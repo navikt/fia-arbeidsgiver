@@ -7,7 +7,7 @@ import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.domene.samarbeidsstatus.IASakStatus
-import no.nav.domene.kartlegging.Spørreundersøkelse
+import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.konfigurasjon.Redis
 import java.util.*
 
@@ -38,7 +38,7 @@ class RedisService(
     }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
-        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.kartleggingId.toString(), Json.encodeToString(spørreundersøkelse))
+        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.spørreundersøkelseId.toString(), Json.encodeToString(spørreundersøkelse))
     }
 
     fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {

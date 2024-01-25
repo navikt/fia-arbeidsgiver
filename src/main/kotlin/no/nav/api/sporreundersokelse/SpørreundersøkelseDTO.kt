@@ -1,8 +1,8 @@
-package no.nav.api.kartlegging
+package no.nav.api.sporreundersokelse
 
 import kotlinx.serialization.Serializable
 import java.util.UUID
-import no.nav.domene.kartlegging.SpørsmålOgSvaralternativer
+import no.nav.domene.sporreundersokelse.SpørsmålOgSvaralternativer
 import no.nav.util.UUIDSerializer
 
 @Serializable

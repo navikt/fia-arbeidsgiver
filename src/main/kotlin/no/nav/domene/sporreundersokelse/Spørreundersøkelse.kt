@@ -1,4 +1,4 @@
-package no.nav.domene.kartlegging
+package no.nav.domene.sporreundersokelse
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
@@ -23,7 +23,7 @@ data class Svaralternativ (
 @Serializable
 data class Spørreundersøkelse (
     @Serializable(with = UUIDSerializer::class)
-    val kartleggingId: UUID,
+    val spørreundersøkelseId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
     val status: String,
     val avslutningsdato: LocalDate

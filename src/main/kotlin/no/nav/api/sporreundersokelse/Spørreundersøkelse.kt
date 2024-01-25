@@ -1,4 +1,4 @@
-package no.nav.api.kartlegging
+package no.nav.api.sporreundersokelse
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -9,20 +9,20 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import no.nav.api.Feil
-import no.nav.kafka.KartleggingSvar
-import no.nav.kafka.KartleggingSvarProdusent
+import no.nav.kafka.SpørreundersøkelseSvar
+import no.nav.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.persistence.RedisService
 import java.lang.IllegalArgumentException
 import java.util.*
 
-const val KARTLEGGING_PATH = "/fia-arbeidsgiver/kartlegging"
-const val BLI_MED_PATH = "${KARTLEGGING_PATH}/bli-med"
-const val SPØRSMÅL_OG_SVAR_PATH = "${KARTLEGGING_PATH}/sporsmal-og-svar"
-const val SVAR_PATH = "${KARTLEGGING_PATH}/svar"
+const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
+const val BLI_MED_PATH = "${SPØRREUNDERSØKELSE_PATH}/bli-med"
+const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-svar"
+const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
 
-fun Route.kartlegging(redisService: RedisService) {
-    val kartleggingSvarProdusent = KartleggingSvarProdusent()
-    rateLimit(RateLimitName("kartlegging-bli-med")){
+fun Route.spørreundersøkelse(redisService: RedisService) {
+    val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
+    rateLimit(RateLimitName("sporreundersokelse-bli-med")){
         post(BLI_MED_PATH) {
             val bliMedRequest = call.receive(BliMedRequest::class)
 
@@ -32,16 +32,16 @@ fun Route.kartlegging(redisService: RedisService) {
                 ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
 
             val sesjonsId = UUID.randomUUID()
-            redisService.lagreSesjon(sesjonsId, spørreundersøkelse.kartleggingId)
+            redisService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
 
             call.respond(HttpStatusCode.OK, BliMedDTO(
-                spørreundersøkelseId = spørreundersøkelse.kartleggingId.toString(),
+                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
                 sesjonsId = sesjonsId.toString()
             ))
         }
     }
 
-    rateLimit(RateLimitName("kartlegging")) {
+    rateLimit(RateLimitName("sporreundersokelse")) {
         post(SPØRSMÅL_OG_SVAR_PATH) {
             val spørsmålOgSvarRequest = call.receive(SpørsmålOgSvarRequest::class)
 
@@ -81,9 +81,9 @@ fun Route.kartlegging(redisService: RedisService) {
                 throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
 
             call.application.log.info("Har fått inn svar $svarId")
-            kartleggingSvarProdusent.sendSvar(
-                KartleggingSvar(
-                    spørreundersøkelseId = spørreundersøkelse.kartleggingId.toString(),
+            spørreundersøkelseSvarProdusent.sendSvar(
+                SpørreundersøkelseSvar(
+                    spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
                     sesjonId = sesjonsId.toString(),
                     spørsmålId = spørsmålId.toString(),
                     svarId = svarId.toString()

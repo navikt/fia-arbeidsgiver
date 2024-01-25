@@ -1,4 +1,4 @@
-package no.nav.api.kartlegging
+package no.nav.api.sporreundersokelse
 
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -17,30 +17,31 @@ import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
 import kotlinx.serialization.Serializable
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
-import no.nav.kafka.KartleggingSvar
+import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.RateLimitKonfig
 import org.junit.After
 import org.junit.Before
 
-class KartleggingApiTest {
-    private val kartleggingSvarKonsument = TestContainerHelper.kafka.nyKonsument(topic = Topic.KARTLEGGING_SVAR)
+class SpørreundeersøkelseApiTest {
+    private val spørreundersøkelseSvarKonsument =
+        TestContainerHelper.kafka.nyKonsument(topic = Topic.SPØRREUNDERSØKELSE_SVAR)
 
     @Before
     fun setUp() {
-        kartleggingSvarKonsument.subscribe(mutableListOf(Topic.KARTLEGGING_SVAR.navn))
+        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(Topic.SPØRREUNDERSØKELSE_SVAR.navn))
     }
 
     @After
     fun tearDown() {
-        kartleggingSvarKonsument.unsubscribe()
-        kartleggingSvarKonsument.close()
+        spørreundersøkelseSvarKonsument.unsubscribe()
+        spørreundersøkelseSvarKonsument.close()
     }
 
     @Test
-    fun `skal kunne starte kartlegging`() {
+    fun `skal kunne starte spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -56,9 +57,9 @@ class KartleggingApiTest {
     }
 
     @Test
-    fun `skal kunne starte kartlegging dersom pin er med`() { //Gir svar på om vi støtter ukjente felter i requestene våre
+    fun `skal kunne starte spørreundersøkelse dersom pin er med`() { //Gir svar på om vi støtter ukjente felter i requestene våre
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -74,7 +75,7 @@ class KartleggingApiTest {
     class BliMedRequestMedPin(val spørreundersøkelseId: String, val pinkode: String)
 
     @Test
-    fun `skal begrense antall forespørsler mot kartlegging-bli-med`() {
+    fun `skal begrense antall forespørsler mot spørreundersøkelse-bli-med`() {
 
         runBlocking {
             delay(RateLimitKonfig.refillPeriod.toJavaDuration())
@@ -113,7 +114,7 @@ class KartleggingApiTest {
     @Test
     fun `skal kunne hente spørsmål og svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -126,7 +127,10 @@ class KartleggingApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
+                body = SpørsmålOgSvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
@@ -141,7 +145,7 @@ class KartleggingApiTest {
     fun `skal ikke få spørsmål og svar dersom sesjonsId er ukjent`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val sesjonsId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -152,7 +156,10 @@ class KartleggingApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = sesjonsId.toString())
+                body = SpørsmålOgSvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = sesjonsId.toString()
+                )
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig sesjonsId".toRegex()
@@ -162,7 +169,7 @@ class KartleggingApiTest {
     @Test
     fun `skal kunne sende inn et gyldig svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -175,7 +182,10 @@ class KartleggingApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
+                body = SpørsmålOgSvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
@@ -196,10 +206,10 @@ class KartleggingApiTest {
             svarRespons.status shouldBe HttpStatusCode.OK
             TestContainerHelper.kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
-                konsument = kartleggingSvarKonsument
+                konsument = spørreundersøkelseSvarKonsument
             ) { meldinger ->
                 val objektene = meldinger.map {
-                    Json.decodeFromString<KartleggingSvar>(it)
+                    Json.decodeFromString<SpørreundersøkelseSvar>(it)
                 }
                 objektene shouldHaveAtLeastSize 1
                 objektene.forAtLeastOne {
@@ -213,27 +223,37 @@ class KartleggingApiTest {
     }
 
     @Test
-    fun `skal få feilkode ved ukjent spørreundersøkelse`(){
+    fun `skal få feilkode ved ukjent spørreundersøkelse`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = BLI_MED_PATH,
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.OK
+            val bliMedBody = bliMedRespons.bodyAsText()
+            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+
             val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
                 body = SvarRequest(
                     spørreundersøkelseId = UUID.randomUUID().toString(),
-                    sesjonsId = UUID.randomUUID().toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
                     spørsmålId = UUID.randomUUID().toString(),
                     svarId = UUID.randomUUID().toString()
                 )
             )
             svarRespons.status shouldBe HttpStatusCode.Forbidden
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent spørreundersøkelse ".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig sesjonsId".toRegex()
         }
     }
 
     @Test
     fun `skal få feilkode ved ukjent svar og svaralternativ`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendKartlegging(spørreundersøkelseId = spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -246,7 +266,10 @@ class KartleggingApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
+                body = SpørsmålOgSvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
@@ -262,8 +285,8 @@ class KartleggingApiTest {
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
                     spørsmålId = ukjentSpørsmålId.toString(),
-                    svarId =  svaralternativ.id.toString(),
-                    )
+                    svarId = svaralternativ.id.toString(),
+                )
             )
             svarRespons1.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent spørsmål .$ukjentSpørsmålId.".toRegex()

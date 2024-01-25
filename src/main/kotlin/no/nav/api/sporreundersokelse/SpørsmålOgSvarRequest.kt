@@ -1,4 +1,4 @@
-package no.nav.api.kartlegging
+package no.nav.api.sporreundersokelse
 
 import kotlinx.serialization.Serializable
 
