@@ -20,8 +20,8 @@ data class SpørsmålOgSvaralternativerDTO (
                     spørsmål = spørsmålOgSvarAlt.spørsmål,
                     svaralternativer = spørsmålOgSvarAlt.svaralternativer.map { svaralternativ ->
                         SvaralternativDTO(
-                            id = svaralternativ.id,
-                            tekst = svaralternativ.tekst
+                            id = svaralternativ.svarId,
+                            tekst = svaralternativ.svartekst
                         )
                     }
                 )

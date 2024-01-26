@@ -77,7 +77,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
                 ?: throw Feil(feilmelding = "Ukjent spørsmål ($spørsmålId)", feilkode = HttpStatusCode.Forbidden)
 
-            if (spørsmål.svaralternativer.none { it.id == svarId })
+            if (spørsmål.svaralternativer.none { it.svarId == svarId })
                 throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
 
             call.application.log.info("Har fått inn svar $svarId")

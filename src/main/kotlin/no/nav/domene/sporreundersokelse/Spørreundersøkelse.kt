@@ -9,6 +9,7 @@ import no.nav.util.UUIDSerializer
 data class SpørsmålOgSvaralternativer (
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
+    val kategori: String,
     val spørsmål: String,
     val svaralternativer: List<Svaralternativ>
 )
@@ -16,8 +17,8 @@ data class SpørsmålOgSvaralternativer (
 @Serializable
 data class Svaralternativ (
     @Serializable(with = UUIDSerializer::class)
-    val id: UUID,
-    val tekst: String
+    val svarId: UUID,
+    val svartekst: String
 )
 
 @Serializable
@@ -26,5 +27,6 @@ data class Spørreundersøkelse (
     val spørreundersøkelseId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
     val status: String,
+    val type: String,
     val avslutningsdato: LocalDate
 )

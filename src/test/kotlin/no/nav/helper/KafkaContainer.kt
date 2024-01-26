@@ -93,17 +93,19 @@ class KafkaContainer(network: Network) {
     fun sendSpørreundersøkelse(spørreundersøkelseId: UUID) {
         val spørreundersøkelse = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
+            type = "kartlegging",
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
+                    kategori = "PARTSSAMARBEID",
                     spørsmål = "Hva gjør dere med IA?",
                     svaralternativer = listOf (
                         Svaralternativ(
-                            id = UUID.randomUUID(),
+                            svarId = UUID.randomUUID(),
                             "ingenting"
                         ),
                         Svaralternativ(
-                            id = UUID.randomUUID(),
+                            svarId = UUID.randomUUID(),
                             "alt"
                         ),
                     )
