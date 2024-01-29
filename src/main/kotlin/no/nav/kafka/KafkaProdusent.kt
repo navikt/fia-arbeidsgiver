@@ -14,6 +14,6 @@ class KafkaProdusent(kafkaConfig: KafkaConfig) {
     }
 
     fun sendMelding(topic: Topic, nøkkel: String, verdi: String) {
-        producer.send(ProducerRecord(topic.navn, nøkkel, verdi))
+        producer.send(ProducerRecord(topic.navnMedNamespace, nøkkel, verdi))
     }
 }

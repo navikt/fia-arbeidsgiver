@@ -29,7 +29,7 @@ class SpørreundeersøkelseApiTest {
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(Topic.SPØRREUNDERSØKELSE_SVAR.navn))
+        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(Topic.SPØRREUNDERSØKELSE_SVAR.navnMedNamespace))
     }
 
     @After
