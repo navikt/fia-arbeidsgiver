@@ -28,8 +28,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
             val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
-                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse $spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
             val sesjonsId = UUID.randomUUID()
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
@@ -51,8 +50,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != id)
                 throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(id)
-                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse", feilkode = HttpStatusCode.Forbidden)
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(id)
+
 
             call.respond(
                 HttpStatusCode.OK,
@@ -71,8 +70,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
             val spørsmålId = svarRequest.spørsmålId.tilUUID("spørsmålId")
             val svarId = svarRequest.svarId.tilUUID("svarId")
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId)
-                ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse", feilkode = HttpStatusCode.Forbidden)
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
             val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
                 ?: throw Feil(feilmelding = "Ukjent spørsmål ($spørsmålId)", feilkode = HttpStatusCode.Forbidden)

@@ -1,13 +1,16 @@
 package no.nav.persistence
 
+import io.ktor.http.*
 import io.lettuce.core.RedisClient
 import io.lettuce.core.RedisURI
 import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.api.Feil
 import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
+import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.konfigurasjon.Redis
 import java.util.*
 
@@ -51,10 +54,14 @@ class RedisService(
         }
     }
 
-    fun henteSpørreundersøkelse(id: UUID): Spørreundersøkelse? {
-        return hente(Type.SPØRREUNDERSØKELSE, id.toString())?.let {
-            Json.decodeFromString(it)
-        }
+    fun hentePågåendeSpørreundersøkelse(id: UUID): Spørreundersøkelse {
+        val undersøkelse = hente(Type.SPØRREUNDERSØKELSE, id.toString())?.let {
+            Json.decodeFromString<Spørreundersøkelse>(it)
+        } ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse '$id'", feilkode = HttpStatusCode.Forbidden)
+
+        return if (undersøkelse.status == SpørreundersøkelseStatus.OPPRETTET) {
+            undersøkelse
+        } else throw Feil(feilmelding = "Avsluttet spørreundersøkelse '$id'", feilkode = HttpStatusCode.Gone)
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {

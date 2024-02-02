@@ -26,7 +26,11 @@ data class Spørreundersøkelse (
     @Serializable(with = UUIDSerializer::class)
     val spørreundersøkelseId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
-    val status: String,
+    val status: SpørreundersøkelseStatus,
     val type: String,
     val avslutningsdato: LocalDate
 )
+
+enum class SpørreundersøkelseStatus {
+    OPPRETTET, AVSLUTTET
+}

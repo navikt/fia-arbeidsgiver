@@ -14,8 +14,8 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.henteSpørreundersøkelse(id)
-            result?.spørreundersøkelseId shouldBe id
+            val result = TestContainerHelper.redis.redisService.hentePågåendeSpørreundersøkelse(id)
+            result.spørreundersøkelseId shouldBe id
         }
     }
 }

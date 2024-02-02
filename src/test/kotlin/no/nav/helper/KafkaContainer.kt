@@ -13,6 +13,7 @@ import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.domene.sporreundersokelse.SpørsmålOgSvaralternativer
 import no.nav.domene.sporreundersokelse.Svaralternativ
 import no.nav.domene.samarbeidsstatus.IASakStatus
+import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.KafkaConfig
 import org.apache.kafka.clients.CommonClientConfigs
@@ -90,7 +91,10 @@ class KafkaContainer(network: Network) {
         )
     }
 
-    fun sendSpørreundersøkelse(spørreundersøkelseId: UUID) {
+    fun sendSpørreundersøkelse(
+        spørreundersøkelseId: UUID,
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+    ) {
         val spørreundersøkelse = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             type = "kartlegging",
@@ -111,7 +115,7 @@ class KafkaContainer(network: Network) {
                     )
                 )
             ),
-            status = "aktiv",
+            status = spørreundersøkelseStatus,
             avslutningsdato = LocalDate.now().toKotlinLocalDate()
         )
         val somString = Json.encodeToString(spørreundersøkelse)

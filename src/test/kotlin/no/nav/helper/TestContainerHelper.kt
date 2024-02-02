@@ -1,12 +1,18 @@
 package no.nav.helper
 
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.*
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
+import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.json.Json
+import no.nav.api.sporreundersokelse.BLI_MED_PATH
+import no.nav.api.sporreundersokelse.BliMedDTO
+import no.nav.api.sporreundersokelse.BliMedRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -17,6 +23,7 @@ import org.testcontainers.images.builder.ImageFromDockerfile
 import java.time.Duration
 import kotlin.io.path.Path
 import no.nav.konfigurasjon.RateLimitKonfig
+import java.util.*
 
 class TestContainerHelper {
     companion object {
@@ -108,3 +115,15 @@ internal suspend inline fun<reified T> GenericContainer<*>.performPost(url: Stri
         header(HttpHeaders.ContentType, ContentType.Application.Json)
         setBody(body)
     }
+
+internal suspend fun GenericContainer<*>.bliMed(
+    spørreundersøkelseId: UUID,
+): BliMedDTO {
+    val response = performPost(
+        url = BLI_MED_PATH,
+        body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+    )
+    response.status shouldBe HttpStatusCode.OK
+    val body = response.bodyAsText()
+    return Json.decodeFromString<BliMedDTO>(body)
+}

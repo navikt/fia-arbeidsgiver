@@ -16,14 +16,16 @@ import kotlin.test.Test
 import kotlin.time.toJavaDuration
 import kotlinx.coroutines.time.delay
 import kotlinx.serialization.Serializable
+import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
+import no.nav.helper.bliMed
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.RateLimitKonfig
 import org.junit.After
 import org.junit.Before
 
-class SpørreundeersøkelseApiTest {
+class SpørreundersøkelseApiTest {
     private val spørreundersøkelseSvarKonsument =
         TestContainerHelper.kafka.nyKonsument(topic = Topic.SPØRREUNDERSØKELSE_SVAR)
 
@@ -44,13 +46,7 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            response.status shouldBe HttpStatusCode.OK
-            val body = response.bodyAsText()
-            val bliMedDTO = Json.decodeFromString<BliMedDTO>(body)
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             bliMedDTO.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
             bliMedDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
@@ -84,7 +80,7 @@ class SpørreundeersøkelseApiTest {
                     url = BLI_MED_PATH,
                     body = BliMedRequest(spørreundersøkelseId = UUID.randomUUID().toString())
                 )
-                response.status shouldBe HttpStatusCode.BadRequest
+                response.status shouldBe HttpStatusCode.Forbidden
             }
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
@@ -117,13 +113,7 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            bliMedRespons.status shouldBe HttpStatusCode.OK
-            val bliMedBody = bliMedRespons.bodyAsText()
-            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
@@ -148,12 +138,6 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            bliMedRespons.status shouldBe HttpStatusCode.OK
-
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
                 body = SpørsmålOgSvarRequest(
@@ -172,13 +156,7 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            bliMedRespons.status shouldBe HttpStatusCode.OK
-            val bliMedBody = bliMedRespons.bodyAsText()
-            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
@@ -228,13 +206,7 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            bliMedRespons.status shouldBe HttpStatusCode.OK
-            val bliMedBody = bliMedRespons.bodyAsText()
-            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
@@ -256,13 +228,7 @@ class SpørreundeersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
-            )
-            bliMedRespons.status shouldBe HttpStatusCode.OK
-            val bliMedBody = bliMedRespons.bodyAsText()
-            val bliMedDTO = Json.decodeFromString<BliMedDTO>(bliMedBody)
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
@@ -303,6 +269,48 @@ class SpørreundeersøkelseApiTest {
             )
             svarRespons2.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent svar .$ukjentSvarId.".toRegex()
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne bli med på avsluttede spørreundersøkelser`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+        )
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = BLI_MED_PATH,
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.Gone
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Avsluttet spørreundersøkelse '$spørreundersøkelseId'".toRegex()
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne svare på avsluttede spørreundersøkelser`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+            )
+
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SPØRSMÅL_OG_SVAR_PATH,
+                body = SpørsmålOgSvarRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Gone
         }
     }
 }
