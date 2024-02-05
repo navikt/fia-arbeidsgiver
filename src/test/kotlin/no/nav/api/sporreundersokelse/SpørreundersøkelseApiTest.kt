@@ -335,25 +335,25 @@ class SpørreundersøkelseApiTest {
         }
     }
 
-//    @Test()
-//    fun `skal kunne hente gjeldende spørsmålindeks og øke den`() {
-//        val spørreundersøkelseId = UUID.randomUUID()
-//        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-//
-//        runBlocking {
-//            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-//                url = NESTE_SPØRSMÅL_PATH,
-//                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
-//            )
-//            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
-//
-//            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-//                url = NESTE_SPØRSMÅL_PATH,
-//                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
-//            )
-//
-//            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
-//        }
-//
-//    }
+    @Test()
+    fun `skal kunne hente gjeldende spørsmålindeks og øke den`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+            )
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 1
+
+            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+            )
+
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 2
+        }
+
+    }
 }
