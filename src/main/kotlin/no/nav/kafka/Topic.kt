@@ -4,7 +4,7 @@ import no.nav.konfigurasjon.KafkaConfig.Companion.clientId
 
 enum class Topic(
     val navn: String,
-    val prefix: String = "pia",
+    private val prefix: String = "pia",
 ) {
     SPØRREUNDERSØKELSE_SVAR("sporreundersokelse-svar-v1"),
     SPØRREUNDERSØKELSE("sporreundersokelse-v1"),
