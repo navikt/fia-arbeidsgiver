@@ -17,7 +17,10 @@ spec:
       rules:
         - application: min-ia
           namespace: teamia
+        - application: min-ia
+          namespace: pia
         - application: fia-arbeidsgiver-frontend
+          namespace: pia
     outbound:
       rules:
         - application: altinn-rettigheter-proxy
