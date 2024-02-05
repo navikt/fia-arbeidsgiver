@@ -51,6 +51,9 @@ class RedisService(
     fun lagreAntallDeltakere(spørreundersøkelseId: UUID, antallDeltakere: Int) {
         lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
+    fun lagreSpørsmålindeks(spørreundersøkelseId: UUID, spørsmålindeks: Int) {
+        lagre(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString(), spørsmålindeks.toString())
+    }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {
         return hente(Type.SAMARBEIDSSTATUS, orgnr)?.let {
@@ -78,6 +81,9 @@ class RedisService(
         return hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
     }
 
+    fun hentSpørsmålindeks(spørreundersøkelseId: UUID): Int {
+        return hente(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString())?.toInt() ?: 0
+    }
     private fun lagre(
         type: Type,
         nøkkel: String,
@@ -96,5 +102,5 @@ class RedisService(
 }
 
 enum class Type {
-    SAMARBEIDSSTATUS, SPØRREUNDERSØKELSE, SESJON, ANTALL_DELTAKERE
+    SAMARBEIDSSTATUS, SPØRREUNDERSØKELSE, SESJON, ANTALL_DELTAKERE,SPØRSMÅLINDEKS
 }

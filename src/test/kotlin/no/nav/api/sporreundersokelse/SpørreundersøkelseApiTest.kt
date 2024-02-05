@@ -322,16 +322,38 @@ class SpørreundersøkelseApiTest {
         runBlocking {
             val antallDeltakere1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = ANTALL_DELTAKERE_PATH,
-                body = AntallDeltakereRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere1.bodyAsText()).antallDeltakere shouldBe 0
 
             TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val antallDeltakere2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = ANTALL_DELTAKERE_PATH,
-                body = AntallDeltakereRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere2.bodyAsText()).antallDeltakere shouldBe 1
         }
     }
+
+//    @Test()
+//    fun `skal kunne hente gjeldende spørsmålindeks og øke den`() {
+//        val spørreundersøkelseId = UUID.randomUUID()
+//        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+//
+//        runBlocking {
+//            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+//                url = NESTE_SPØRSMÅL_PATH,
+//                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+//            )
+//            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
+//
+//            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+//                url = NESTE_SPØRSMÅL_PATH,
+//                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+//            )
+//
+//            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
+//        }
+//
+//    }
 }

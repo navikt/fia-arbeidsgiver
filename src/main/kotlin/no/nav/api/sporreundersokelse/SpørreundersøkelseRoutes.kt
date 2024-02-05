@@ -20,6 +20,7 @@ const val BLI_MED_PATH = "${SPØRREUNDERSØKELSE_PATH}/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-svar"
 const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
 const val ANTALL_DELTAKERE_PATH = "${SPØRREUNDERSØKELSE_PATH}/antall-deltakere"
+const val NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/neste-sporsmal"
 
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
@@ -98,9 +99,9 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         }
 
         post(ANTALL_DELTAKERE_PATH) {
-            val antallDeltakereRequest = call.receive(AntallDeltakereRequest::class)
+            val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
-            val spørreundersøkelseId = antallDeltakereRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
             val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
 
@@ -109,6 +110,22 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
                 AntallDeltakereDTO(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     antallDeltakere = antallDeltakere
+                )
+            )
+        }
+        post(NESTE_SPØRSMÅL_PATH) {
+            val vertshandlingRequest = call.receive(VertshandlingRequest::class)
+
+            val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+
+            val nesteSpørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)+1
+            redisService.lagreSpørsmålindeks(spørreundersøkelseId, nesteSpørsmålindeks)
+
+            call.respond(
+                HttpStatusCode.OK,
+                SpørsmålindeksDTO(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    indeks = nesteSpørsmålindeks
                 )
             )
         }
