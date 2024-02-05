@@ -21,6 +21,7 @@ const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-sv
 const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
 const val ANTALL_DELTAKERE_PATH = "${SPØRREUNDERSØKELSE_PATH}/antall-deltakere"
 const val NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/neste-sporsmal"
+const val GJELDENDE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/gjeldende-sporsmal"
 
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
@@ -126,6 +127,25 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
                 SpørsmålindeksDTO(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     indeks = nesteSpørsmålindeks
+                )
+            )
+        }
+
+        post(GJELDENDE_SPØRSMÅL_PATH) {
+            val statusRequest = call.receive(StatusRequest::class)
+
+            val spørreundersøkelseId = statusRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val sesjonsId = statusRequest.sesjonsId.tilUUID("sesjonsId")
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
+                throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
+
+            val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
+
+            call.respond(
+                HttpStatusCode.OK,
+                SpørsmålindeksDTO(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    indeks = spørsmålindeks
                 )
             )
         }

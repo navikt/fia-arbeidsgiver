@@ -341,18 +341,19 @@ class SpørreundersøkelseApiTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = NESTE_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                url = GJELDENDE_SPØRSMÅL_PATH,
+                body = StatusRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
             )
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 1
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
 
             val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = NESTE_SPØRSMÅL_PATH,
                 body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
 
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 2
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
         }
 
     }
