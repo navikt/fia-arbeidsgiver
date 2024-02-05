@@ -313,4 +313,25 @@ class SpørreundersøkelseApiTest {
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Gone
         }
     }
+
+    @Test
+    fun `skal få vite hvor mange som har blitt med`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val antallDeltakere1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = ANTALL_DELTAKERE_PATH,
+                body = AntallDeltakereRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+            )
+            Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere1.bodyAsText()).antallDeltakere shouldBe 0
+
+            TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val antallDeltakere2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = ANTALL_DELTAKERE_PATH,
+                body = AntallDeltakereRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+            )
+            Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere2.bodyAsText()).antallDeltakere shouldBe 1
+        }
+    }
 }

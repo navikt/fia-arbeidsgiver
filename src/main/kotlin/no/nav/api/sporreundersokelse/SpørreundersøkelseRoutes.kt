@@ -19,6 +19,7 @@ const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 const val BLI_MED_PATH = "${SPØRREUNDERSØKELSE_PATH}/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-svar"
 const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
+const val ANTALL_DELTAKERE_PATH = "${SPØRREUNDERSØKELSE_PATH}/antall-deltakere"
 
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
@@ -32,6 +33,9 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
             val sesjonsId = UUID.randomUUID()
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
+
+            val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelse.spørreundersøkelseId)
+            redisService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere+1))
 
             call.respond(HttpStatusCode.OK, BliMedDTO(
                 spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
@@ -90,6 +94,22 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
             call.respond(
                 HttpStatusCode.OK,
+            )
+        }
+
+        post(ANTALL_DELTAKERE_PATH) {
+            val antallDeltakereRequest = call.receive(AntallDeltakereRequest::class)
+
+            val spørreundersøkelseId = antallDeltakereRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+
+            val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
+
+            call.respond(
+                HttpStatusCode.OK,
+                AntallDeltakereDTO(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    antallDeltakere = antallDeltakere
+                )
             )
         }
     }
