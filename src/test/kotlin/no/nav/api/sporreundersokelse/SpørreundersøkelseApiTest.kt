@@ -323,19 +323,25 @@ class SpørreundersøkelseApiTest {
     @Test
     fun `skal få vite hvor mange som har blitt med`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val vertId = UUID.randomUUID()
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+            .also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse
+            )}
 
         runBlocking {
             val antallDeltakere1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = ANTALL_DELTAKERE_PATH,
-                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString()),
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere1.bodyAsText()).antallDeltakere shouldBe 0
 
             TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val antallDeltakere2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = ANTALL_DELTAKERE_PATH,
-                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString())
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere2.bodyAsText()).antallDeltakere shouldBe 1
         }
@@ -344,7 +350,13 @@ class SpørreundersøkelseApiTest {
     @Test()
     fun `skal kunne hente gjeldende spørsmålindeks og øke den`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val vertId = UUID.randomUUID()
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+            .also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse
+            )}
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -356,11 +368,53 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = NESTE_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString()),
             )
 
             Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
         }
 
+    }
+
+    @Test
+    fun `skal returnere FORBIDDEN ved henting av neste spørsmål med ugyldig vertId`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val vertId = UUID.randomUUID()
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+            .also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse
+            )}
+
+        runBlocking {
+            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = UUID.randomUUID().toString()),
+            )
+            response.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig vertId".toRegex()
+        }
+    }
+
+    @Test
+    fun `skal returnere FORBIDDEN ved henting av antall deltakere ugyldig vertId`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val vertId = UUID.randomUUID()
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+            .also { spørreundersøkelse ->
+                TestContainerHelper.kafka.sendSpørreundersøkelse(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    spørreundersøkelsesStreng = spørreundersøkelse
+                )}
+
+        runBlocking {
+            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = ANTALL_DELTAKERE_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = UUID.randomUUID().toString()),
+            )
+            response.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ugyldig vertId".toRegex()
+        }
     }
 }

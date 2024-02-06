@@ -103,6 +103,11 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
             val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+
+            if (redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
+                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden)
 
             val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
 
@@ -118,6 +123,11 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
             val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+
+            if (redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
+                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden)
 
             val nesteSpørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)+1
             redisService.lagreSpørsmålindeks(spørreundersøkelseId, nesteSpørsmålindeks)
