@@ -19,9 +19,12 @@ const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 const val BLI_MED_PATH = "${SPØRREUNDERSØKELSE_PATH}/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-svar"
 const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
-const val ANTALL_DELTAKERE_PATH = "${SPØRREUNDERSØKELSE_PATH}/antall-deltakere"
-const val NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/neste-sporsmal"
 const val GJELDENDE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/gjeldende-sporsmal"
+
+const val VERT_ANTALL_DELTAKERE_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/antall-deltakere"
+const val VERT_GJELDENDE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/gjeldende-sporsmal"
+const val VERT_NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/neste-sporsmal"
+const val VERT_SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/sporsmal-og-svar"
 
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
@@ -65,6 +68,25 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         }
 
+        post(GJELDENDE_SPØRSMÅL_PATH) {
+            val statusRequest = call.receive(StatusRequest::class)
+
+            val spørreundersøkelseId = statusRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val sesjonsId = statusRequest.sesjonsId.tilUUID("sesjonsId")
+            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
+                throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
+
+            val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
+
+            call.respond(
+                HttpStatusCode.OK,
+                SpørsmålindeksDTO(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    indeks = spørsmålindeks
+                )
+            )
+        }
+
         post(SVAR_PATH) {
             val svarRequest = call.receive(SvarRequest::class)
 
@@ -99,7 +121,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         }
 
-        post(ANTALL_DELTAKERE_PATH) {
+        post(VERT_ANTALL_DELTAKERE_PATH) {
             val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
             val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -119,7 +141,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
                 )
             )
         }
-        post(NESTE_SPØRSMÅL_PATH) {
+
+        post(VERT_NESTE_SPØRSMÅL_PATH) {
             val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
             val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -141,13 +164,33 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         }
 
-        post(GJELDENDE_SPØRSMÅL_PATH) {
-            val statusRequest = call.receive(StatusRequest::class)
+        post(VERT_SPØRSMÅL_OG_SVAR_PATH) {
+            val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
-            val spørreundersøkelseId = statusRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-            val sesjonsId = statusRequest.sesjonsId.tilUUID("sesjonsId")
-            if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
-                throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
+            val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+
+            if (spørreundersøkelse.vertId != vertId)
+                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden)
+
+            call.respond(
+                HttpStatusCode.OK,
+                SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
+            )
+        }
+
+        post(VERT_GJELDENDE_SPØRSMÅL_PATH) {
+            val vertshandlingRequest = call.receive(VertshandlingRequest::class)
+
+            val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+
+            if (spørreundersøkelse.vertId != vertId)
+                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden)
 
             val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
 

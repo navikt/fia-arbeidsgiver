@@ -108,7 +108,7 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
-    fun `skal kunne hente spørsmål og svar`() {
+    fun `deltaker skal kunne hente spørsmål og svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
@@ -122,6 +122,35 @@ class SpørreundersøkelseApiTest {
                     sesjonsId = bliMedDTO.sesjonsId
                 )
             )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+
+            spørsmålOgSvaralternativer shouldHaveSize 1
+            spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente spørsmål og svar`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val vertId = UUID.randomUUID()
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+            .also { spørreundersøkelse ->
+                TestContainerHelper.kafka.sendSpørreundersøkelse(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    spørreundersøkelsesStreng = spørreundersøkelse
+                )}
+
+        runBlocking {
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_SPØRSMÅL_OG_SVAR_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                )
+            )
+
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
             val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
@@ -321,7 +350,7 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
-    fun `skal få vite hvor mange som har blitt med`() {
+    fun `vert skal få vite hvor mange som har blitt med`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
         TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
@@ -333,22 +362,22 @@ class SpørreundersøkelseApiTest {
 
         runBlocking {
             val antallDeltakere1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = ANTALL_DELTAKERE_PATH,
+                url = VERT_ANTALL_DELTAKERE_PATH,
                 body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString()),
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere1.bodyAsText()).antallDeltakere shouldBe 0
 
             TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val antallDeltakere2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = ANTALL_DELTAKERE_PATH,
+                url = VERT_ANTALL_DELTAKERE_PATH,
                 body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString())
             )
             Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere2.bodyAsText()).antallDeltakere shouldBe 1
         }
     }
 
-    @Test()
-    fun `skal kunne hente gjeldende spørsmålindeks og øke den`() {
+    @Test
+    fun `vert skal kunne hente gjeldende spørsmålindeks og øke den`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
         TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
@@ -359,21 +388,35 @@ class SpørreundersøkelseApiTest {
             )}
 
         runBlocking {
+            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_GJELDENDE_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString())
+            )
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
+
+            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_NESTE_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString()),
+            )
+
+            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
+        }
+    }
+    @Test
+    fun `deltaker skal kunne hente gjeldende spørsmålindeks`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        )
+
+        runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = GJELDENDE_SPØRSMÅL_PATH,
                 body = StatusRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), sesjonsId = bliMedDTO.sesjonsId)
             )
             Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
-
-            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = NESTE_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = vertId.toString()),
-            )
-
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
         }
-
     }
 
     @Test
@@ -389,7 +432,7 @@ class SpørreundersøkelseApiTest {
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = NESTE_SPØRSMÅL_PATH,
+                url = VERT_NESTE_SPØRSMÅL_PATH,
                 body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = UUID.randomUUID().toString()),
             )
             response.status shouldBe HttpStatusCode.Forbidden
@@ -410,7 +453,7 @@ class SpørreundersøkelseApiTest {
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = ANTALL_DELTAKERE_PATH,
+                url = VERT_ANTALL_DELTAKERE_PATH,
                 body = VertshandlingRequest(spørreundersøkelseId = spørreundersøkelseId.toString(), vertId = UUID.randomUUID().toString()),
             )
             response.status shouldBe HttpStatusCode.Forbidden
