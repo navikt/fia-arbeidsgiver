@@ -23,6 +23,9 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
         StringDeserializer(),
         StringDeserializer()
     )
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     override val coroutineContext: CoroutineContext
         get() = Dispatchers.IO + job
@@ -45,11 +48,11 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
 
                         records.forEach {record ->
                             try {
-                                val payload = Json.decodeFromString<Spørreundersøkelse>(record.value())
+                                val payload = json.decodeFromString<Spørreundersøkelse>(record.value())
                                 logger.info("Lagrer spørreundersøkelse med id: ${payload.spørreundersøkelseId}")
                                 redisService.lagre(payload)
                             } catch (e: IllegalArgumentException) {
-                                logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}")
+                                logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
                         }
                         logger.info("Lagret ${records.count()} meldinger i topic: ${topic.navn}")

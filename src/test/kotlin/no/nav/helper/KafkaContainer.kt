@@ -93,17 +93,31 @@ class KafkaContainer(network: Network) {
 
     fun sendSpørreundersøkelse(
         spørreundersøkelseId: UUID,
-        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+        spørreundersøkelsesStreng: String = enStandardSpørreundersøkelse(spørreundersøkelseId),
     ) {
+        sendOgVent(
+            nøkkel = spørreundersøkelseId.toString(),
+            melding = spørreundersøkelsesStreng,
+            topic = Topic.SPØRREUNDERSØKELSE
+        )
+    }
+
+    fun enStandardSpørreundersøkelse(
+        spørreundersøkelseId: UUID,
+        vertId: UUID = UUID.randomUUID(),
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+    ): String {
         val spørreundersøkelse = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId,
             type = "kartlegging",
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
                     kategori = "PARTSSAMARBEID",
                     spørsmål = "Hva gjør dere med IA?",
-                    svaralternativer = listOf (
+                    antallSvar = 2,
+                    svaralternativer = listOf(
                         Svaralternativ(
                             svarId = UUID.randomUUID(),
                             "ingenting"
@@ -118,12 +132,7 @@ class KafkaContainer(network: Network) {
             status = spørreundersøkelseStatus,
             avslutningsdato = LocalDate.now().toKotlinLocalDate()
         )
-        val somString = Json.encodeToString(spørreundersøkelse)
-        sendOgVent(
-            nøkkel = spørreundersøkelse.spørreundersøkelseId.toString(),
-            melding = somString,
-            topic = Topic.SPØRREUNDERSØKELSE
-        )
+        return Json.encodeToString(spørreundersøkelse)
     }
 
     private fun sendOgVent(

@@ -277,7 +277,10 @@ class SpørreundersøkelseApiTest {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+            spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+            )
         )
 
         runBlocking {
@@ -300,7 +303,10 @@ class SpørreundersøkelseApiTest {
 
             TestContainerHelper.kafka.sendSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+                spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
+                )
             )
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(

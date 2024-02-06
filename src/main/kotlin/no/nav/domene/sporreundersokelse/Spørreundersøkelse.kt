@@ -11,6 +11,7 @@ data class SpørsmålOgSvaralternativer (
     val id: UUID,
     val kategori: String,
     val spørsmål: String,
+    val antallSvar: Int = 0,
     val svaralternativer: List<Svaralternativ>
 )
 
@@ -25,6 +26,8 @@ data class Svaralternativ (
 data class Spørreundersøkelse (
     @Serializable(with = UUIDSerializer::class)
     val spørreundersøkelseId: UUID,
+    @Serializable(with = UUIDSerializer::class)
+    val vertId: UUID? = null,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
     val status: SpørreundersøkelseStatus,
     val type: String,
