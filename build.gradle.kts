@@ -1,7 +1,7 @@
-val ktorVersion = "2.3.7"
+val ktorVersion = "2.3.8"
 val kotlinVersion = "1.9.22"
 val logbackVersion = "1.4.14"
-val prometeusVersion  = "1.12.1"
+val prometeusVersion  = "1.12.2"
 
 plugins {
     kotlin("jvm") version "1.9.22"
@@ -36,7 +36,7 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:3.6.1")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.3.0.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.3.1.RELEASE")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
@@ -55,12 +55,12 @@ dependencies {
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-    val testcontainersVersion = "1.19.3"
+    val testcontainersVersion = "1.19.4"
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.3.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.0")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.1")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
@@ -70,7 +70,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.104.Final")
+                require("4.1.106.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
