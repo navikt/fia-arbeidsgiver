@@ -518,6 +518,8 @@ class SpørreundersøkelseApiTest {
                     spørreundersøkelsesStreng = spørreundersøkelse
                 )
             }
+
+        val UUIDLength = UUID.randomUUID().toString().length
         runBlocking {
             val antallDeltakere = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = VERT_ANTALL_DELTAKERE_PATH,
@@ -528,7 +530,8 @@ class SpørreundersøkelseApiTest {
             )
             val antallDeltakereSvar = Json.decodeFromString<AntallDeltakereDTO>(antallDeltakere.bodyAsText())
             antallDeltakereSvar.antallSvar.forAll { svar ->
-                svar.value shouldBe 2
+                svar.spørsmålId shouldHaveLength UUIDLength
+                svar.antall shouldBe 2
             }
         }
     }

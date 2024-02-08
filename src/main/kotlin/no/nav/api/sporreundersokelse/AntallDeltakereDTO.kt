@@ -6,5 +6,11 @@ import kotlinx.serialization.Serializable
 data class AntallDeltakereDTO(
     val spørreundersøkelseId: String,
     val antallDeltakere: Int,
-    val antallSvar: Map<String, Int>
+    val antallSvar: List<AntallSvarDTO>,
+)
+
+@Serializable
+data class AntallSvarDTO(
+    val spørsmålId: String,
+    val antall: Int,
 )

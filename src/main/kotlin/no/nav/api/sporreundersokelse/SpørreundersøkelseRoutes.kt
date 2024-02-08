@@ -28,7 +28,7 @@ const val VERT_SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/spor
 
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
-    rateLimit(RateLimitName("sporreundersokelse-bli-med")){
+    rateLimit(RateLimitName("sporreundersokelse-bli-med")) {
         post(BLI_MED_PATH) {
             val bliMedRequest = call.receive(BliMedRequest::class)
 
@@ -40,12 +40,14 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             redisService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
 
             val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelse.spørreundersøkelseId)
-            redisService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere+1))
+            redisService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere + 1))
 
-            call.respond(HttpStatusCode.OK, BliMedDTO(
-                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
-                sesjonsId = sesjonsId.toString()
-            ))
+            call.respond(
+                HttpStatusCode.OK, BliMedDTO(
+                    spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
+                    sesjonsId = sesjonsId.toString()
+                )
+            )
         }
     }
 
@@ -130,13 +132,20 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
             if (spørreundersøkelse.vertId != vertId)
-                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
-                    feilkode = HttpStatusCode.Forbidden)
+                throw Feil(
+                    feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden
+                )
 
             val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
 
             val antallSvar =
-                spørreundersøkelse.spørsmålOgSvaralternativer.associate { svar -> svar.id.toString() to svar.antallSvar }
+                spørreundersøkelse.spørsmålOgSvaralternativer.map { spørsmål ->
+                    AntallSvarDTO(
+                        spørsmålId = spørsmål.id.toString(),
+                        antall = spørsmål.antallSvar
+                    )
+                }
 
             call.respond(
                 HttpStatusCode.OK,
@@ -155,10 +164,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
             if (redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
-                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
-                    feilkode = HttpStatusCode.Forbidden)
+                throw Feil(
+                    feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden
+                )
 
-            val nesteSpørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)+1
+            val nesteSpørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId) + 1
             redisService.lagreSpørsmålindeks(spørreundersøkelseId, nesteSpørsmålindeks)
 
             call.respond(
@@ -178,8 +189,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
             if (spørreundersøkelse.vertId != vertId)
-                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
-                    feilkode = HttpStatusCode.Forbidden)
+                throw Feil(
+                    feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden
+                )
 
             call.respond(
                 HttpStatusCode.OK,
@@ -195,8 +208,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
             if (spørreundersøkelse.vertId != vertId)
-                throw Feil(feilmelding = "Ugyldig vertId: $vertId",
-                    feilkode = HttpStatusCode.Forbidden)
+                throw Feil(
+                    feilmelding = "Ugyldig vertId: $vertId",
+                    feilkode = HttpStatusCode.Forbidden
+                )
 
             val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
 
@@ -211,7 +226,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
     }
 }
 
-private fun String.tilUUID(hvaErJeg: String) = try{
+private fun String.tilUUID(hvaErJeg: String) = try {
     UUID.fromString(this)
 } catch (e: IllegalArgumentException) {
     throw Feil("Ugyldig formatert UUID $hvaErJeg: $this", e, HttpStatusCode.BadRequest)
