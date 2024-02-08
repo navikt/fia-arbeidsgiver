@@ -127,17 +127,23 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
             val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
-            if (redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
+            val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+
+            if (spørreundersøkelse.vertId != vertId)
                 throw Feil(feilmelding = "Ugyldig vertId: $vertId",
                     feilkode = HttpStatusCode.Forbidden)
 
             val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
 
+            val antallSvar =
+                spørreundersøkelse.spørsmålOgSvaralternativer.associate { svar -> svar.id.toString() to svar.antallSvar }
+
             call.respond(
                 HttpStatusCode.OK,
                 AntallDeltakereDTO(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    antallDeltakere = antallDeltakere
+                    antallDeltakere = antallDeltakere,
+                    antallSvar = antallSvar,
                 )
             )
         }
