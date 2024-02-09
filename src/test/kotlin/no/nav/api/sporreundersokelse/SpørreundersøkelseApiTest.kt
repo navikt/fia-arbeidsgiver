@@ -14,15 +14,12 @@ import no.nav.helper.TestContainerHelper
 import no.nav.helper.performPost
 import java.util.*
 import kotlin.test.Test
-import kotlin.time.toJavaDuration
-import kotlinx.coroutines.time.delay
 import kotlinx.serialization.Serializable
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.helper.bliMed
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
-import no.nav.konfigurasjon.RateLimitKonfig
 import org.junit.After
 import org.junit.Before
 
@@ -70,27 +67,6 @@ class SpørreundersøkelseApiTest {
     @Suppress("unused")
     @Serializable
     class BliMedRequestMedPin(val spørreundersøkelseId: String, val pinkode: String)
-
-    @Test
-    fun `skal begrense antall forespørsler mot spørreundersøkelse-bli-med`() {
-
-        runBlocking {
-            delay(RateLimitKonfig.refillPeriod.toJavaDuration())
-            repeat(RateLimitKonfig.bliMedLimit) {
-                val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                    url = BLI_MED_PATH,
-                    body = BliMedRequest(spørreundersøkelseId = UUID.randomUUID().toString())
-                )
-                response.status shouldBe HttpStatusCode.Forbidden
-            }
-            val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = UUID.randomUUID().toString())
-            )
-            response.status shouldBe HttpStatusCode.TooManyRequests
-            delay(RateLimitKonfig.refillPeriod.toJavaDuration())
-        }
-    }
 
     @Test
     fun `returnerer BAD_REQUEST dersom UUID er feil formatert`() {

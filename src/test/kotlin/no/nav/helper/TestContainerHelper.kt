@@ -22,7 +22,6 @@ import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
 import org.testcontainers.images.builder.ImageFromDockerfile
 import java.time.Duration
 import kotlin.io.path.Path
-import no.nav.konfigurasjon.RateLimitKonfig
 import java.util.*
 
 class TestContainerHelper {
@@ -32,7 +31,6 @@ class TestContainerHelper {
 
         val authServer = AuthContainer(network)
         val kafka = KafkaContainer(network)
-        val rateLimit = RateLimitKonfig()
         val redis = RedisContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
@@ -47,7 +45,6 @@ class TestContainerHelper {
                     authServer.getEnv() +
                             altinnProxy.getEnv() +
                             kafka.getEnv() +
-                            rateLimit.getEnv() +
                             redis.getEnv() +
                         mapOf(
                             "NAIS_CLUSTER_NAME" to "lokal"
