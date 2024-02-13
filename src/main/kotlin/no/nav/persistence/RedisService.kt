@@ -20,18 +20,19 @@ class RedisService(
     username: String = Redis.redisUsername,
     password: String? = Redis.redisPassword
 ) {
-    val redisUri: RedisURI
+    val redisUri: RedisURI = RedisURI.create(url)
     val sync: RedisCommands<String, String>
     val defaultTimeToLiveSeconds: Long
 
     init {
-        redisUri = RedisURI.create(url)
         redisUri.credentialsProvider = StaticCredentialsProvider(username, password?.toCharArray())
 
         val redisClient = RedisClient.create(redisUri)
         val connection = redisClient.connect()
         sync = connection.sync()
-        defaultTimeToLiveSeconds = 2 * 365 * 24 * 60 * 60L // To år!
+
+        val TWO_YEARS = 2 * 365 * 24 * 60 * 60L
+        defaultTimeToLiveSeconds = TWO_YEARS
     }
 
     fun lagre(iaSakStatus: IASakStatus) {
@@ -41,7 +42,11 @@ class RedisService(
     }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
-        lagre(Type.SPØRREUNDERSØKELSE, spørreundersøkelse.spørreundersøkelseId.toString(), Json.encodeToString(spørreundersøkelse))
+        lagre(
+            Type.SPØRREUNDERSØKELSE,
+            spørreundersøkelse.spørreundersøkelseId.toString(),
+            Json.encodeToString(spørreundersøkelse)
+        )
     }
 
     fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {
@@ -51,8 +56,14 @@ class RedisService(
     fun lagreAntallDeltakere(spørreundersøkelseId: UUID, antallDeltakere: Int) {
         lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
+
+    @Deprecated("Skal erstattes av Spørsmålsstatus")
     fun lagreSpørsmålindeks(spørreundersøkelseId: UUID, spørsmålindeks: Int) {
         lagre(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString(), spørsmålindeks.toString())
+    }
+
+    fun lagreKategoristatus(spørreundersøkelseId: UUID, kategoristatus: KategoristatusDTO) {
+        lagre(Type.KATEGORISTATUS, spørreundersøkelseId.toString(), Json.encodeToString(kategoristatus))
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {
@@ -84,6 +95,14 @@ class RedisService(
     fun hentSpørsmålindeks(spørreundersøkelseId: UUID): Int {
         return hente(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString())?.toInt() ?: 0
     }
+
+    fun hentKategoristatus(spørreundersøkelseId: UUID): KategoristatusDTO? {
+        return hente(
+            Type.KATEGORISTATUS,
+            spørreundersøkelseId.toString()
+        )?.let { Json.decodeFromString<KategoristatusDTO>(it) }
+    }
+
     private fun lagre(
         type: Type,
         nøkkel: String,
@@ -105,5 +124,8 @@ enum class Type {
     SAMARBEIDSSTATUS,
     SPØRREUNDERSØKELSE,
     SESJON, ANTALL_DELTAKERE,
+
+    @Deprecated("Skal erstattes av Kategoristatus")
     SPØRSMÅLINDEKS,
+    KATEGORISTATUS
 }

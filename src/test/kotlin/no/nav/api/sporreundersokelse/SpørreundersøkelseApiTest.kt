@@ -18,8 +18,10 @@ import kotlinx.serialization.Serializable
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.helper.bliMed
+import no.nav.helper.performGet
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
+import no.nav.persistence.KategoristatusDTO
 import org.junit.After
 import org.junit.Before
 
@@ -94,7 +96,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(
+                body = SpørsmålOgSvaralternativerRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -150,7 +152,7 @@ class SpørreundersøkelseApiTest {
         runBlocking {
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(
+                body = SpørsmålOgSvaralternativerRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = sesjonsId.toString()
                 )
@@ -170,7 +172,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(
+                body = SpørsmålOgSvaralternativerRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -242,7 +244,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(
+                body = SpørsmålOgSvaralternativerRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -321,7 +323,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvarRequest(
+                body = SpørsmålOgSvaralternativerRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -368,9 +370,10 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
-    fun `vert skal kunne hente gjeldende spørsmålindeks og øke den`() {
+    fun `vert skal ikke kunne inkrementere spørsmålindeks for en kategori som ikke er åpnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
+
         TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
@@ -383,24 +386,78 @@ class SpørreundersøkelseApiTest {
             }
 
         runBlocking {
-            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_GJELDENDE_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    vertId = vertId.toString()
+            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performGet(
+                url = KATEGORISTATUS_PATH.replace(
+                    "{sporreundersokelseId}",
+                    spørreundersøkelseId.toString()
                 )
             )
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
 
-            val spørsmålindeks2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_NESTE_SPØRSMÅL_PATH,
+            val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
+
+            kategoristatusBody.spørsmålindeks shouldBe null
+            kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
+
+            val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString()
                 ),
             )
 
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks2.bodyAsText()).indeks shouldBe 1
+            startetKategori.status shouldBe HttpStatusCode.Conflict
+        }
+    }
+    @Test
+    fun `vert skal kunne hente gjeldende spørsmålindeks for en kategori og øke den`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val vertId = UUID.randomUUID()
+
+        TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId
+        )
+            .also { spørreundersøkelse ->
+                TestContainerHelper.kafka.sendSpørreundersøkelse(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    spørreundersøkelsesStreng = spørreundersøkelse
+                )
+            }
+
+        runBlocking {
+            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performGet(
+                url = KATEGORISTATUS_PATH.replace(
+                    "{sporreundersokelseId}",
+                    spørreundersøkelseId.toString()
+                )
+            )
+
+            val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
+
+            kategoristatusBody.spørsmålindeks shouldBe null
+            kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
+
+            val opprettetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_START_KATEGORI_PATH,
+                body = StarteKategoriRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString(),
+                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name
+                ),
+            )
+
+            val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                ),
+            )
+            val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
+
+            startetKategoriBody.spørsmålindeks shouldBe 0
+            startetKategoriBody.status shouldBe KategoristatusDTO.Status.PÅBEGYNT
         }
     }
 
@@ -441,7 +498,7 @@ class SpørreundersøkelseApiTest {
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_NESTE_SPØRSMÅL_PATH,
+                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = UUID.randomUUID().toString()

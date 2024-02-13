@@ -4,6 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.konfigurasjon.KafkaConfig
+import no.nav.persistence.KategoristatusDTO
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
@@ -46,11 +47,31 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
                         if (records.count() < 1) continue
                         logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
-                        records.forEach {record ->
+                        records.forEach { record ->
                             try {
                                 val payload = json.decodeFromString<Spørreundersøkelse>(record.value())
-                                logger.info("Lagrer spørreundersøkelse med id: ${payload.spørreundersøkelseId}")
+                                val spørreundersøkelseId = payload.spørreundersøkelseId
+                                logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
                                 redisService.lagre(payload)
+
+                                val kategoristatus =
+                                    redisService.hentKategoristatus(spørreundersøkelseId = spørreundersøkelseId)
+
+                                val kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID
+                                val status = KategoristatusDTO.Status.OPPRETTET
+
+                                logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
+                                if (kategoristatus == null) {
+                                    redisService.lagreKategoristatus(
+                                        spørreundersøkelseId = spørreundersøkelseId,
+                                        kategoristatus = KategoristatusDTO(
+                                            kategori = kategori,
+                                            status = status,
+                                            spørsmålindeks = null
+                                        )
+                                    )
+                                }
+
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }

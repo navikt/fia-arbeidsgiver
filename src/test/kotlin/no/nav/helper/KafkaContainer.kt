@@ -16,6 +16,7 @@ import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.KafkaConfig
+import no.nav.persistence.KategoristatusDTO
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -114,7 +115,7 @@ class KafkaContainer(network: Network) {
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
-                    kategori = "PARTSSAMARBEID",
+                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name,
                     spørsmål = "Hva gjør dere med IA?",
                     antallSvar = 2,
                     svaralternativer = listOf(

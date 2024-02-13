@@ -3,7 +3,8 @@ package no.nav.api.sporreundersokelse
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class SpørsmålOgSvarRequest(
+data class StarteKategoriRequest (
     val spørreundersøkelseId: String,
-    val sesjonsId: String
+    val vertId: String,
+    val kategori: String,
 )
