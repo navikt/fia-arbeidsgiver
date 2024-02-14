@@ -106,7 +106,7 @@ class KafkaContainer(network: Network) {
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),
-        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
     ): String {
         val spørreundersøkelse = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
