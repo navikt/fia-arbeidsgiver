@@ -9,7 +9,6 @@ import io.ktor.server.routing.*
 import no.nav.api.Feil
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.SpørreundersøkelseSvarProdusent
-import no.nav.persistence.KategoristatusDTO
 import no.nav.persistence.KategoristatusDTO.Status.IKKE_PÅBEGYNT
 import no.nav.persistence.KategoristatusDTO.Status.PÅBEGYNT
 import no.nav.persistence.RedisService
@@ -60,13 +59,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
     post(SPØRSMÅL_OG_SVAR_PATH) {
         val spørsmålOgSvaralternativerRequest = call.receive(SpørsmålOgSvaralternativerRequest::class)
 
-        val id = spørsmålOgSvaralternativerRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-
+        val spørreundersøkelseId = spørsmålOgSvaralternativerRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val sesjonsId = spørsmålOgSvaralternativerRequest.sesjonsId.tilUUID("sesjonsId")
-        if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != id)
-            throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(id)
+        validerSesjonsId(redisService, sesjonsId, spørreundersøkelseId)
+
+        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
 
         call.respond(
@@ -81,8 +79,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
 
-        if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
-            throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
+        validerSesjonsId(redisService, sesjonsId, spørreundersøkelseId)
 
         val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
 
@@ -101,8 +98,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val spørreundersøkelseId = svarRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
         val sesjonsId = svarRequest.sesjonsId.tilUUID("sesjonsId")
-        if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
-            throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
+
+        validerSesjonsId(redisService, sesjonsId, spørreundersøkelseId)
 
         val spørsmålId = svarRequest.spørsmålId.tilUUID("spørsmålId")
         val svarId = svarRequest.svarId.tilUUID("svarId")
@@ -129,11 +126,16 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
     }
 
-    get(KATEGORISTATUS_PATH) {
-        val spørreundersøkelseId =
-            call.parameters["sporreundersokelseId"]?.tilUUID("spørreundersøkelseId") ?: throw IllegalStateException(
-                "SpørreundersøkelseId skal aldri kunne være null"
+    post(KATEGORISTATUS_PATH) {
+        val request = call.receive(StatusRequest::class)
+
+        val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            ?: throw Feil(
+                "SpørreundersøkelseId skal aldri kunne være null", feilkode = HttpStatusCode.InternalServerError
             )
+        val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
+
+        validerSesjonsId(redisService, sesjonsId, spørreundersøkelseId)
 
         val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
             "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
@@ -307,6 +309,15 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         )
     }
+}
+
+private fun validerSesjonsId(
+    redisService: RedisService,
+    sesjonsId: UUID,
+    spørreundersøkelseId: UUID
+) {
+    if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
+        throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 }
 
 private fun String.tilUUID(hvaErJeg: String) = try {
