@@ -35,5 +35,5 @@ data class Spørreundersøkelse (
 )
 
 enum class SpørreundersøkelseStatus {
-    OPPRETTET, AVSLUTTET
+    OPPRETTET, PÅBEGYNT, AVSLUTTET
 }
