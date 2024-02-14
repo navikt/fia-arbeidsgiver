@@ -18,10 +18,11 @@ import kotlinx.serialization.Serializable
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.helper.bliMed
-import no.nav.helper.performGet
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
 import no.nav.persistence.KategoristatusDTO
+import no.nav.persistence.KategoristatusDTO.Kategori.PARTSSAMARBEID
+import no.nav.persistence.KategoristatusDTO.Status.OPPRETTET
 import org.junit.After
 import org.junit.Before
 
@@ -386,17 +387,19 @@ class SpørreundersøkelseApiTest {
             }
 
         runBlocking {
-            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performGet(
-                url = KATEGORISTATUS_PATH.replace(
-                    "{sporreundersokelseId}",
-                    spørreundersøkelseId.toString()
-                )
+
+            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_KATEGORISTATUS_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                ),
             )
 
             val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
 
             kategoristatusBody.spørsmålindeks shouldBe null
-            kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
+            kategoristatusBody.status shouldBe OPPRETTET
 
             val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = VERT_INKREMENTER_SPØRSMÅL_PATH,
@@ -426,24 +429,25 @@ class SpørreundersøkelseApiTest {
             }
 
         runBlocking {
-            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performGet(
-                url = KATEGORISTATUS_PATH.replace(
-                    "{sporreundersokelseId}",
-                    spørreundersøkelseId.toString()
-                )
+            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_KATEGORISTATUS_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                ),
             )
 
             val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
 
             kategoristatusBody.spørsmålindeks shouldBe null
-            kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
+            kategoristatusBody.status shouldBe OPPRETTET
 
-            val opprettetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+            TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = VERT_START_KATEGORI_PATH,
                 body = StarteKategoriRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString(),
-                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name
+                    kategori = PARTSSAMARBEID.name
                 ),
             )
 
@@ -478,6 +482,28 @@ class SpørreundersøkelseApiTest {
                 )
             )
             Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
+        }
+    }
+    @Test
+    fun `deltaker skal kunne hente kategoristatus og ingen indeks for `() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        )
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+
+            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = KATEGORISTATUS_PATH,
+                body = StatusRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+
+            Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText()).spørsmålindeks shouldBe null
+            Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText()).status shouldBe OPPRETTET
         }
     }
 
