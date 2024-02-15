@@ -80,7 +80,7 @@ class RedisService(
             Json.decodeFromString<Spørreundersøkelse>(it)
         } ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse '$id'", feilkode = HttpStatusCode.Forbidden)
 
-        logger.info("Hentet pørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
+        logger.info("Hentet spørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
             undersøkelse
         } else throw Feil(feilmelding = "Spørreundersøkelse med id '$id'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'", feilkode = HttpStatusCode.Gone)
