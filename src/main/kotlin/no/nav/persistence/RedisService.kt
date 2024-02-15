@@ -12,6 +12,8 @@ import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.konfigurasjon.Redis
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import java.util.*
 
 
@@ -23,6 +25,7 @@ class RedisService(
     val redisUri: RedisURI = RedisURI.create(url)
     val sync: RedisCommands<String, String>
     val defaultTimeToLiveSeconds: Long
+    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     init {
         redisUri.credentialsProvider = StaticCredentialsProvider(username, password?.toCharArray())
@@ -77,9 +80,10 @@ class RedisService(
             Json.decodeFromString<Spørreundersøkelse>(it)
         } ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse '$id'", feilkode = HttpStatusCode.Forbidden)
 
+        logger.info("Hentet pørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
             undersøkelse
-        } else throw Feil(feilmelding = "Avsluttet spørreundersøkelse '$id'", feilkode = HttpStatusCode.Gone)
+        } else throw Feil(feilmelding = "Spørreundersøkelse med id '$id'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'", feilkode = HttpStatusCode.Gone)
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {

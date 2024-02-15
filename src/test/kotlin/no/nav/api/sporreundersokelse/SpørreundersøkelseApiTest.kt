@@ -302,7 +302,7 @@ class SpørreundersøkelseApiTest {
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
             )
             bliMedRespons.status shouldBe HttpStatusCode.Gone
-            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Avsluttet spørreundersøkelse '$spørreundersøkelseId'".toRegex()
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
 
