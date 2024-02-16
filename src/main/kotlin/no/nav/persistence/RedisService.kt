@@ -83,7 +83,7 @@ class RedisService(
         logger.info("Hentet spørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
             undersøkelse
-        } else throw Feil(feilmelding = "Spørreundersøkelse med id '$id'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'", feilkode = HttpStatusCode.Gone)
+        } else throw Feil(feilmelding = "Spørreundersøkelse med id '$id'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'", feilkode = HttpStatusCode.Forbidden)
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {

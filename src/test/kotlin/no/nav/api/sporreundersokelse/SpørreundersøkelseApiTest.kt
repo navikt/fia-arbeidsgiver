@@ -301,7 +301,28 @@ class SpørreundersøkelseApiTest {
                 url = BLI_MED_PATH,
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
             )
-            bliMedRespons.status shouldBe HttpStatusCode.Gone
+            bliMedRespons.status shouldBe HttpStatusCode.Forbidden
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne bli med på spørreundersøkelser som ikke er startet ennå`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
+            )
+        )
+
+        runBlocking {
+            val bliMedRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = BLI_MED_PATH,
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+            )
+            bliMedRespons.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
@@ -329,7 +350,7 @@ class SpørreundersøkelseApiTest {
                     sesjonsId = bliMedDTO.sesjonsId
                 )
             )
-            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Gone
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.Forbidden
         }
     }
 
