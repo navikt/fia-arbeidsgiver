@@ -128,6 +128,22 @@ class KafkaContainer(network: Network) {
                             "alt"
                         ),
                     )
+                ),
+                SpørsmålOgSvaralternativer(
+                    id = UUID.randomUUID(),
+                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name,
+                    spørsmål = "Hva gjør dere IKKE med IA?",
+                    antallSvar = 2,
+                    svaralternativer = listOf(
+                        Svaralternativ(
+                            svarId = UUID.randomUUID(),
+                            "noen ting"
+                        ),
+                        Svaralternativ(
+                            svarId = UUID.randomUUID(),
+                            "alt"
+                        ),
+                    )
                 )
             ),
             status = spørreundersøkelseStatus,

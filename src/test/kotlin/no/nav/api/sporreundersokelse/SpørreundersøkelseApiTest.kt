@@ -106,8 +106,45 @@ class SpørreundersøkelseApiTest {
             val body = spørsmålOgSvarRespons.bodyAsText()
             val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
 
-            spørsmålOgSvaralternativer shouldHaveSize 1
+            spørsmålOgSvaralternativer shouldHaveSize 2
             spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
+        }
+    }
+
+    @Test
+    fun `deltaker skal kunne hente neste spørsmålId`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SPØRSMÅL_OG_SVAR_PATH,
+                body = SpørsmålOgSvaralternativerRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+            spørsmålOgSvaralternativer shouldHaveSize 2
+
+            val idTilFørsteSpørsmål = spørsmålOgSvaralternativer.first().id
+            val idTilAndreSpørsmål = spørsmålOgSvaralternativer.last().id
+
+            val hvaErNesteSpørsmålRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = NesteSpørsmålRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+                )
+            )
+            hvaErNesteSpørsmålRespons.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons.bodyAsText())
+            nesteSpørsmålDTO.status shouldBe NesteSpøsmålStatus.OK
+            nesteSpørsmålDTO.nesteId shouldBe idTilAndreSpørsmål.toString()
         }
     }
 
@@ -139,7 +176,7 @@ class SpørreundersøkelseApiTest {
             val body = spørsmålOgSvarRespons.bodyAsText()
             val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
 
-            spørsmålOgSvaralternativer shouldHaveSize 1
+            spørsmålOgSvaralternativer shouldHaveSize 2
             spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
         }
     }

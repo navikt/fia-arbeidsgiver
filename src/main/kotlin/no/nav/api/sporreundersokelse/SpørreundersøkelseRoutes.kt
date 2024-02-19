@@ -18,6 +18,7 @@ import kotlin.IllegalArgumentException
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 const val BLI_MED_PATH = "${SPØRREUNDERSØKELSE_PATH}/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/sporsmal-og-svar"
+const val NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/neste-sporsmal"
 const val SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/svar"
 const val KATEGORISTATUS_PATH = "${SPØRREUNDERSØKELSE_PATH}/kategoristatus"
 
@@ -75,6 +76,46 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         call.respond(
             HttpStatusCode.OK,
             SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
+        )
+    }
+
+    post(NESTE_SPØRSMÅL_PATH) {
+        val nesteSpørsmålRequest = call.receive(NesteSpørsmålRequest::class)
+
+        val spørreundersøkelseId =
+            nesteSpørsmålRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val sesjonsId = nesteSpørsmålRequest.sesjonsId.tilUUID("sesjonsId")
+        val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværrendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
+
+        validerSesjonsId(
+            redisService = redisService,
+            sesjonsId = sesjonsId,
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+
+        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val indeksTilNåværrendeSpørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
+
+        if (indeksTilNåværrendeSpørsmålId == -1) {
+            call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")
+            call.respond(
+                HttpStatusCode.BadRequest
+            )
+        }
+
+        if (indeksTilNåværrendeSpørsmålId >= spørreundersøkelse.spørsmålOgSvaralternativer.size) {
+            call.respond(
+                HttpStatusCode.OK,
+                NesteSpørsmålDTO(NesteSpøsmålStatus.ER_SISTE_SPØRSMÅL)
+            )
+        }
+
+        call.respond(
+            HttpStatusCode.OK,
+            NesteSpørsmålDTO(
+                NesteSpøsmålStatus.OK,
+                nesteId = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværrendeSpørsmålId + 1].id.toString()
+            )
         )
     }
 
