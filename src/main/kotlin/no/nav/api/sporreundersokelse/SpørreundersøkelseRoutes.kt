@@ -94,7 +94,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
 
         val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val indeksTilNåværrendeSpørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
+        val indeksTilNåværrendeSpørsmålId =
+            spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
 
         if (indeksTilNåværrendeSpørsmålId == -1) {
             call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")
@@ -102,19 +103,22 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
                 HttpStatusCode.BadRequest
             )
         }
+        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
 
-        if (indeksTilNåværrendeSpørsmålId >= spørreundersøkelse.spørsmålOgSvaralternativer.size) {
-            call.respond(
-                HttpStatusCode.OK,
-                NesteSpørsmålDTO(NesteSpøsmålStatus.ER_SISTE_SPØRSMÅL)
-            )
+        if (indeksTilNåværrendeSpørsmålId >= indeksTilSisteSpørsmål) {
+            call.respond(HttpStatusCode.NotFound)
         }
+
+        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId)
+        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1
+        val nesteSpørsmålIndeks = indeksTilNåværrendeSpørsmålId + 1
 
         call.respond(
             HttpStatusCode.OK,
             NesteSpørsmålDTO(
-                NesteSpøsmålStatus.OK,
-                nesteId = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværrendeSpørsmålId + 1].id.toString()
+                erSisteSpørsmål = nesteSpørsmålIndeks >= indeksTilSisteSpørsmål,
+                erÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
+                spørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString()
             )
         )
     }

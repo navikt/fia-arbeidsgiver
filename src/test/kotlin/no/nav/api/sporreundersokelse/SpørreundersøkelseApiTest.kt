@@ -143,8 +143,9 @@ class SpørreundersøkelseApiTest {
             )
             hvaErNesteSpørsmålRespons.status shouldBe HttpStatusCode.OK
             val nesteSpørsmålDTO = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons.bodyAsText())
-            nesteSpørsmålDTO.status shouldBe NesteSpøsmålStatus.OK
-            nesteSpørsmålDTO.nesteId shouldBe idTilAndreSpørsmål.toString()
+            nesteSpørsmålDTO.spørsmålId shouldBe idTilAndreSpørsmål.toString()
+            nesteSpørsmålDTO.erÅpnetAvVert shouldBe false
+            nesteSpørsmålDTO.erSisteSpørsmål shouldBe true
         }
     }
 
