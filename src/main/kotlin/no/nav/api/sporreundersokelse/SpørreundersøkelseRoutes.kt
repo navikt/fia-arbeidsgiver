@@ -1,8 +1,7 @@
 package no.nav.api.sporreundersokelse
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
-import io.ktor.server.application.log
+import io.ktor.server.application.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
@@ -77,6 +76,34 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             HttpStatusCode.OK,
             SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
         )
+    }
+
+    post("$SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
+        val spørsmålOgSvaralternativerRequest = call.receive(SpørsmålOgSvaralternativerRequest::class)
+        val spørsmålId =
+            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørreundersøkelseId =
+            spørsmålOgSvaralternativerRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val sesjonsId = spørsmålOgSvaralternativerRequest.sesjonsId.tilUUID("sesjonsId")
+
+        validerSesjonsId(
+            redisService = redisService,
+            sesjonsId = sesjonsId,
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+
+        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
+
+        if (spørsmålOgSvaralternativer == null) {
+            call.application.log.warn("Spørsmål med id $spørsmålId ble ikke funnet")
+            call.respond(HttpStatusCode.NotFound)
+        } else {
+            call.respond(
+                HttpStatusCode.OK,
+                spørsmålOgSvaralternativer.toDto()
+            )
+        }
     }
 
     post(NESTE_SPØRSMÅL_PATH) {
@@ -418,3 +445,6 @@ private fun String.tilUUID(hvaErJeg: String) = try {
 } catch (e: IllegalArgumentException) {
     throw Feil("Ugyldig formatert UUID $hvaErJeg: $this", e, HttpStatusCode.BadRequest)
 }
+
+private val ApplicationCall.spørsmålId
+    get() = parameters["spørsmålId"]

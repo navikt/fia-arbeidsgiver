@@ -2,6 +2,8 @@ package no.nav.domene.sporreundersokelse
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import no.nav.api.sporreundersokelse.SpørsmålOgSvaralternativerDTO
+import no.nav.api.sporreundersokelse.SvaralternativDTO
 import java.util.UUID
 import no.nav.util.UUIDSerializer
 
@@ -13,7 +15,19 @@ data class SpørsmålOgSvaralternativer (
     val spørsmål: String,
     val antallSvar: Int = 0,
     val svaralternativer: List<Svaralternativ>
-)
+) {
+    fun toDto(): SpørsmålOgSvaralternativerDTO =
+        SpørsmålOgSvaralternativerDTO(
+            id = this.id,
+            spørsmål = this.spørsmål,
+            svaralternativer = this.svaralternativer.map { svaralternativ ->
+                SvaralternativDTO(
+                    id = svaralternativ.svarId,
+                    tekst = svaralternativ.svartekst
+                )
+            }
+        )
+}
 
 @Serializable
 data class Svaralternativ (

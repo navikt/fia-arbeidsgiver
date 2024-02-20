@@ -14,18 +14,7 @@ data class SpørsmålOgSvaralternativerDTO (
 ) {
     companion object {
         fun toDto(spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>) =
-            spørsmålOgSvaralternativer.map { spørsmålOgSvarAlt ->
-                SpørsmålOgSvaralternativerDTO(
-                    id = spørsmålOgSvarAlt.id,
-                    spørsmål = spørsmålOgSvarAlt.spørsmål,
-                    svaralternativer = spørsmålOgSvarAlt.svaralternativer.map { svaralternativ ->
-                        SvaralternativDTO(
-                            id = svaralternativ.svarId,
-                            tekst = svaralternativ.svartekst
-                        )
-                    }
-                )
-            }
+            spørsmålOgSvaralternativer.map { it.toDto() }
     }
 }
 

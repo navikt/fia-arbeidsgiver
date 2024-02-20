@@ -183,6 +183,56 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
+    fun `deltaker skal kunne hente et spørsmål på en Id`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+        )
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val førsteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.first()
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$SPØRSMÅL_OG_SVAR_PATH/${førsteSpørsmål.id}",
+                body = SpørsmålOgSvaralternativerRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerDTO>(body)
+            spørsmålOgSvaralternativer.id shouldBe førsteSpørsmål.id
+        }
+    }
+
+    @Test
+    fun `deltaker får NOT_FOUND dersom spørsmål er ikke funnet`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(spørreundersøkelseId)
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+        )
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val spørsmålIdSomIkkeFinnes = UUID.randomUUID()
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$spørsmålIdSomIkkeFinnes",
+                body = SpørsmålOgSvaralternativerRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.NotFound
+            TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Spørsmål med id $spørsmålIdSomIkkeFinnes ble ikke funnet".toRegex()
+        }
+    }
+
+    @Test
     fun `vert skal kunne hente spørsmål og svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
