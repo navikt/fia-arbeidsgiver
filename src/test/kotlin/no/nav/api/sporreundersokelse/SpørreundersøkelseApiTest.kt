@@ -15,6 +15,8 @@ import no.nav.helper.performPost
 import java.util.*
 import kotlin.test.Test
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.helper.bliMed
@@ -191,7 +193,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -362,7 +364,7 @@ class SpørreundersøkelseApiTest {
             spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
-            )
+            ).toJson()
         )
 
         runBlocking {
@@ -383,7 +385,7 @@ class SpørreundersøkelseApiTest {
             spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
-            )
+            ).toJson()
         )
 
         runBlocking {
@@ -409,7 +411,7 @@ class SpørreundersøkelseApiTest {
                 spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
                     spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
-                )
+                ).toJson()
             )
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -434,7 +436,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -472,7 +474,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -514,7 +516,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -566,7 +568,7 @@ class SpørreundersøkelseApiTest {
         )
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = spørreundersøkelse
+            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
         )
 
         runBlocking {
@@ -688,7 +690,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -716,7 +718,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -744,7 +746,7 @@ class SpørreundersøkelseApiTest {
             .also { spørreundersøkelse ->
                 TestContainerHelper.kafka.sendSpørreundersøkelse(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse
+                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
                 )
             }
 
@@ -765,3 +767,5 @@ class SpørreundersøkelseApiTest {
         }
     }
 }
+
+private fun Spørreundersøkelse.toJson() = Json.encodeToString(this)

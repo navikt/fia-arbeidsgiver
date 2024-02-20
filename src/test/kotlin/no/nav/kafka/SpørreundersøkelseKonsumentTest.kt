@@ -3,6 +3,9 @@ package no.nav.kafka
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.helper.TestContainerHelper
 import java.util.*
 import kotlin.test.Test
@@ -23,7 +26,7 @@ class SpørreundersøkelseKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger med ukjente felt`() {
         val id = UUID.randomUUID()
-        val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(id)
+        val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(id).toJson()
         val spørreundersøkelseMedEkstraFelt =  spørreundersøkelse.replace("\"kategori\"", "\"ukjentFelt\":\"X\",\"kategori\"")
 
         spørreundersøkelseMedEkstraFelt shouldNotBeEqual  spørreundersøkelse
@@ -43,7 +46,7 @@ class SpørreundersøkelseKonsumentTest {
         val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = id,
             vertId = vertId,
-        )
+        ).toJson()
         val spørreundersøkelseUtenVertId = spørreundersøkelse.replace("\"vertId\":\"$vertId\",", "")
 
         spørreundersøkelseUtenVertId shouldNotBeEqual spørreundersøkelse
@@ -63,7 +66,7 @@ class SpørreundersøkelseKonsumentTest {
         val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = id,
             vertId = vertId,
-        )
+        ).toJson()
         val spørreundersøkelseUtenVertId = spørreundersøkelse.replace("\"antallSvar\":2,", "")
 
         spørreundersøkelseUtenVertId shouldNotBeEqual spørreundersøkelse
@@ -76,3 +79,5 @@ class SpørreundersøkelseKonsumentTest {
         }
     }
 }
+
+private fun Spørreundersøkelse.toJson() = Json.encodeToString(this)
