@@ -541,6 +541,86 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
+    fun `deltager skal kunne hente neste spørsmål og få riktig status når vert har åpnet`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val vertId = UUID.randomUUID()
+
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId
+        )
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = spørreundersøkelse
+        )
+
+        runBlocking {
+            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = SPØRSMÅL_OG_SVAR_PATH,
+                body = SpørsmålOgSvaralternativerRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId
+                )
+            )
+            val body = spørsmålOgSvarRespons.bodyAsText()
+            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+            val idTilFørsteSpørsmål = spørsmålOgSvaralternativer.first().id
+
+            val hvaErNesteSpørsmålRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = NesteSpørsmålRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+                )
+            )
+            hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO1 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons1.bodyAsText())
+            nesteSpørsmålDTO1.erNesteÅpnetAvVert shouldBe false
+
+            TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_START_KATEGORI_PATH,
+                body = StarteKategoriRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString(),
+                    kategori = PARTSSAMARBEID.name
+                ),
+            )
+
+            TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                ),
+            )
+            val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString()
+                ),
+            )
+            val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
+
+            startetKategoriBody.spørsmålindeks shouldBe 1
+
+            val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = NesteSpørsmålRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+                )
+            )
+            hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO2 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons2.bodyAsText())
+            nesteSpørsmålDTO2.erNesteÅpnetAvVert shouldBe true
+        }
+    }
+
+    @Test
     fun `deltaker skal kunne hente gjeldende spørsmålindeks`() {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
