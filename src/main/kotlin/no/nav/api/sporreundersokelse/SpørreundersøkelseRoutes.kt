@@ -103,22 +103,20 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
                 HttpStatusCode.BadRequest
             )
         }
+
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
-
-        if (indeksTilNåværrendeSpørsmålId >= indeksTilSisteSpørsmål) {
-            call.respond(HttpStatusCode.NotFound)
-        }
-
         val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId)
-        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1
+        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
         val nesteSpørsmålIndeks = indeksTilNåværrendeSpørsmålId + 1
+        val forrigeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId - 1
 
         call.respond(
             HttpStatusCode.OK,
             NesteSpørsmålDTO(
-                erSisteSpørsmål = nesteSpørsmålIndeks >= indeksTilSisteSpørsmål,
-                erÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
-                spørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString()
+                hvaErNesteSteg = if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål) NesteSpørsmålDTO.StegStatus.FERDIG else NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL,
+                erNesteÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
+                nesteSpørsmålId = if (nesteSpørsmålIndeks <= indeksTilSisteSpørsmål) spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString() else null,
+                forrigeSpørsmålId = if (forrigeSpørsmålIndeks >= 0) spørreundersøkelse.spørsmålOgSvaralternativer[forrigeSpørsmålIndeks].id.toString() else null,
             )
         )
     }

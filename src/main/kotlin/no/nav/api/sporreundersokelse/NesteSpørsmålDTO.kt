@@ -4,7 +4,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class NesteSpørsmålDTO(
-    val erSisteSpørsmål: Boolean,
-    val erÅpnetAvVert: Boolean,
-    val spørsmålId: String,
-)
+    val hvaErNesteSteg: StegStatus,
+    val erNesteÅpnetAvVert: Boolean,
+    val nesteSpørsmålId: String?,
+    val forrigeSpørsmålId: String?,
+) {
+    enum class StegStatus {
+        NYTT_SPØRSMÅL,
+        FERDIG,
+    }
+}

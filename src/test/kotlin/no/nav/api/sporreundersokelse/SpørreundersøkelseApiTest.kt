@@ -133,7 +133,7 @@ class SpørreundersøkelseApiTest {
             val idTilFørsteSpørsmål = spørsmålOgSvaralternativer.first().id
             val idTilAndreSpørsmål = spørsmålOgSvaralternativer.last().id
 
-            val hvaErNesteSpørsmålRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+            val hvaErNesteSpørsmålRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = NESTE_SPØRSMÅL_PATH,
                 body = NesteSpørsmålRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -141,11 +141,27 @@ class SpørreundersøkelseApiTest {
                     nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
                 )
             )
-            hvaErNesteSpørsmålRespons.status shouldBe HttpStatusCode.OK
-            val nesteSpørsmålDTO = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons.bodyAsText())
-            nesteSpørsmålDTO.spørsmålId shouldBe idTilAndreSpørsmål.toString()
-            nesteSpørsmålDTO.erÅpnetAvVert shouldBe false
-            nesteSpørsmålDTO.erSisteSpørsmål shouldBe true
+            hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO1 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons1.bodyAsText())
+            nesteSpørsmålDTO1.nesteSpørsmålId shouldBe idTilAndreSpørsmål.toString()
+            nesteSpørsmålDTO1.erNesteÅpnetAvVert shouldBe false
+            nesteSpørsmålDTO1.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
+            nesteSpørsmålDTO1.forrigeSpørsmålId shouldBe null
+
+            val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = NesteSpørsmålRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    nåværrendeSpørsmålId = idTilAndreSpørsmål.toString(),
+                )
+            )
+            hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO2 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons2.bodyAsText())
+            nesteSpørsmålDTO2.nesteSpørsmålId shouldBe null
+            nesteSpørsmålDTO2.erNesteÅpnetAvVert shouldBe false
+            nesteSpørsmålDTO2.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.FERDIG
+            nesteSpørsmålDTO2.forrigeSpørsmålId shouldBe idTilFørsteSpørsmål.toString()
         }
     }
 
