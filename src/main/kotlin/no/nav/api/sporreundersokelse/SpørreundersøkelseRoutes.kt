@@ -85,7 +85,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val spørreundersøkelseId =
             nesteSpørsmålRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val sesjonsId = nesteSpørsmålRequest.sesjonsId.tilUUID("sesjonsId")
-        val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværrendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
 
         validerSesjonsId(
             redisService = redisService,
@@ -94,14 +93,19 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
 
         val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val indeksTilNåværrendeSpørsmålId =
-            spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
 
-        if (indeksTilNåværrendeSpørsmålId == -1) {
-            call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")
-            call.respond(
-                HttpStatusCode.BadRequest
-            )
+        val indeksTilNåværrendeSpørsmålId = if (nesteSpørsmålRequest.nåværrendeSpørsmålId.uppercase() == "START") {
+            -1
+        } else {
+            val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværrendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
+
+            if (spørreundersøkelse.spørsmålOgSvaralternativer.none { it.id == nåværrendeSpørsmålId }) {
+                call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")
+                call.respond(
+                    HttpStatusCode.BadRequest
+                )
+            }
+            spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
         }
 
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1

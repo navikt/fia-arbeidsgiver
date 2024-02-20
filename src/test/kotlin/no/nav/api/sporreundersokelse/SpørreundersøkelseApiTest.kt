@@ -133,6 +133,21 @@ class SpørreundersøkelseApiTest {
             val idTilFørsteSpørsmål = spørsmålOgSvaralternativer.first().id
             val idTilAndreSpørsmål = spørsmålOgSvaralternativer.last().id
 
+            val hvaErNesteSpørsmålRespons0 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = NESTE_SPØRSMÅL_PATH,
+                body = NesteSpørsmålRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    nåværrendeSpørsmålId = "Start",
+                )
+            )
+            hvaErNesteSpørsmålRespons0.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDTO = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons0.bodyAsText())
+            nesteSpørsmålDTO.nesteSpørsmålId shouldBe idTilFørsteSpørsmål.toString()
+            nesteSpørsmålDTO.erNesteÅpnetAvVert shouldBe false
+            nesteSpørsmålDTO.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
+            nesteSpørsmålDTO.forrigeSpørsmålId shouldBe null
+
             val hvaErNesteSpørsmålRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = NESTE_SPØRSMÅL_PATH,
                 body = NesteSpørsmålRequest(
