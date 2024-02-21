@@ -3,6 +3,7 @@ package no.nav.domene.sporreundersokelse
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import no.nav.api.sporreundersokelse.SpørsmålOgSvaralternativerDTO
+import no.nav.api.sporreundersokelse.SpørsmålOgSvaralternativerTilFrontendDTO
 import no.nav.api.sporreundersokelse.SvaralternativDTO
 import java.util.UUID
 import no.nav.util.UUIDSerializer
@@ -19,6 +20,20 @@ data class SpørsmålOgSvaralternativer (
     fun toDto(): SpørsmålOgSvaralternativerDTO =
         SpørsmålOgSvaralternativerDTO(
             id = this.id,
+            spørsmål = this.spørsmål,
+            svaralternativer = this.svaralternativer.map { svaralternativ ->
+                SvaralternativDTO(
+                    id = svaralternativ.svarId,
+                    tekst = svaralternativ.svartekst
+                )
+            }
+        )
+
+    fun toFrontendDto(indeksTilSpørsmål: Int, indeksTilSisteSpørsmål: Int): SpørsmålOgSvaralternativerTilFrontendDTO =
+        SpørsmålOgSvaralternativerTilFrontendDTO(
+            id = this.id,
+            spørsmålIndeks = indeksTilSpørsmål,
+            sisteSpørsmålIndeks = indeksTilSisteSpørsmål,
             spørsmål = this.spørsmål,
             svaralternativer = this.svaralternativer.map { svaralternativ ->
                 SvaralternativDTO(

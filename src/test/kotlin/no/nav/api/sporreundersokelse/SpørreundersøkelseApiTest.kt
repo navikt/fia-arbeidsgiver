@@ -209,8 +209,10 @@ class SpørreundersøkelseApiTest {
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerDTO>(body)
+            val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerTilFrontendDTO>(body)
             spørsmålOgSvaralternativer.id shouldBe førsteSpørsmål.id
+            spørsmålOgSvaralternativer.spørsmålIndeks shouldBe  0
+            spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe  1
         }
     }
 
