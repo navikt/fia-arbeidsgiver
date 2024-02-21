@@ -144,6 +144,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         call.respond(
             HttpStatusCode.OK,
             NesteSpørsmålDTO(
+                nåværendeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId,
+                sisteSpørsmålIndeks = indeksTilSisteSpørsmål,
                 hvaErNesteSteg = if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål) NesteSpørsmålDTO.StegStatus.FERDIG else NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL,
                 erNesteÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
                 nesteSpørsmålId = if (nesteSpørsmålIndeks <= indeksTilSisteSpørsmål) spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString() else null,

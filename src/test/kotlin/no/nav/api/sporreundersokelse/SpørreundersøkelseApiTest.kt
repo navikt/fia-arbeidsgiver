@@ -145,6 +145,8 @@ class SpørreundersøkelseApiTest {
             )
             hvaErNesteSpørsmålRespons0.status shouldBe HttpStatusCode.OK
             val nesteSpørsmålDTO = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons0.bodyAsText())
+            nesteSpørsmålDTO.nåværendeSpørsmålIndeks shouldBe -1
+            nesteSpørsmålDTO.sisteSpørsmålIndeks shouldBe 1
             nesteSpørsmålDTO.nesteSpørsmålId shouldBe idTilFørsteSpørsmål.toString()
             nesteSpørsmålDTO.erNesteÅpnetAvVert shouldBe false
             nesteSpørsmålDTO.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
@@ -160,6 +162,8 @@ class SpørreundersøkelseApiTest {
             )
             hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
             val nesteSpørsmålDTO1 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons1.bodyAsText())
+            nesteSpørsmålDTO1.nåværendeSpørsmålIndeks shouldBe 0
+            nesteSpørsmålDTO1.sisteSpørsmålIndeks shouldBe 1
             nesteSpørsmålDTO1.nesteSpørsmålId shouldBe idTilAndreSpørsmål.toString()
             nesteSpørsmålDTO1.erNesteÅpnetAvVert shouldBe false
             nesteSpørsmålDTO1.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
@@ -175,6 +179,8 @@ class SpørreundersøkelseApiTest {
             )
             hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
             val nesteSpørsmålDTO2 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons2.bodyAsText())
+            nesteSpørsmålDTO2.nåværendeSpørsmålIndeks shouldBe 1
+            nesteSpørsmålDTO2.sisteSpørsmålIndeks shouldBe 1
             nesteSpørsmålDTO2.nesteSpørsmålId shouldBe null
             nesteSpørsmålDTO2.erNesteÅpnetAvVert shouldBe false
             nesteSpørsmålDTO2.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.FERDIG
