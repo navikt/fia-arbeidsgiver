@@ -93,15 +93,17 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
 
         val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val indeksTilSpørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
         val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
 
-        if (spørsmålOgSvaralternativer == null) {
+        if (indeksTilSpørsmålId == -1 || spørsmålOgSvaralternativer == null) {
             call.application.log.warn("Spørsmål med id $spørsmålId ble ikke funnet")
             call.respond(HttpStatusCode.NotFound)
         } else {
+            val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
             call.respond(
                 HttpStatusCode.OK,
-                spørsmålOgSvaralternativer.toDto()
+                spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
             )
         }
     }
