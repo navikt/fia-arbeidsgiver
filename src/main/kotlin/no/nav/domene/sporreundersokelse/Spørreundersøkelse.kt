@@ -2,6 +2,7 @@ package no.nav.domene.sporreundersokelse
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
+import no.nav.api.sporreundersokelse.Kategori
 import no.nav.api.sporreundersokelse.SpørsmålOgSvaralternativerDTO
 import no.nav.api.sporreundersokelse.SpørsmålOgSvaralternativerTilFrontendDTO
 import no.nav.api.sporreundersokelse.SvaralternativDTO
@@ -12,7 +13,7 @@ import no.nav.util.UUIDSerializer
 data class SpørsmålOgSvaralternativer (
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
-    val kategori: String,
+    val kategori: Kategori,
     val spørsmål: String,
     val antallSvar: Int = 0,
     val svaralternativer: List<Svaralternativ>

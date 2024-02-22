@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.konfigurasjon.KafkaConfig
-import no.nav.persistence.KategoristatusDTO
+import no.nav.api.sporreundersokelse.KategoristatusDTO
 import no.nav.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
@@ -54,10 +54,13 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
                                 logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
                                 redisService.lagre(payload)
 
-                                val kategoristatus =
-                                    redisService.hentKategoristatus(spørreundersøkelseId = spørreundersøkelseId)
+                                val kategori = payload.spørsmålOgSvaralternativer.first().kategori
 
-                                val kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID
+                                val kategoristatus = redisService.hentKategoristatus(
+                                    spørreundersøkelseId = spørreundersøkelseId,
+                                    kategori = kategori
+                                )
+
                                 val status = KategoristatusDTO.Status.OPPRETTET
 
                                 logger.info("Lagrer kategoristatus $kategoristatus for $kategori")

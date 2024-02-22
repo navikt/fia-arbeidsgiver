@@ -1,4 +1,4 @@
-package no.nav.persistence
+package no.nav.api.sporreundersokelse
 
 import kotlinx.serialization.Serializable
 
@@ -13,9 +13,5 @@ data class KategoristatusDTO(
         OPPRETTET,
         IKKE_PÅBEGYNT,
         PÅBEGYNT,
-    }
-
-    enum class Kategori {
-        PARTSSAMARBEID
     }
 }

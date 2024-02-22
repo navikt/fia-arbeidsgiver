@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class StarteKategoriRequest (
     val spørreundersøkelseId: String,
     val vertId: String,
-    val kategori: String,
+    val kategori: Kategori,
 )

@@ -9,6 +9,7 @@ import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.api.sporreundersokelse.Kategori
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.domene.sporreundersokelse.SpørsmålOgSvaralternativer
 import no.nav.domene.sporreundersokelse.Svaralternativ
@@ -16,7 +17,6 @@ import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
 import no.nav.kafka.Topic
 import no.nav.konfigurasjon.KafkaConfig
-import no.nav.persistence.KategoristatusDTO
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -116,7 +116,7 @@ class KafkaContainer(network: Network) {
             spørsmålOgSvaralternativer = listOf(
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
-                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name,
+                    kategori = Kategori.PARTSSAMARBEID,
                     spørsmål = "Hva gjør dere med IA?",
                     antallSvar = 2,
                     svaralternativer = listOf(
@@ -132,7 +132,7 @@ class KafkaContainer(network: Network) {
                 ),
                 SpørsmålOgSvaralternativer(
                     id = UUID.randomUUID(),
-                    kategori = KategoristatusDTO.Kategori.PARTSSAMARBEID.name,
+                    kategori = Kategori.PARTSSAMARBEID,
                     spørsmål = "Hva gjør dere IKKE med IA?",
                     antallSvar = 2,
                     svaralternativer = listOf(

@@ -8,8 +8,8 @@ import io.ktor.server.routing.*
 import no.nav.api.Feil
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.SpørreundersøkelseSvarProdusent
-import no.nav.persistence.KategoristatusDTO.Status.IKKE_PÅBEGYNT
-import no.nav.persistence.KategoristatusDTO.Status.PÅBEGYNT
+import no.nav.api.sporreundersokelse.KategoristatusDTO.Status.IKKE_PÅBEGYNT
+import no.nav.api.sporreundersokelse.KategoristatusDTO.Status.PÅBEGYNT
 import no.nav.persistence.RedisService
 import java.util.*
 import kotlin.IllegalArgumentException
@@ -138,10 +138,18 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         }
 
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
-        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId)
-        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
         val nesteSpørsmålIndeks = indeksTilNåværrendeSpørsmålId + 1
         val forrigeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId - 1
+
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            if(nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
+                spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].kategori
+            } else {
+                spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].kategori
+            }
+        )
+        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
 
         call.respond(
             HttpStatusCode.OK,
@@ -233,7 +241,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            request.kategori
+        ) ?: throw Feil(
             "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
@@ -253,7 +264,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
-        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            vertshandlingRequest.kategori
+        ) ?: throw Feil(
             "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
@@ -330,7 +344,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         validerVertId(redisService = redisService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
 
         // Dette støtte foreløpig bare én kategori.
-        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            vertshandlingRequest.kategori
+        ) ?: throw Feil(
             "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
@@ -356,7 +373,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
         val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = request.vertId.tilUUID("vertId")
-        // kategori må også hentes ut av requestet når vi får flere enn én kategori.
+        val kategori = request.kategori
 
         validerVertId(
             redisService = redisService,
@@ -364,7 +381,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             vertId = vertId
         )
 
-        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            kategori
+        ) ?: throw Feil(
             "Kategoristatus på undersøkelse $spørreundersøkelseId finnes ikke",
             feilkode = HttpStatusCode.InternalServerError
         )

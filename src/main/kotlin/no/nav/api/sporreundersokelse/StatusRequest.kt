@@ -6,4 +6,5 @@ import kotlinx.serialization.Serializable
 data class StatusRequest(
     val spørreundersøkelseId: String,
     val sesjonsId: String,
+    val kategori: Kategori = Kategori.PARTSSAMARBEID,
 )

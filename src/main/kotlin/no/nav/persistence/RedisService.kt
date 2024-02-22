@@ -8,6 +8,8 @@ import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.api.Feil
+import no.nav.api.sporreundersokelse.Kategori
+import no.nav.api.sporreundersokelse.KategoristatusDTO
 import no.nav.domene.samarbeidsstatus.IASakStatus
 import no.nav.domene.sporreundersokelse.Spørreundersøkelse
 import no.nav.domene.sporreundersokelse.SpørreundersøkelseStatus
@@ -66,7 +68,7 @@ class RedisService(
     }
 
     fun lagreKategoristatus(spørreundersøkelseId: UUID, kategoristatus: KategoristatusDTO) {
-        lagre(Type.KATEGORISTATUS, spørreundersøkelseId.toString(), Json.encodeToString(kategoristatus))
+        lagre(Type.KATEGORISTATUS, "${kategoristatus.kategori}-$spørreundersøkelseId", Json.encodeToString(kategoristatus))
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {
@@ -100,10 +102,10 @@ class RedisService(
         return hente(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString())?.toInt() ?: 0
     }
 
-    fun hentKategoristatus(spørreundersøkelseId: UUID): KategoristatusDTO? {
+    fun hentKategoristatus(spørreundersøkelseId: UUID, kategori: Kategori): KategoristatusDTO? {
         return hente(
             Type.KATEGORISTATUS,
-            spørreundersøkelseId.toString()
+            "$kategori-$spørreundersøkelseId"
         )?.let { Json.decodeFromString<KategoristatusDTO>(it) }
     }
 

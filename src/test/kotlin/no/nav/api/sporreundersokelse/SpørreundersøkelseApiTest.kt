@@ -22,9 +22,8 @@ import no.nav.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.helper.bliMed
 import no.nav.kafka.SpørreundersøkelseSvar
 import no.nav.kafka.Topic
-import no.nav.persistence.KategoristatusDTO
-import no.nav.persistence.KategoristatusDTO.Kategori.PARTSSAMARBEID
-import no.nav.persistence.KategoristatusDTO.Status.OPPRETTET
+import no.nav.api.sporreundersokelse.Kategori.PARTSSAMARBEID
+import no.nav.api.sporreundersokelse.KategoristatusDTO.Status.OPPRETTET
 import org.junit.After
 import org.junit.Before
 
@@ -597,7 +596,7 @@ class SpørreundersøkelseApiTest {
                 body = StarteKategoriRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString(),
-                    kategori = PARTSSAMARBEID.name
+                    kategori = PARTSSAMARBEID
                 ),
             )
 
@@ -659,7 +658,7 @@ class SpørreundersøkelseApiTest {
                 body = StarteKategoriRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString(),
-                    kategori = PARTSSAMARBEID.name
+                    kategori = PARTSSAMARBEID
                 ),
             )
 
