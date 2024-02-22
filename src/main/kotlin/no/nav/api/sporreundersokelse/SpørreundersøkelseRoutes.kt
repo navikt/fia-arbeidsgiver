@@ -369,11 +369,11 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
 
     post(VERT_START_KATEGORI_PATH) {
-        val request = call.receive(StarteKategoriRequest::class)
+        val starteKategoriRequest = call.receive(StarteKategoriRequest::class)
 
-        val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val vertId = request.vertId.tilUUID("vertId")
-        val kategori = request.kategori
+        val spørreundersøkelseId = starteKategoriRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val vertId = starteKategoriRequest.vertId.tilUUID("vertId")
+        val kategori = starteKategoriRequest.kategori
 
         validerVertId(
             redisService = redisService,
