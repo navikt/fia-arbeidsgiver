@@ -27,13 +27,6 @@ const val VERT_INKREMENTER_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/
 const val VERT_SPØRSMÅL_OG_SVAR_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/sporsmal-og-svar"
 const val VERT_KATEGORISTATUS_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/kategoristatus"
 
-@Deprecated("Skal erstattes av kategoristatus")
-const val GJELDENDE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/gjeldende-sporsmal"
-@Deprecated("Skal erstattes av kategoristatus")
-const val VERT_GJELDENDE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/gjeldende-sporsmal"
-@Deprecated("Skal erstattes av inkrementer-sporsmal")
-const val VERT_NESTE_SPØRSMÅL_PATH = "${SPØRREUNDERSØKELSE_PATH}/vert/neste-sporsmal"
-
 fun Route.spørreundersøkelse(redisService: RedisService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
     post(BLI_MED_PATH) {
@@ -58,10 +51,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
     }
 
     post(SPØRSMÅL_OG_SVAR_PATH) {
-        val spørsmålOgSvaralternativerRequest = call.receive(SpørsmålOgSvaralternativerRequest::class)
+        val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
 
-        val spørreundersøkelseId = spørsmålOgSvaralternativerRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val sesjonsId = spørsmålOgSvaralternativerRequest.sesjonsId.tilUUID("sesjonsId")
+        val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
             redisService = redisService,
@@ -78,13 +71,59 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
     }
 
+//    post(KATEGORISTATUS_PATH) {
+//        val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
+//
+//        val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+//        val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
+//
+//        validerSesjonsId(
+//            redisService = redisService,
+//            sesjonsId = sesjonsId,
+//            spørreundersøkelseId = spørreundersøkelseId
+//        )
+//
+//        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
+//            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
+//            feilkode = HttpStatusCode.InternalServerError
+//        )
+//
+//        call.respond(HttpStatusCode.OK, kategoristatus)
+//    }
+
+    post(KATEGORISTATUS_PATH) {
+        val request = call.receive(DeltakerhandlingRequest::class)
+
+        val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+            ?: throw Feil(
+                "SpørreundersøkelseId skal aldri kunne være null", feilkode = HttpStatusCode.InternalServerError
+            )
+        val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
+
+        validerSesjonsId(
+            redisService = redisService,
+            sesjonsId = sesjonsId,
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId,
+            request.kategori
+        ) ?: throw Feil(
+            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
+            feilkode = HttpStatusCode.InternalServerError
+        )
+
+        call.respond(HttpStatusCode.OK, kategoristatus)
+    }
+
+
     post("$SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
-        val spørsmålOgSvaralternativerRequest = call.receive(SpørsmålOgSvaralternativerRequest::class)
+        val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
         val spørsmålId =
             call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
-        val spørreundersøkelseId =
-            spørsmålOgSvaralternativerRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val sesjonsId = spørsmålOgSvaralternativerRequest.sesjonsId.tilUUID("sesjonsId")
+        val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
             redisService = redisService,
@@ -164,30 +203,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
     }
 
-    // TODO: Fjern etter vi har gått over til kategoristatus
-    post(GJELDENDE_SPØRSMÅL_PATH) {
-        val request = call.receive(StatusRequest::class)
-
-        val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
-
-        validerSesjonsId(
-            redisService = redisService,
-            sesjonsId = sesjonsId,
-            spørreundersøkelseId = spørreundersøkelseId
-        )
-
-        val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
-
-        call.respond(
-            HttpStatusCode.OK,
-            SpørsmålindeksDTO(
-                spørreundersøkelseId = spørreundersøkelseId.toString(),
-                indeks = spørsmålindeks
-            )
-        )
-    }
-
     post(SVAR_PATH) {
         val svarRequest = call.receive(SvarRequest::class)
 
@@ -226,31 +241,8 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
     }
 
-    post(KATEGORISTATUS_PATH) {
-        val request = call.receive(StatusRequest::class)
 
-        val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-            ?: throw Feil(
-                "SpørreundersøkelseId skal aldri kunne være null", feilkode = HttpStatusCode.InternalServerError
-            )
-        val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
 
-        validerSesjonsId(
-            redisService = redisService,
-            sesjonsId = sesjonsId,
-            spørreundersøkelseId = spørreundersøkelseId
-        )
-
-        val kategoristatus = redisService.hentKategoristatus(
-            spørreundersøkelseId,
-            request.kategori
-        ) ?: throw Feil(
-            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
-            feilkode = HttpStatusCode.InternalServerError
-        )
-
-        call.respond(HttpStatusCode.OK, kategoristatus)
-    }
     post(VERT_KATEGORISTATUS_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
@@ -308,32 +300,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         )
     }
-
-    // TODO: Fjern etter at vi har gått over til VERT_INKREMENTER_SPØRSMÅL_PATH
-    post(VERT_NESTE_SPØRSMÅL_PATH) {
-        val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-
-        val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
-
-        validerVertId(
-            redisService = redisService,
-            spørreundersøkelseId = spørreundersøkelseId,
-            vertId = vertId
-        )
-
-        val nesteSpørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId) + 1
-        redisService.lagreSpørsmålindeks(spørreundersøkelseId, nesteSpørsmålindeks)
-
-        call.respond(
-            HttpStatusCode.OK,
-            SpørsmålindeksDTO(
-                spørreundersøkelseId = spørreundersøkelseId.toString(),
-                indeks = nesteSpørsmålindeks
-            )
-        )
-    }
-
 
     post(VERT_INKREMENTER_SPØRSMÅL_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
@@ -413,32 +379,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         call.respond(
             HttpStatusCode.OK,
             SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
-        )
-    }
-
-
-    // TODO: Fjern etter vi har gått over til kategoristatus
-    post(VERT_GJELDENDE_SPØRSMÅL_PATH) {
-        val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-
-        val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-
-        if (spørreundersøkelse.vertId != vertId)
-            throw Feil(
-                feilmelding = "Ugyldig vertId: $vertId",
-                feilkode = HttpStatusCode.Forbidden
-            )
-
-        val spørsmålindeks = redisService.hentSpørsmålindeks(spørreundersøkelseId)
-
-        call.respond(
-            HttpStatusCode.OK,
-            SpørsmålindeksDTO(
-                spørreundersøkelseId = spørreundersøkelseId.toString(),
-                indeks = spørsmålindeks
-            )
         )
     }
 }

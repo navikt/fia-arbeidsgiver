@@ -98,7 +98,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -121,7 +121,7 @@ class SpørreundersøkelseApiTest {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -201,7 +201,7 @@ class SpørreundersøkelseApiTest {
             val førsteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.first()
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = "$SPØRSMÅL_OG_SVAR_PATH/${førsteSpørsmål.id}",
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -229,7 +229,7 @@ class SpørreundersøkelseApiTest {
             val spørsmålIdSomIkkeFinnes = UUID.randomUUID()
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = "$SPØRSMÅL_OG_SVAR_PATH/$spørsmålIdSomIkkeFinnes",
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -281,7 +281,7 @@ class SpørreundersøkelseApiTest {
         runBlocking {
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = sesjonsId.toString()
                 )
@@ -301,7 +301,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -373,7 +373,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -473,7 +473,7 @@ class SpørreundersøkelseApiTest {
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -632,7 +632,7 @@ class SpørreundersøkelseApiTest {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SPØRSMÅL_OG_SVAR_PATH,
-                body = SpørsmålOgSvaralternativerRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
@@ -695,25 +695,6 @@ class SpørreundersøkelseApiTest {
     }
 
     @Test
-    fun `deltaker skal kunne hente gjeldende spørsmålindeks`() {
-        val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(
-            spørreundersøkelseId = spørreundersøkelseId,
-        )
-
-        runBlocking {
-            val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val spørsmålindeks = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = GJELDENDE_SPØRSMÅL_PATH,
-                body = StatusRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    sesjonsId = bliMedDTO.sesjonsId
-                )
-            )
-            Json.decodeFromString<SpørsmålindeksDTO>(spørsmålindeks.bodyAsText()).indeks shouldBe 0
-        }
-    }
-    @Test
     fun `deltaker skal kunne hente kategoristatus og ingen indeks for `() {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
@@ -725,7 +706,7 @@ class SpørreundersøkelseApiTest {
 
             val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = KATEGORISTATUS_PATH,
-                body = StatusRequest(
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
                 )
