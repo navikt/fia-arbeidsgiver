@@ -13,6 +13,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.*
 import kotlin.coroutines.CoroutineContext
 
 class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineScope {
@@ -54,26 +55,7 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
                                 logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
                                 redisService.lagre(payload)
 
-                                val kategori = payload.spørsmålOgSvaralternativer.first().kategori
-
-                                val kategoristatus = redisService.hentKategoristatus(
-                                    spørreundersøkelseId = spørreundersøkelseId,
-                                    kategori = kategori
-                                )
-
-                                val status = KategoristatusDTO.Status.OPPRETTET
-
-                                logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
-                                if (kategoristatus == null) {
-                                    redisService.lagreKategoristatus(
-                                        spørreundersøkelseId = spørreundersøkelseId,
-                                        kategoristatus = KategoristatusDTO(
-                                            kategori = kategori,
-                                            status = status,
-                                            spørsmålindeks = null
-                                        )
-                                    )
-                                }
+                                oppretteEllerLagreKategoristatus(payload, spørreundersøkelseId)
 
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
@@ -92,6 +74,30 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
                     }
                 }
             }
+        }
+    }
+
+    private fun oppretteEllerLagreKategoristatus(
+        payload: Spørreundersøkelse,
+        spørreundersøkelseId: UUID
+    ) {
+        val kategori = payload.spørsmålOgSvaralternativer.first().kategori
+
+        val kategoristatus = redisService.hentKategoristatus(
+            spørreundersøkelseId = spørreundersøkelseId,
+            kategori = kategori
+        )
+
+        if (kategoristatus == null) {
+            logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
+            redisService.lagreKategoristatus(
+                spørreundersøkelseId = spørreundersøkelseId,
+                kategoristatus = KategoristatusDTO(
+                    kategori = kategori,
+                    status = KategoristatusDTO.Status.OPPRETTET,
+                    spørsmålindeks = null
+                )
+            )
         }
     }
 
