@@ -91,7 +91,7 @@ dependencies {
 tasks {
     shadowJar {
         manifest {
-            attributes("Main-Class" to "no.nav.ApplicationKt")
+            attributes("Main-Class" to "no.nav.fia.arbeidsgiver.ApplicationKt")
         }
     }
     test {
