@@ -89,7 +89,7 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         )
 
         if (kategoristatus == null) {
-            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+            val spørreundersøkelse = spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
             val antallSpørsmålIKategori =
                 spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
             logger.info("Lagrer kategoristatus $kategoristatus for $kategori")

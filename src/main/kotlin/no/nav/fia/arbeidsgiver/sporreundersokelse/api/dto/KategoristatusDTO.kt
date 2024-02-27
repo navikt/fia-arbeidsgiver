@@ -7,7 +7,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
 data class KategoristatusDTO(
 	val kategori: Kategori,
 	val status: Status,
-	val spørsmålindeks: Int? = null
+	val spørsmålindeks: Int? = null,
+	val antallSpørsmål: Int? = null,
 ) {
 
     enum class Status {
