@@ -548,6 +548,7 @@ class SpørreundersøkelseApiTest {
             val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
 
             kategoristatusBody.spørsmålindeks shouldBe null
+            kategoristatusBody.antallSpørsmål shouldBe 2
             kategoristatusBody.status shouldBe OPPRETTET
 
             val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
@@ -590,6 +591,7 @@ class SpørreundersøkelseApiTest {
 
             kategoristatusBody.spørsmålindeks shouldBe null
             kategoristatusBody.status shouldBe OPPRETTET
+            kategoristatusBody.antallSpørsmål shouldBe 2
 
             TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = VERT_START_KATEGORI_PATH,
@@ -610,6 +612,7 @@ class SpørreundersøkelseApiTest {
             val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
 
             startetKategoriBody.spørsmålindeks shouldBe 0
+            startetKategoriBody.antallSpørsmål shouldBe 2
             startetKategoriBody.status shouldBe KategoristatusDTO.Status.PÅBEGYNT
         }
     }
@@ -679,6 +682,7 @@ class SpørreundersøkelseApiTest {
             val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
 
             startetKategoriBody.spørsmålindeks shouldBe 1
+            startetKategoriBody.antallSpørsmål shouldBe 2
 
             val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = NESTE_SPØRSMÅL_PATH,
@@ -704,7 +708,7 @@ class SpørreundersøkelseApiTest {
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-            val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+            val kategoristatusResponse = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = KATEGORISTATUS_PATH,
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -712,8 +716,10 @@ class SpørreundersøkelseApiTest {
                 )
             )
 
-            Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText()).spørsmålindeks shouldBe null
-            Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText()).status shouldBe OPPRETTET
+            val kategoristatus = Json.decodeFromString<KategoristatusDTO>(kategoristatusResponse.bodyAsText())
+            kategoristatus.spørsmålindeks shouldBe null
+            kategoristatus.antallSpørsmål shouldBe 2
+            kategoristatus.status shouldBe OPPRETTET
         }
     }
 

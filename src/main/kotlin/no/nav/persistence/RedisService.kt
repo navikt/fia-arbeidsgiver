@@ -68,7 +68,11 @@ class RedisService(
     }
 
     fun lagreKategoristatus(spørreundersøkelseId: UUID, kategoristatus: KategoristatusDTO) {
-        lagre(Type.KATEGORISTATUS, "${kategoristatus.kategori}-$spørreundersøkelseId", Json.encodeToString(kategoristatus))
+        lagre(
+            Type.KATEGORISTATUS,
+            "${kategoristatus.kategori}-$spørreundersøkelseId",
+            Json.encodeToString(kategoristatus)
+        )
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? {
@@ -77,15 +81,26 @@ class RedisService(
         }
     }
 
-    fun hentePågåendeSpørreundersøkelse(id: UUID): Spørreundersøkelse {
-        val undersøkelse = hente(Type.SPØRREUNDERSØKELSE, id.toString())?.let {
+    fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
+        val undersøkelse = hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
             Json.decodeFromString<Spørreundersøkelse>(it)
-        } ?: throw Feil(feilmelding = "Ukjent spørreundersøkelse '$id'", feilkode = HttpStatusCode.Forbidden)
+        } ?: throw Feil(
+            feilmelding = "Ukjent spørreundersøkelse '$spørreundersøkelseId'",
+            feilkode = HttpStatusCode.Forbidden
+        )
 
         logger.info("Hentet spørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
+        return undersøkelse
+    }
+
+    fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
+        val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
             undersøkelse
-        } else throw Feil(feilmelding = "Spørreundersøkelse med id '$id'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'", feilkode = HttpStatusCode.Forbidden)
+        } else throw Feil(
+            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'",
+            feilkode = HttpStatusCode.Forbidden
+        )
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {
@@ -98,15 +113,20 @@ class RedisService(
         return hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
     }
 
-    fun hentSpørsmålindeks(spørreundersøkelseId: UUID): Int {
-        return hente(Type.SPØRSMÅLINDEKS, spørreundersøkelseId.toString())?.toInt() ?: 0
-    }
-
     fun hentKategoristatus(spørreundersøkelseId: UUID, kategori: Kategori): KategoristatusDTO? {
-        return hente(
+        val kategoristatusDTO = hente(
             Type.KATEGORISTATUS,
             "$kategori-$spørreundersøkelseId"
         )?.let { Json.decodeFromString<KategoristatusDTO>(it) }
+
+        if (kategoristatusDTO?.antallSpørsmål != null) {
+            return kategoristatusDTO
+        } else {
+            val spørreundersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+            val antallSpørsmålIKategori =
+                spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
+            return kategoristatusDTO?.copy(antallSpørsmål = antallSpørsmålIKategori)
+        }
     }
 
     private fun lagre(
