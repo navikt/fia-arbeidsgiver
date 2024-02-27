@@ -8,7 +8,6 @@ import io.ktor.server.routing.*
 import no.nav.fia.arbeidsgiver.api.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.IKKE_PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.PÅBEGYNT
-import no.nav.fia.arbeidsgiver.persistence.RedisService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
@@ -20,6 +19,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaraltern
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import java.util.*
@@ -38,20 +38,20 @@ const val VERT_INKREMENTER_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/in
 const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsmal-og-svar"
 const val VERT_KATEGORISTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/kategoristatus"
 
-fun Route.spørreundersøkelse(redisService: RedisService) {
+fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
     post(BLI_MED_PATH) {
         val bliMedRequest = call.receive(BliMedRequest::class)
 
         val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val sesjonsId = UUID.randomUUID()
-        redisService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
+        spørreundersøkelseService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
 
-        val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelse.spørreundersøkelseId)
-        redisService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere + 1))
+        val antallDeltakere = spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelse.spørreundersøkelseId)
+        spørreundersøkelseService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere + 1))
 
         call.respond(
             HttpStatusCode.OK, BliMedDTO(
@@ -68,12 +68,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             sesjonsId = sesjonsId,
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
 
         call.respond(
@@ -92,12 +92,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val sesjonsId = request.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             sesjonsId = sesjonsId,
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
             request.kategori
         ) ?: throw Feil(
@@ -117,12 +117,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             sesjonsId = sesjonsId,
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
         val indeksTilSpørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
         val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
 
@@ -146,12 +146,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val sesjonsId = nesteSpørsmålRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             sesjonsId = sesjonsId,
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val indeksTilNåværrendeSpørsmålId = if (nesteSpørsmålRequest.nåværrendeSpørsmålId.uppercase() == "START") {
             -1
@@ -171,7 +171,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val nesteSpørsmålIndeks = indeksTilNåværrendeSpørsmålId + 1
         val forrigeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId - 1
 
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
             if(nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
                 spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].kategori
@@ -201,14 +201,14 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val sesjonsId = svarRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             sesjonsId = sesjonsId,
             spørreundersøkelseId = spørreundersøkelseId
         )
 
         val spørsmålId = svarRequest.spørsmålId.tilUUID("spørsmålId")
         val svarId = svarRequest.svarId.tilUUID("svarId")
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val spørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
             ?: throw Feil(feilmelding = "Ukjent spørsmål ($spørsmålId)", feilkode = HttpStatusCode.Forbidden)
@@ -242,11 +242,11 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             )
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
         validerVertId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
             vertshandlingRequest.kategori
         ) ?: throw Feil(
@@ -264,14 +264,14 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
         validerVertId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
 
-        val antallDeltakere = redisService.hentAntallDeltakere(spørreundersøkelseId)
+        val antallDeltakere = spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId)
 
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val antallSvar =
             spørreundersøkelse.spørsmålOgSvaralternativer.map { spørsmål ->
@@ -297,10 +297,10 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
-        validerVertId(redisService = redisService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+        validerVertId(spørreundersøkelseService = spørreundersøkelseService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
 
         // Dette støtter foreløpig bare én kategori.
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
             vertshandlingRequest.kategori
         ) ?: throw Feil(
@@ -318,7 +318,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             spørsmålindeks = nyIndeks,
             status = PÅBEGYNT,
         )
-        redisService.lagreKategoristatus(spørreundersøkelseId, inkrementert)
+        spørreundersøkelseService.lagreKategoristatus(spørreundersøkelseId, inkrementert)
 
         call.respond(HttpStatusCode.OK, inkrementert)
     }
@@ -332,12 +332,12 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val kategori = starteKategoriRequest.kategori
 
         validerVertId(
-            redisService = redisService,
+            spørreundersøkelseService = spørreundersøkelseService,
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
 
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
             kategori
         ) ?: throw Feil(
@@ -345,7 +345,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
             feilkode = HttpStatusCode.InternalServerError
         )
 
-        redisService.lagreKategoristatus(
+        spørreundersøkelseService.lagreKategoristatus(
             spørreundersøkelseId,
             kategoristatus.copy(status = IKKE_PÅBEGYNT)
         )
@@ -358,7 +358,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
-        val spørreundersøkelse = redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         if (spørreundersøkelse.vertId != vertId)
             throw Feil(
@@ -374,11 +374,11 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 }
 
 private fun validerVertId(
-    redisService: RedisService,
+    spørreundersøkelseService: SpørreundersøkelseService,
     spørreundersøkelseId: UUID,
     vertId: UUID?
 ) {
-    if (redisService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
+    if (spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
         throw Feil(
             feilmelding = "Ugyldig vertId: $vertId",
             feilkode = HttpStatusCode.Forbidden
@@ -386,11 +386,11 @@ private fun validerVertId(
 }
 
 private fun validerSesjonsId(
-    redisService: RedisService,
+    spørreundersøkelseService: SpørreundersøkelseService,
     sesjonsId: UUID,
     spørreundersøkelseId: UUID
 ) {
-    if (redisService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
+    if (spørreundersøkelseService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
         throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 }
 

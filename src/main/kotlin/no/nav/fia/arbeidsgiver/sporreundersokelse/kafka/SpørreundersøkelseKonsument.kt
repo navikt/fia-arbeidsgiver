@@ -4,9 +4,9 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.persistence.RedisService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -17,7 +17,7 @@ import java.time.Duration
 import java.util.*
 import kotlin.coroutines.CoroutineContext
 
-class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineScope {
+class SpørreundersøkelseKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = Topic.SPØRREUNDERSØKELSE
@@ -54,7 +54,7 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
                                 val payload = json.decodeFromString<Spørreundersøkelse>(record.value())
                                 val spørreundersøkelseId = payload.spørreundersøkelseId
                                 logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
-                                redisService.lagre(payload)
+                                spørreundersøkelseService.lagre(payload)
 
                                 oppretteEllerLagreKategoristatus(payload, spørreundersøkelseId)
 
@@ -83,7 +83,7 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
         spørreundersøkelseId: UUID
     ) {
         val kategori = payload.spørsmålOgSvaralternativer.first().kategori
-        val kategoristatus = redisService.hentKategoristatus(
+        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId = spørreundersøkelseId,
             kategori = kategori
         )
@@ -93,7 +93,7 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
             val antallSpørsmålIKategori =
                 spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
             logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
-            redisService.lagreKategoristatus(
+            spørreundersøkelseService.lagreKategoristatus(
                 spørreundersøkelseId = spørreundersøkelseId,
                 kategoristatus = KategoristatusDTO(
                     kategori = kategori,

@@ -6,16 +6,18 @@ import io.ktor.server.auth.*
 import no.nav.fia.arbeidsgiver.api.helse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
-import no.nav.fia.arbeidsgiver.persistence.RedisService
+import no.nav.fia.arbeidsgiver.redis.RedisService
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 fun Application.configureRouting(redisService: RedisService) {
     routing {
         helse()
-        spørreundersøkelse(redisService = redisService)
+        spørreundersøkelse(spørreundersøkelseService = SpørreundersøkelseService(redisService))
         authenticate("tokenx") {
             auditLogged {
                 medVerifisertAltinnTilgang {
-                    samarbeidsstatus(redisService = redisService)
+                    samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(redisService = redisService))
                 }
             }
         }

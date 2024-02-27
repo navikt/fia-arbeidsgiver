@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.persistence.RedisService
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -15,7 +15,7 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
-class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
+class FiaStatusKonsument(val samarbeidsstatusService: SamarbeidsstatusService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = Topic.SAK_STATUS
@@ -47,7 +47,7 @@ class FiaStatusKonsument(val redisService: RedisService) : CoroutineScope {
                         records.forEach {record ->
                             try {
                                 val payload = Json.decodeFromString<IASakStatus>(record.value())
-                                redisService.lagre(payload)
+                                samarbeidsstatusService.lagre(payload)
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding")
                             }

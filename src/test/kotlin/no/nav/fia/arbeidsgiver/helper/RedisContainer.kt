@@ -1,6 +1,8 @@
 package no.nav.fia.arbeidsgiver.helper
 
-import no.nav.fia.arbeidsgiver.persistence.RedisService
+import no.nav.fia.arbeidsgiver.redis.RedisService
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -19,12 +21,21 @@ class RedisContainer(network: Network) {
         "REDIS_PASSWORD_FIA_SAMARBEIDSSTATUS" to redisPassord
     )
 
-    val redisService
-        get() = RedisService(
+    private val redisService by lazy {
+        RedisService(
             url = "redis://${TestContainerHelper.redis.container.host}:${TestContainerHelper.redis.container.firstMappedPort}",
             username = redisUsername,
             password = redisPassord,
         )
+    }
+
+    val spørreundersøkelseService by lazy {
+        SpørreundersøkelseService(redisService)
+    }
+
+    val samarbeidsstatusService by lazy {
+        SamarbeidsstatusService(redisService)
+    }
 
     val container = GenericContainer(
         DockerImageName.parse("redis:6.2.12-alpine")

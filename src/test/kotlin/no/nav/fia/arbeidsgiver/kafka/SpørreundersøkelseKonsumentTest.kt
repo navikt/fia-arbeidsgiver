@@ -18,7 +18,7 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.hentePågåendeSpørreundersøkelse(id)
+            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.spørreundersøkelseId shouldBe id
         }
     }
@@ -34,7 +34,7 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseMedEkstraFelt)
 
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.hentePågåendeSpørreundersøkelse(id)
+            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.spørreundersøkelseId shouldBe id
         }
     }
@@ -54,7 +54,7 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
 
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.hentePågåendeSpørreundersøkelse(id)
+            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.spørreundersøkelseId shouldBe id
         }
     }
@@ -74,7 +74,7 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
 
         runBlocking {
-            val result = TestContainerHelper.redis.redisService.hentePågåendeSpørreundersøkelse(id)
+            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.spørreundersøkelseId shouldBe id
         }
     }
