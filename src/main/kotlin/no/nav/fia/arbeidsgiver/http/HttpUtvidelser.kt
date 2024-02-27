@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.utvidelser
+package no.nav.fia.arbeidsgiver.http
 
 import io.ktor.http.*
 import io.ktor.server.application.*

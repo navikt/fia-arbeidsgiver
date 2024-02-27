@@ -5,7 +5,8 @@ import io.ktor.server.application.*
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
-import no.nav.fia.arbeidsgiver.api.Feil
+import no.nav.fia.arbeidsgiver.http.Feil
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.IKKE_PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
@@ -39,7 +40,7 @@ const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsm
 const val VERT_KATEGORISTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/kategoristatus"
 
 fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
-    val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent()
+    val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
     post(BLI_MED_PATH) {
         val bliMedRequest = call.receive(BliMedRequest::class)
 

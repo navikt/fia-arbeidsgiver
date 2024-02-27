@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -10,10 +10,10 @@ import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.AltinnrettigheterProxy
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.ProxyConfig
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.Subject
 import no.nav.arbeidsgiver.altinnrettigheter.proxy.klient.model.TokenXToken
-import no.nav.fia.arbeidsgiver.tokenx.TokenExchanger
-import no.nav.fia.arbeidsgiver.utvidelser.hentToken
-import no.nav.fia.arbeidsgiver.utvidelser.orgnr
-import no.nav.fia.arbeidsgiver.utvidelser.tokenSubject
+import no.nav.fia.arbeidsgiver.http.tokenx.TokenExchanger
+import no.nav.fia.arbeidsgiver.http.hentToken
+import no.nav.fia.arbeidsgiver.http.orgnr
+import no.nav.fia.arbeidsgiver.http.tokenSubject
 
 
 val AuthorizationPlugin = createRouteScopedPlugin(

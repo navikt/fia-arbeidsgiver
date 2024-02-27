@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Claim

@@ -1,16 +1,22 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
-import no.nav.fia.arbeidsgiver.kafka.KafkaProdusent
-import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import org.apache.kafka.clients.producer.KafkaProducer
+import org.apache.kafka.clients.producer.ProducerRecord
 
 
-class SpørreundersøkelseSvarProdusent {
+class SpørreundersøkelseSvarProdusent(kafkaConfig: KafkaConfig) {
+    private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties())
 
-    private val kafkaProdusent = KafkaProdusent(kafkaConfig = KafkaConfig())
+    init {
+        Runtime.getRuntime().addShutdownHook(Thread {
+            producer.close()
+        })
+    }
 
     fun sendSvar(svar: SpørreundersøkelseSvarDTO) {
-        val topic = Topic.SPØRREUNDERSØKELSE_SVAR
-        kafkaProdusent.sendMelding(topic, svar.tilNøkkel(), svar.tilMelding())
+        val topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR
+        producer.send(ProducerRecord(topic.navnMedNamespace, svar.tilNøkkel(), svar.tilMelding()))
     }
 }

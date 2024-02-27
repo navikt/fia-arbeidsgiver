@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.api
+package no.nav.fia.arbeidsgiver.http
 
 import io.ktor.http.*
 

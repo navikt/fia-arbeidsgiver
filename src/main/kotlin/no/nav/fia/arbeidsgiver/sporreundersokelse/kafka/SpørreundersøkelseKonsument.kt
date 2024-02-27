@@ -2,7 +2,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.kafka.Topic
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
@@ -20,7 +20,7 @@ import kotlin.coroutines.CoroutineContext
 class SpørreundersøkelseKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
-    private val topic = Topic.SPØRREUNDERSØKELSE
+    private val topic = KafkaTopics.SPØRREUNDERSØKELSE
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),

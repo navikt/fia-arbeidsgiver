@@ -3,7 +3,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.api.Feil
+import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO

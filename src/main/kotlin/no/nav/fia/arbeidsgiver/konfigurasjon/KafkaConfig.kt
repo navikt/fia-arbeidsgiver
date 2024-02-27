@@ -16,6 +16,8 @@ class KafkaConfig(
     ) {
     companion object {
         const val clientId: String = "fia-arbeidsgiver"
+        private fun getEnvVar(varName: String, defaultValue: String? = null) =
+            System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable $varName")
     }
 
     private fun securityConfigs() =
@@ -80,7 +82,3 @@ class KafkaConfig(
         return producerConfigs.toMap()
     }
 }
-
-fun getEnvVar(varName: String, defaultValue: String? = null) =
-    System.getenv(varName) ?: defaultValue ?: throw RuntimeException("Missing required variable $varName")
-

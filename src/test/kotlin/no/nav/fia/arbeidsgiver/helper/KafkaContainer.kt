@@ -15,7 +15,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralterna
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
-import no.nav.fia.arbeidsgiver.kafka.Topic
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
@@ -88,7 +88,7 @@ class KafkaContainer(network: Network) {
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = Json.encodeToString(iaStatusOppdatering),
-            topic = Topic.SAK_STATUS
+            topic = KafkaTopics.SAK_STATUS
         )
     }
 
@@ -101,7 +101,7 @@ class KafkaContainer(network: Network) {
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = Topic.SPØRREUNDERSØKELSE
+            topic = KafkaTopics.SPØRREUNDERSØKELSE
         )
     }
 
@@ -154,7 +154,7 @@ class KafkaContainer(network: Network) {
     private fun sendOgVent(
         nøkkel: String,
         melding: String,
-        topic: Topic,
+        topic: KafkaTopics,
     ) {
         runBlocking {
             kafkaProducer.send(ProducerRecord(topic.navnMedNamespace, nøkkel, melding)).get()
@@ -164,9 +164,9 @@ class KafkaContainer(network: Network) {
 
     private fun createTopics() {
         adminClient.createTopics(listOf(
-            NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort()),
-            NewTopic(Topic.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-            NewTopic(Topic.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
+            NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
+            NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
+            NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
         ))
     }
 
@@ -186,7 +186,7 @@ class KafkaContainer(network: Network) {
             StringSerializer()
         )
 
-    fun nyKonsument(topic: Topic) =
+    fun nyKonsument(topic: KafkaTopics) =
         KafkaConfig(
             brokers = container.bootstrapServers,
             truststoreLocation = "",

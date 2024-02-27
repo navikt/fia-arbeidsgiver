@@ -1,8 +1,8 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.konfigurasjon
 
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig.Companion.clientId
 
-enum class Topic(
+enum class KafkaTopics(
     val navn: String,
     private val prefix: String = "pia",
 ) {

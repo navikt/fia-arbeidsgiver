@@ -1,9 +1,9 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
 import io.ktor.server.auth.*
-import no.nav.fia.arbeidsgiver.api.helse
+import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.redis.RedisService

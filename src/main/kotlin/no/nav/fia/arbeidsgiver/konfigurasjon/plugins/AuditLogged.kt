@@ -1,12 +1,12 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
 import no.nav.fia.arbeidsgiver.konfigurasjon.Cluster
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø
-import no.nav.fia.arbeidsgiver.utvidelser.orgnr
-import no.nav.fia.arbeidsgiver.utvidelser.tokenSubject
+import no.nav.fia.arbeidsgiver.http.orgnr
+import no.nav.fia.arbeidsgiver.http.tokenSubject
 import org.slf4j.LoggerFactory
 import java.util.UUID
 

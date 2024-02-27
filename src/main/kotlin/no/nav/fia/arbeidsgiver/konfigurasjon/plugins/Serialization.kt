@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.plugins.contentnegotiation.*

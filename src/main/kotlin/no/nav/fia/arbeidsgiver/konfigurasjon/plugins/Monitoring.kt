@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.plugins
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import io.micrometer.prometheus.*
 import io.ktor.server.metrics.micrometer.*
