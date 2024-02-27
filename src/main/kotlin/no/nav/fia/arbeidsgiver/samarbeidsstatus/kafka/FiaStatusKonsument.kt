@@ -1,8 +1,9 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.samarbeidsstatus.kafka
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.domene.samarbeidsstatus.IASakStatus
+import no.nav.fia.arbeidsgiver.kafka.Topic
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.persistence.RedisService
 import org.apache.kafka.clients.consumer.KafkaConsumer

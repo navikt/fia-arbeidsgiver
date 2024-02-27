@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.domene.samarbeidsstatus
+package no.nav.fia.arbeidsgiver.samarbeidsstatus.domene
 
 import kotlinx.datetime.LocalDateTime
 import kotlinx.serialization.Serializable

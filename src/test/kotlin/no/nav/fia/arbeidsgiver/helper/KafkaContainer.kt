@@ -13,7 +13,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
-import no.nav.fia.arbeidsgiver.domene.samarbeidsstatus.IASakStatus
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig

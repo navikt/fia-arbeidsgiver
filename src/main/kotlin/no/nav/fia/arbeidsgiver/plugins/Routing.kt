@@ -5,7 +5,7 @@ import io.ktor.server.application.*
 import io.ktor.server.auth.*
 import no.nav.fia.arbeidsgiver.api.helse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
-import no.nav.fia.arbeidsgiver.api.samarbeidsstatus.status
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.persistence.RedisService
 
 fun Application.configureRouting(redisService: RedisService) {
@@ -15,7 +15,7 @@ fun Application.configureRouting(redisService: RedisService) {
         authenticate("tokenx") {
             auditLogged {
                 medVerifisertAltinnTilgang {
-                    status(redisService = redisService)
+                    samarbeidsstatus(redisService = redisService)
                 }
             }
         }

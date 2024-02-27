@@ -10,7 +10,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.api.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
-import no.nav.fia.arbeidsgiver.domene.samarbeidsstatus.IASakStatus
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.konfigurasjon.Redis

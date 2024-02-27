@@ -1,7 +1,7 @@
 package no.nav.fia.arbeidsgiver.audit
 
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.api.samarbeidsstatus.STATUS_PATH
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.SAMARBEIDSSTATUS_PATH
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
@@ -15,7 +15,7 @@ class AuditLogTest {
     fun `det skal auditlogges (Permit) dersom man går mot status med gyldig token og altinn tilgang`() {
         runBlocking {
             val orgnr = AltinnProxyContainer.ALTINN_ORGNR_1
-            TestContainerHelper.fiaArbeidsgiverApi.performGet("$STATUS_PATH/$orgnr", withToken())
+            TestContainerHelper.fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$orgnr", withToken())
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = "123",
                 orgnummer = orgnr,
@@ -29,7 +29,7 @@ class AuditLogTest {
         runBlocking {
             val orgnr = AltinnProxyContainer.ORGNR_UTEN_TILKNYTNING
             TestContainerHelper.fiaArbeidsgiverApi.performGet(
-                "$STATUS_PATH/$orgnr", withToken()
+                "$SAMARBEIDSSTATUS_PATH/$orgnr", withToken()
             )
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = "123",
@@ -49,7 +49,7 @@ class AuditLogTest {
                 "duid=$orgnummer "+
                 "sproc=.{36} " +
                 "requestMethod=GET " +
-                "request=$STATUS_PATH/$orgnummer " +
+                "request=$SAMARBEIDSSTATUS_PATH/$orgnummer " +
                 "flexString1Label=Decision " +
                 "flexString1=$tillat"
                 ).replace("|", "\\|").replace("?", "\\?").toRegex()
