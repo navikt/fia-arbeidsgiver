@@ -1,0 +1,10 @@
+package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class VertshandlingRequest(
+    val spørreundersøkelseId: String,
+    val vertId: String,
+    val kategori: Kategori = Kategori.PARTSSAMARBEID,
+)
