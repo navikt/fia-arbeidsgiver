@@ -82,20 +82,23 @@ class SpørreundersøkelseKonsument(val redisService: RedisService) : CoroutineS
         spørreundersøkelseId: UUID
     ) {
         val kategori = payload.spørsmålOgSvaralternativer.first().kategori
-
         val kategoristatus = redisService.hentKategoristatus(
             spørreundersøkelseId = spørreundersøkelseId,
             kategori = kategori
         )
 
         if (kategoristatus == null) {
+            val spørreundersøkelse = redisService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+            val antallSpørsmålIKategori =
+                spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
             logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
             redisService.lagreKategoristatus(
                 spørreundersøkelseId = spørreundersøkelseId,
                 kategoristatus = KategoristatusDTO(
                     kategori = kategori,
                     status = KategoristatusDTO.Status.OPPRETTET,
-                    spørsmålindeks = null
+                    spørsmålindeks = null,
+                    antallSpørsmål = antallSpørsmålIKategori
                 )
             )
         }

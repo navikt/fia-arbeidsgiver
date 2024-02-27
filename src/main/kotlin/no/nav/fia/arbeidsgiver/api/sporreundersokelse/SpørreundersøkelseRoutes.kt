@@ -71,26 +71,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         )
     }
 
-//    post(KATEGORISTATUS_PATH) {
-//        val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
-//
-//        val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-//        val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
-//
-//        validerSesjonsId(
-//            redisService = redisService,
-//            sesjonsId = sesjonsId,
-//            spørreundersøkelseId = spørreundersøkelseId
-//        )
-//
-//        val kategoristatus = redisService.hentKategoristatus(spørreundersøkelseId) ?: throw Feil(
-//            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
-//            feilkode = HttpStatusCode.InternalServerError
-//        )
-//
-//        call.respond(HttpStatusCode.OK, kategoristatus)
-//    }
-
     post(KATEGORISTATUS_PATH) {
         val request = call.receive(DeltakerhandlingRequest::class)
 
@@ -309,7 +289,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
         validerVertId(redisService = redisService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
 
-        // Dette støtte foreløpig bare én kategori.
+        // Dette støtter foreløpig bare én kategori.
         val kategoristatus = redisService.hentKategoristatus(
             spørreundersøkelseId,
             vertshandlingRequest.kategori
@@ -326,7 +306,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
         val inkrementert = kategoristatus.copy(
             spørsmålindeks = nyIndeks,
-            status = PÅBEGYNT
+            status = PÅBEGYNT,
         )
         redisService.lagreKategoristatus(spørreundersøkelseId, inkrementert)
 
