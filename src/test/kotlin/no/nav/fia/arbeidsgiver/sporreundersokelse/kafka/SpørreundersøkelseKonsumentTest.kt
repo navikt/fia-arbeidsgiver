@@ -1,15 +1,14 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import java.util.*
 import kotlin.test.Test
-
 
 class SpørreundersøkelseKonsumentTest {
     @Test
@@ -17,10 +16,10 @@ class SpørreundersøkelseKonsumentTest {
         val id = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
-        runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-        }
+	    runBlocking {
+		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+		    result.spørreundersøkelseId shouldBe id
+	    }
     }
 
     @Test
@@ -33,10 +32,10 @@ class SpørreundersøkelseKonsumentTest {
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseMedEkstraFelt)
 
-        runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-        }
+	    runBlocking {
+		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+		    result.spørreundersøkelseId shouldBe id
+	    }
     }
 
     @Test
@@ -53,10 +52,10 @@ class SpørreundersøkelseKonsumentTest {
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
 
-        runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-        }
+	    runBlocking {
+		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+		    result.spørreundersøkelseId shouldBe id
+	    }
     }
 
     @Test
@@ -73,11 +72,11 @@ class SpørreundersøkelseKonsumentTest {
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
 
-        runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-        }
+	    runBlocking {
+		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+		    result.spørreundersøkelseId shouldBe id
+	    }
     }
-}
 
-private fun Spørreundersøkelse.toJson() = Json.encodeToString(this)
+	private fun Spørreundersøkelse.toJson() = Json.encodeToString(this)
+}

@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.api
+package no.nav.fia.arbeidsgiver.samarbeidsstatus.api
 
 import io.kotest.matchers.shouldBe
 import io.ktor.client.request.*
@@ -7,7 +7,6 @@ import io.ktor.http.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.SAMARBEIDSSTATUS_PATH
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_2
@@ -18,7 +17,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withToken
 import kotlin.test.Test
 
-class ArbeidsgiverStatusTest {
+class SamarbeidsstatusTest {
     @Test
     fun `skal kunne nå isalive og isready`() {
         runBlocking {

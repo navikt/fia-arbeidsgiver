@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.samarbeidsstatus.kafka
 
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
