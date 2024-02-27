@@ -1,9 +1,9 @@
-package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import java.util.UUID
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.SpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.util.UUIDSerializer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 
 @Serializable
 data class SpørsmålOgSvaralternativerDTO (

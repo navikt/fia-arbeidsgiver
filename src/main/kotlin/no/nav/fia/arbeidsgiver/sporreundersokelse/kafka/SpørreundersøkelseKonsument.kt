@@ -1,11 +1,12 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.KategoristatusDTO
 import no.nav.fia.arbeidsgiver.persistence.RedisService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException

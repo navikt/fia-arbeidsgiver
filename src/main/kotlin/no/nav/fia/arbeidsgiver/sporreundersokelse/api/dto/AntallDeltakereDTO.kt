@@ -1,12 +1,12 @@
-package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class AntallDeltakereDTO(
-    val spørreundersøkelseId: String,
-    val antallDeltakere: Int,
-    val antallSvar: List<AntallSvarDTO>,
+	val spørreundersøkelseId: String,
+	val antallDeltakere: Int,
+	val antallSvar: List<AntallSvarDTO>,
 )
 
 @Serializable

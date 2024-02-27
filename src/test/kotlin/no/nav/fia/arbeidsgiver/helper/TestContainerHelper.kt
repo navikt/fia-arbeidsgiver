@@ -10,9 +10,9 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.BLI_MED_PATH
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.BliMedDTO
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer

@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
 

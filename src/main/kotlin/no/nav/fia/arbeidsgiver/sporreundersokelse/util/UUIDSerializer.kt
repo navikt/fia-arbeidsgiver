@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.util
+package no.nav.fia.arbeidsgiver.sporreundersokelse.util
 
 import java.util.*
 import kotlinx.serialization.KSerializer

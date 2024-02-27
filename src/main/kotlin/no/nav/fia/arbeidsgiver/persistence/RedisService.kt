@@ -8,11 +8,11 @@ import io.lettuce.core.api.sync.RedisCommands
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.api.Feil
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.Kategori
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
 import no.nav.fia.arbeidsgiver.domene.samarbeidsstatus.IASakStatus
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.SpørreundersøkelseStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.konfigurasjon.Redis
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory

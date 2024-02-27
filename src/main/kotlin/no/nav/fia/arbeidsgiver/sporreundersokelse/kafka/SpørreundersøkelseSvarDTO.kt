@@ -1,11 +1,11 @@
-package no.nav.fia.arbeidsgiver.kafka
+package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 
 @Serializable
-data class SpørreundersøkelseSvar(
+data class SpørreundersøkelseSvarDTO(
     val spørreundersøkelseId: String,
     val sesjonId: String,
     val spørsmålId: String,

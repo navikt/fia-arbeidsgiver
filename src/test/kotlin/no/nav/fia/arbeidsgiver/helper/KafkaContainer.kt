@@ -9,12 +9,12 @@ import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.Kategori
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.SpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Svaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 import no.nav.fia.arbeidsgiver.domene.samarbeidsstatus.IASakStatus
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.SpørreundersøkelseStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.kafka.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import org.apache.kafka.clients.CommonClientConfigs

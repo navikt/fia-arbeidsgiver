@@ -5,7 +5,7 @@ import io.ktor.server.engine.*
 import io.ktor.server.netty.*
 import no.nav.fia.arbeidsgiver.plugins.configureRouting
 import no.nav.fia.arbeidsgiver.plugins.configureSerialization
-import no.nav.fia.arbeidsgiver.kafka.SpørreundersøkelseKonsument
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument
 import no.nav.fia.arbeidsgiver.kafka.FiaStatusKonsument
 import no.nav.fia.arbeidsgiver.persistence.RedisService
 import no.nav.fia.arbeidsgiver.plugins.configureMonitoring

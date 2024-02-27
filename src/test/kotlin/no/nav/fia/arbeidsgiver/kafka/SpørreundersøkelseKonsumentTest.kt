@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import java.util.*
 import kotlin.test.Test

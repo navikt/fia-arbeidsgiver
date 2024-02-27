@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
@@ -6,11 +6,22 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import no.nav.fia.arbeidsgiver.api.Feil
-import no.nav.fia.arbeidsgiver.kafka.SpørreundersøkelseSvar
-import no.nav.fia.arbeidsgiver.kafka.SpørreundersøkelseSvarProdusent
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.KategoristatusDTO.Status.IKKE_PÅBEGYNT
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.KategoristatusDTO.Status.PÅBEGYNT
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.IKKE_PÅBEGYNT
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.PÅBEGYNT
 import no.nav.fia.arbeidsgiver.persistence.RedisService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import java.util.*
 import kotlin.IllegalArgumentException
 
@@ -187,7 +198,6 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
         val svarRequest = call.receive(SvarRequest::class)
 
         val spørreundersøkelseId = svarRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-
         val sesjonsId = svarRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
@@ -208,7 +218,7 @@ fun Route.spørreundersøkelse(redisService: RedisService) {
 
         call.application.log.info("Har fått inn svar $svarId")
         spørreundersøkelseSvarProdusent.sendSvar(
-            SpørreundersøkelseSvar(
+            SpørreundersøkelseSvarDTO(
                 spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
                 sesjonId = sesjonsId.toString(),
                 spørsmålId = spørsmålId.toString(),

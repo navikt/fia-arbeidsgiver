@@ -1,7 +1,7 @@
-package no.nav.fia.arbeidsgiver.api.sporreundersokelse
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
-import no.nav.fia.arbeidsgiver.util.UUIDSerializer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 import java.util.*
 
 @Serializable

@@ -12,16 +12,37 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.Kategori.PARTSSAMARBEID
-import no.nav.fia.arbeidsgiver.api.sporreundersokelse.KategoristatusDTO.Status.OPPRETTET
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.domene.sporreundersokelse.SpørreundersøkelseStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori.PARTSSAMARBEID
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.OPPRETTET
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
-import no.nav.fia.arbeidsgiver.kafka.SpørreundersøkelseSvar
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
 import no.nav.fia.arbeidsgiver.kafka.Topic
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.KATEGORISTATUS_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_ANTALL_DELTAKERE_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_INKREMENTER_SPØRSMÅL_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_KATEGORISTATUS_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_START_KATEGORI_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import org.junit.After
 import org.junit.Before
 import java.util.*
@@ -328,7 +349,7 @@ class SpørreundersøkelseApiTest {
                 konsument = spørreundersøkelseSvarKonsument
             ) { meldinger ->
                 val objektene = meldinger.map {
-                    Json.decodeFromString<SpørreundersøkelseSvar>(it)
+                    Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
                 }
                 objektene shouldHaveAtLeastSize 1
                 objektene.forAtLeastOne {
