@@ -42,6 +42,9 @@ class KafkaContainer(network: Network) {
     private val kafkaNetworkAlias = "kafkaContainer"
     private var adminClient: AdminClient
     private var kafkaProducer: KafkaProducer<String, String>
+    private val json = Json {
+        ignoreUnknownKeys = true
+    }
 
     val container: KafkaContainer = KafkaContainer(
         DockerImageName.parse("confluentinc/cp-kafka:7.4.3")
@@ -87,28 +90,29 @@ class KafkaContainer(network: Network) {
         )
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
-            melding = Json.encodeToString(iaStatusOppdatering),
+            melding = json.encodeToString(iaStatusOppdatering),
             topic = KafkaTopics.SAK_STATUS
         )
     }
 
     fun sendSpørreundersøkelse(
         spørreundersøkelseId: UUID,
-        spørreundersøkelsesStreng: String = Json.encodeToString<Spørreundersøkelse>(
+        spørreundersøkelsesStreng: String = json.encodeToString<Spørreundersøkelse>(
             enStandardSpørreundersøkelse(spørreundersøkelseId)
         ),
-    ) {
+    ): Spørreundersøkelse {
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
             topic = KafkaTopics.SPØRREUNDERSØKELSE
         )
+        return json.decodeFromString<Spørreundersøkelse>(spørreundersøkelsesStreng)
     }
 
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = Json.encodeToString<Spørreundersøkelse>(enStandardSpørreundersøkelse(
+            spørreundersøkelsesStreng = json.encodeToString<Spørreundersøkelse>(enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
             ))
@@ -118,44 +122,47 @@ class KafkaContainer(network: Network) {
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
+        kategorier: List<Kategori> = Kategori.entries
     ) = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId,
             type = "kartlegging",
-            spørsmålOgSvaralternativer = listOf(
-                SpørsmålOgSvaralternativer(
-                    id = UUID.randomUUID(),
-                    kategori = Kategori.PARTSSAMARBEID,
-                    spørsmål = "Hva gjør dere med IA?",
-                    antallSvar = 2,
-                    svaralternativer = listOf(
-                        Svaralternativ(
-                            svarId = UUID.randomUUID(),
-                            "ingenting"
-                        ),
-                        Svaralternativ(
-                            svarId = UUID.randomUUID(),
-                            "alt"
-                        ),
-                    )
-                ),
-                SpørsmålOgSvaralternativer(
-                    id = UUID.randomUUID(),
-                    kategori = Kategori.PARTSSAMARBEID,
-                    spørsmål = "Hva gjør dere IKKE med IA?",
-                    antallSvar = 2,
-                    svaralternativer = listOf(
-                        Svaralternativ(
-                            svarId = UUID.randomUUID(),
-                            "noen ting"
-                        ),
-                        Svaralternativ(
-                            svarId = UUID.randomUUID(),
-                            "alt"
-                        ),
+            spørsmålOgSvaralternativer = kategorier.flatMap { kategori ->
+                listOf(
+                    SpørsmålOgSvaralternativer(
+                        id = UUID.randomUUID(),
+                        kategori = kategori,
+                        spørsmål = "Hva gjør dere med IA?",
+                        antallSvar = 2,
+                        svaralternativer = listOf(
+                            Svaralternativ(
+                                svarId = UUID.randomUUID(),
+                                "ingenting"
+                            ),
+                            Svaralternativ(
+                                svarId = UUID.randomUUID(),
+                                "alt"
+                            ),
+                        )
+                    ),
+                    SpørsmålOgSvaralternativer(
+                        id = UUID.randomUUID(),
+                        kategori = kategori,
+                        spørsmål = "Hva gjør dere IKKE med IA?",
+                        antallSvar = 2,
+                        svaralternativer = listOf(
+                            Svaralternativ(
+                                svarId = UUID.randomUUID(),
+                                "noen ting"
+                            ),
+                            Svaralternativ(
+                                svarId = UUID.randomUUID(),
+                                "alt"
+                            ),
+                        )
                     )
                 )
-            ),
+            },
             status = spørreundersøkelseStatus,
             avslutningsdato = LocalDate.now().toKotlinLocalDate()
         )

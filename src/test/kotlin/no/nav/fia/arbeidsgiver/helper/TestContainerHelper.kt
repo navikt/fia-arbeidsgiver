@@ -3,6 +3,7 @@ package no.nav.fia.arbeidsgiver.helper
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.engine.cio.*
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.*
@@ -11,8 +12,11 @@ import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -124,3 +128,16 @@ internal suspend fun GenericContainer<*>.bliMed(
     val body = response.bodyAsText()
     return Json.decodeFromString<BliMedDTO>(body)
 }
+
+internal suspend fun GenericContainer<*>.nesteSpørsmål(
+    bliMedDTO: BliMedDTO,
+    nåværendeSpørsmålId: String = "Start"
+) =
+    performPost(
+        url = NESTE_SPØRSMÅL_PATH,
+        body = NesteSpørsmålRequest(
+            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
+            sesjonsId = bliMedDTO.sesjonsId,
+            nåværendeSpørsmålId = nåværendeSpørsmålId,
+        )
+    ).body<NesteSpørsmålDTO>()

@@ -20,6 +20,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaraltern
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
@@ -154,8 +155,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
-        val indeksTilNåværrendeSpørsmålId = if (nesteSpørsmålRequest.nåværendeSpørsmålId.uppercase() == "START") {
-            -1
+        val indeksTilNåværendeSpørsmålId = if (nesteSpørsmålRequest.nåværendeSpørsmålId.uppercase() == "START") {
+            null
         } else {
             val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
 
@@ -169,8 +170,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         }
 
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
-        val nesteSpørsmålIndeks = indeksTilNåværrendeSpørsmålId + 1
-        val forrigeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId - 1
+        val nesteSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.plus(1) ?: 0
+        val forrigeSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.minus(1) ?: -2
 
         val kategoristatus = spørreundersøkelseService.hentKategoristatus(
             spørreundersøkelseId,
@@ -180,14 +181,29 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
                 spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].kategori
             }
         )
-        val åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
+
+        var åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
+
+        // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
+        if (kategoristatus?.kategori == Kategori.SYKEFRAVÆRSOPPFØLGING)
+            åpnetFremTilIndeks += 2
+        // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
+
+        val nåværendeKategori = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværendeSpørsmålId ?: 0].kategori
+        val nesteSteg =
+            if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål)
+                NesteSpørsmålDTO.StegStatus.FERDIG
+            else if (kategoristatus?.kategori != nåværendeKategori)
+                NesteSpørsmålDTO.StegStatus.NY_KATEGORI
+            else
+                NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
 
         call.respond(
             HttpStatusCode.OK,
             NesteSpørsmålDTO(
-                nåværendeSpørsmålIndeks = indeksTilNåværrendeSpørsmålId,
+                nåværendeSpørsmålIndeks = indeksTilNåværendeSpørsmålId ?: -1,
                 sisteSpørsmålIndeks = indeksTilSisteSpørsmål,
-                hvaErNesteSteg = if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål) NesteSpørsmålDTO.StegStatus.FERDIG else NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL,
+                hvaErNesteSteg = nesteSteg,
                 erNesteÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
                 nesteSpørsmålId = if (nesteSpørsmålIndeks <= indeksTilSisteSpørsmål) spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString() else null,
                 forrigeSpørsmålId = if (forrigeSpørsmålIndeks >= 0) spørreundersøkelse.spørsmålOgSvaralternativer[forrigeSpørsmålIndeks].id.toString() else null,

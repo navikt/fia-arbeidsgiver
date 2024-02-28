@@ -87,26 +87,28 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         payload: Spørreundersøkelse,
         spørreundersøkelseId: UUID
     ) {
-        val kategori = payload.spørsmålOgSvaralternativer.first().kategori
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
-            spørreundersøkelseId = spørreundersøkelseId,
-            kategori = kategori
-        )
-
-        if (kategoristatus == null) {
-            val spørreundersøkelse = spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-            val antallSpørsmålIKategori =
-                spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
-            logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
-            spørreundersøkelseService.lagreKategoristatus(
+        val kategorier = payload.spørsmålOgSvaralternativer.groupBy { it.kategori }
+        kategorier.keys.forEach{ kategori ->
+            val kategoristatus = spørreundersøkelseService.hentKategoristatus(
                 spørreundersøkelseId = spørreundersøkelseId,
-                kategoristatus = KategoristatusDTO(
-                    kategori = kategori,
-                    status = KategoristatusDTO.Status.OPPRETTET,
-                    spørsmålindeks = null,
-                    antallSpørsmål = antallSpørsmålIKategori
-                )
+                kategori = kategori
             )
+
+            if (kategoristatus == null) {
+                val spørreundersøkelse = spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+                val antallSpørsmålIKategori =
+                    spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
+                logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
+                spørreundersøkelseService.lagreKategoristatus(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    kategoristatus = KategoristatusDTO(
+                        kategori = kategori,
+                        status = KategoristatusDTO.Status.OPPRETTET,
+                        spørsmålindeks = null,
+                        antallSpørsmål = antallSpørsmålIKategori
+                    )
+                )
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
 enum class Kategori {
-    PARTSSAMARBEID
+    PARTSSAMARBEID, SYKEFRAVÆRSOPPFØLGING
 }
