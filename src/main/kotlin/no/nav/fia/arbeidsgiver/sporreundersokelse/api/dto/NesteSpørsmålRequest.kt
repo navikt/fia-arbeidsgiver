@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class NesteSpørsmålRequest(
     val spørreundersøkelseId: String,
     val sesjonsId: String,
-    val nåværrendeSpørsmålId: String,
+    val nåværendeSpørsmålId: String,
 )
