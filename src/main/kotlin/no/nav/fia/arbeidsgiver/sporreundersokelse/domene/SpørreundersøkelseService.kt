@@ -22,6 +22,23 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 		)
 	}
 
+	fun slett(spørreundersøkelse: Spørreundersøkelse) {
+		logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
+		// -- slett enkle nøkler basert på spørreundersøkelsens id
+		listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
+			logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
+			redisService.slett(it, spørreundersøkelse.spørreundersøkelseId.toString())
+		}
+
+		// -- TODO: slett sesjoner knyttet til spørreundersøkelsen
+
+		// -- slett kategoristatus knyttet til spørreundersøkelsen
+		Kategori.entries.forEach { kategori ->
+			logger.info("Sletter type '${Type.KATEGORISTATUS}', kategori '$kategori' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
+			redisService.slett(Type.KATEGORISTATUS, "$kategori-${spørreundersøkelse.spørreundersøkelseId}")
+		}
+	}
+
 	fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {
 		redisService.lagre(Type.SESJON, sesjonsId.toString(), spørreundersøkelseId.toString())
 	}

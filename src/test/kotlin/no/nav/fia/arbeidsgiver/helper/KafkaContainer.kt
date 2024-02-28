@@ -105,6 +105,15 @@ class KafkaContainer(network: Network) {
         )
     }
 
+    fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
+        sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = Json.encodeToString<Spørreundersøkelse>(enStandardSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
+            ))
+        )
+
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),

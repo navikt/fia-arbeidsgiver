@@ -27,6 +27,11 @@ class RedisService(
         defaultTimeToLiveSeconds = TWO_YEARS
     }
 
+    fun slett(
+        type: Type,
+        nøkkel: String,
+    ) = sync.del("${type.name}-$nøkkel")
+
     fun lagre(
         type: Type,
         nøkkel: String,

@@ -7,6 +7,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -51,18 +52,22 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
 
                         records.forEach { record ->
                             try {
-                                val payload = json.decodeFromString<Spørreundersøkelse>(record.value())
-                                val spørreundersøkelseId = payload.spørreundersøkelseId
-                                logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
-                                spørreundersøkelseService.lagre(payload)
+                                val spørreundersøkelse = json.decodeFromString<Spørreundersøkelse>(record.value())
+                                val spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId
 
-                                oppretteEllerLagreKategoristatus(payload, spørreundersøkelseId)
-
+                                if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
+                                    logger.info("Sletter spørreundersøkelse med id: $spørreundersøkelseId")
+                                    spørreundersøkelseService.slett(spørreundersøkelse)
+                                } else {
+                                    logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
+                                    spørreundersøkelseService.lagre(spørreundersøkelse)
+                                    oppretteEllerLagreKategoristatus(spørreundersøkelse, spørreundersøkelseId)
+                                }
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
                         }
-                        logger.info("Lagret ${records.count()} meldinger i topic: ${topic.navn}")
+                        logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
                         logger.info("SpørreundersøkelseKonsument is shutting down")
                     } catch (e: RetriableException) {
