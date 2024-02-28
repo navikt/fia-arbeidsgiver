@@ -39,6 +39,7 @@ data class SpørsmålOgSvaralternativer (
 				    id = svaralternativ.svarId,
 				    tekst = svaralternativ.svartekst
 			    )
-		    }
+		    },
+			kategori = kategori
 	    )
 }
