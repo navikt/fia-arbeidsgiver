@@ -154,10 +154,10 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
-        val indeksTilNåværrendeSpørsmålId = if (nesteSpørsmålRequest.nåværrendeSpørsmålId.uppercase() == "START") {
+        val indeksTilNåværrendeSpørsmålId = if (nesteSpørsmålRequest.nåværendeSpørsmålId.uppercase() == "START") {
             -1
         } else {
-            val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværrendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
+            val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
 
             if (spørreundersøkelse.spørsmålOgSvaralternativer.none { it.id == nåværrendeSpørsmålId }) {
                 call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")

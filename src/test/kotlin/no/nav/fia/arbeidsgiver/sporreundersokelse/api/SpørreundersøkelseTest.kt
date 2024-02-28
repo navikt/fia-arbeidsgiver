@@ -149,7 +149,7 @@ class SpørreundersøkelseTest {
 			    body = NesteSpørsmålRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId,
-				    nåværrendeSpørsmålId = "Start",
+				    nåværendeSpørsmålId = "Start",
 			    )
 		    )
 		    hvaErNesteSpørsmålRespons0.status shouldBe HttpStatusCode.OK
@@ -166,7 +166,7 @@ class SpørreundersøkelseTest {
 			    body = NesteSpørsmålRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId,
-				    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+				    nåværendeSpørsmålId = idTilFørsteSpørsmål.toString(),
 			    )
 		    )
 		    hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
@@ -183,7 +183,7 @@ class SpørreundersøkelseTest {
 			    body = NesteSpørsmålRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId,
-				    nåværrendeSpørsmålId = idTilAndreSpørsmål.toString(),
+				    nåværendeSpørsmålId = idTilAndreSpørsmål.toString(),
 			    )
 		    )
 		    hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
@@ -659,7 +659,7 @@ class SpørreundersøkelseTest {
 			    body = NesteSpørsmålRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId,
-				    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+				    nåværendeSpørsmålId = idTilFørsteSpørsmål.toString(),
 			    )
 		    )
 		    hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
@@ -699,7 +699,7 @@ class SpørreundersøkelseTest {
 			    body = NesteSpørsmålRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId,
-				    nåværrendeSpørsmålId = idTilFørsteSpørsmål.toString(),
+				    nåværendeSpørsmålId = idTilFørsteSpørsmål.toString(),
 			    )
 		    )
 		    hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
