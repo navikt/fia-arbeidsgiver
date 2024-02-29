@@ -9,7 +9,12 @@ class SamarbeidsstatusService(val redisService: RedisService) {
 	fun lagre(iaSakStatus: IASakStatus) {
 		val gammelStatus = henteSakStatus(iaSakStatus.orgnr)
 		if (gammelStatus == null || gammelStatus.sistOppdatert <= iaSakStatus.sistOppdatert)
-			redisService.lagre(Type.SAMARBEIDSSTATUS, iaSakStatus.orgnr, Json.encodeToString(iaSakStatus))
+			redisService.lagre(
+				type = Type.SAMARBEIDSSTATUS,
+				nøkkel = iaSakStatus.orgnr,
+				verdi = Json.encodeToString(iaSakStatus),
+				ttl = 2 * 365 * 24 * 60 * 60L // -- to år
+			)
 	}
 
 
