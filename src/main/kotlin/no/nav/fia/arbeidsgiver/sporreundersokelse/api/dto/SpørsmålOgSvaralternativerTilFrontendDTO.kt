@@ -1,7 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 import java.util.*
 
@@ -13,5 +13,5 @@ data class SpørsmålOgSvaralternativerTilFrontendDTO (
     val sisteSpørsmålIndeks: Int,
     val spørsmål: String,
     val svaralternativer: List<SvaralternativDTO>,
-    val kategori: Kategori,
+    val tema: Tema,
 )

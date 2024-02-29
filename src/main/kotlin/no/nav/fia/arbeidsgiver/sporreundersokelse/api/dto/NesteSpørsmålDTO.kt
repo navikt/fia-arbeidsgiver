@@ -13,7 +13,7 @@ data class NesteSpørsmålDTO(
 ) {
     enum class StegStatus {
         NYTT_SPØRSMÅL,
-	    NY_KATEGORI,
+	    NYTT_TEMA,
         FERDIG,
     }
 }

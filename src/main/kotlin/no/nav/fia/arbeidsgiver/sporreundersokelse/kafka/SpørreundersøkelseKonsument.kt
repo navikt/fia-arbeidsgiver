@@ -4,7 +4,7 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
@@ -61,7 +61,7 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                                 } else {
                                     logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
                                     spørreundersøkelseService.lagre(spørreundersøkelse)
-                                    oppretteEllerLagreKategoristatus(spørreundersøkelse, spørreundersøkelseId)
+                                    oppretteEllerLagreTemastatus(spørreundersøkelse, spørreundersøkelseId)
                                 }
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
@@ -83,29 +83,29 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         }
     }
 
-    private fun oppretteEllerLagreKategoristatus(
+    private fun oppretteEllerLagreTemastatus(
         payload: Spørreundersøkelse,
         spørreundersøkelseId: UUID
     ) {
-        val kategorier = payload.spørsmålOgSvaralternativer.groupBy { it.kategori }
-        kategorier.keys.forEach{ kategori ->
-            val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temaer = payload.spørsmålOgSvaralternativer.groupBy { it.tema }
+        temaer.keys.forEach{ tema ->
+            val temastatus = spørreundersøkelseService.hentTemastatus(
                 spørreundersøkelseId = spørreundersøkelseId,
-                kategori = kategori
+                tema = tema
             )
 
-            if (kategoristatus == null) {
+            if (temastatus == null) {
                 val spørreundersøkelse = spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-                val antallSpørsmålIKategori =
-                    spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
-                logger.info("Lagrer kategoristatus $kategoristatus for $kategori")
-                spørreundersøkelseService.lagreKategoristatus(
+                val antallSpørsmålITema =
+                    spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.tema == tema }.size
+                logger.info("Lagrer temastatus $temastatus for $tema")
+                spørreundersøkelseService.lagreTemastatus(
                     spørreundersøkelseId = spørreundersøkelseId,
-                    kategoristatus = KategoristatusDTO(
-                        kategori = kategori,
-                        status = KategoristatusDTO.Status.OPPRETTET,
+                    temastatus = TemastatusDTO(
+                        tema = tema,
+                        status = TemastatusDTO.Status.OPPRETTET,
                         spørsmålindeks = null,
-                        antallSpørsmål = antallSpørsmålIKategori
+                        antallSpørsmål = antallSpørsmålITema
                     )
                 )
             }

@@ -7,8 +7,8 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.*
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.IKKE_PÅBEGYNT
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO.Status.PÅBEGYNT
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.IKKE_PÅBEGYNT
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
@@ -17,10 +17,10 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingReques
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
@@ -32,13 +32,13 @@ const val BLI_MED_PATH = "$SPØRREUNDERSØKELSE_PATH/bli-med"
 const val SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/sporsmal-og-svar"
 const val NESTE_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/neste-sporsmal"
 const val SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/svar"
-const val KATEGORISTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/kategoristatus"
+const val TEMASTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/temastatus"
 
 const val VERT_ANTALL_DELTAKERE_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/antall-deltakere"
-const val VERT_START_KATEGORI_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/start-kategori"
+const val VERT_START_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/start-tema"
 const val VERT_INKREMENTER_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/inkrementer-sporsmal"
 const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsmal-og-svar"
-const val VERT_KATEGORISTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/kategoristatus"
+const val VERT_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/temastatus"
 
 fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
@@ -84,7 +84,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
-    post(KATEGORISTATUS_PATH) {
+    post(TEMASTATUS_PATH) {
         val request = call.receive(DeltakerhandlingRequest::class)
 
         val spørreundersøkelseId = request.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -99,15 +99,15 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
-            request.kategori
+            request.tema
         ) ?: throw Feil(
-            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
+            "Finner ikke temastatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
 
-        call.respond(HttpStatusCode.OK, kategoristatus)
+        call.respond(HttpStatusCode.OK, temastatus)
     }
 
 
@@ -173,28 +173,28 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         val nesteSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.plus(1) ?: 0
         val forrigeSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.minus(1) ?: -2
 
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
             if(nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
-                spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].kategori
+                spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].tema
             } else {
-                spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].kategori
+                spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].tema
             }
         )
 
-        var åpnetFremTilIndeks = kategoristatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
+        var åpnetFremTilIndeks = temastatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
 
         // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
-        if (kategoristatus?.kategori == Kategori.SYKEFRAVÆRSOPPFØLGING)
+        if (temastatus?.tema == Tema.SYKEFRAVÆRSOPPFØLGING)
             åpnetFremTilIndeks += 2
         // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
 
-        val nåværendeKategori = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværendeSpørsmålId ?: 0].kategori
+        val nåværendeTema = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværendeSpørsmålId ?: 0].tema
         val nesteSteg =
             if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål)
                 NesteSpørsmålDTO.StegStatus.FERDIG
-            else if (kategoristatus?.kategori != nåværendeKategori)
-                NesteSpørsmålDTO.StegStatus.NY_KATEGORI
+            else if (temastatus?.tema != nåværendeTema)
+                NesteSpørsmålDTO.StegStatus.NYTT_TEMA
             else
                 NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
 
@@ -250,7 +250,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
 
 
-    post(VERT_KATEGORISTATUS_PATH) {
+    post(VERT_TEMA_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -263,15 +263,15 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
-            vertshandlingRequest.kategori
+            vertshandlingRequest.tema
         ) ?: throw Feil(
-            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
+            "Finner ikke temastatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
 
-        call.respond(HttpStatusCode.OK, kategoristatus)
+        call.respond(HttpStatusCode.OK, temastatus)
     }
 
     post(VERT_ANTALL_DELTAKERE_PATH) {
@@ -316,37 +316,36 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         validerVertId(spørreundersøkelseService = spørreundersøkelseService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
 
-        // Dette støtter foreløpig bare én kategori.
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
-            vertshandlingRequest.kategori
+            vertshandlingRequest.tema
         ) ?: throw Feil(
-            "Finner ikke kategoristatus på undersøkelse $spørreundersøkelseId",
+            "Finner ikke temastatus på undersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
 
-        if (!(kategoristatus.status == IKKE_PÅBEGYNT || kategoristatus.status == PÅBEGYNT)) {
-            throw Feil(feilmelding = "Kategorien er i en ugyldig status", feilkode = HttpStatusCode.Conflict)
+        if (!(temastatus.status == IKKE_PÅBEGYNT || temastatus.status == PÅBEGYNT)) {
+            throw Feil(feilmelding = "Temaet er i en ugyldig status", feilkode = HttpStatusCode.Conflict)
         }
 
-        val nyIndeks = if (kategoristatus.spørsmålindeks == null) 0 else kategoristatus.spørsmålindeks + 1
+        val nyIndeks = if (temastatus.spørsmålindeks == null) 0 else temastatus.spørsmålindeks + 1
 
-        val inkrementert = kategoristatus.copy(
+        val inkrementert = temastatus.copy(
             spørsmålindeks = nyIndeks,
             status = PÅBEGYNT,
         )
-        spørreundersøkelseService.lagreKategoristatus(spørreundersøkelseId, inkrementert)
+        spørreundersøkelseService.lagreTemastatus(spørreundersøkelseId, inkrementert)
 
         call.respond(HttpStatusCode.OK, inkrementert)
     }
 
 
-    post(VERT_START_KATEGORI_PATH) {
-        val starteKategoriRequest = call.receive(StarteKategoriRequest::class)
+    post(VERT_START_TEMA_PATH) {
+        val startTemaRequest = call.receive(StartTemaRequest::class)
 
-        val spørreundersøkelseId = starteKategoriRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val vertId = starteKategoriRequest.vertId.tilUUID("vertId")
-        val kategori = starteKategoriRequest.kategori
+        val spørreundersøkelseId = startTemaRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val vertId = startTemaRequest.vertId.tilUUID("vertId")
+        val tema = startTemaRequest.tema
 
         validerVertId(
             spørreundersøkelseService = spørreundersøkelseService,
@@ -354,17 +353,17 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             vertId = vertId
         )
 
-        val kategoristatus = spørreundersøkelseService.hentKategoristatus(
+        val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
-            kategori
+            tema
         ) ?: throw Feil(
-            "Kategoristatus på undersøkelse $spørreundersøkelseId finnes ikke",
+            "Temastatus på undersøkelse $spørreundersøkelseId finnes ikke",
             feilkode = HttpStatusCode.InternalServerError
         )
 
-        spørreundersøkelseService.lagreKategoristatus(
+        spørreundersøkelseService.lagreTemastatus(
             spørreundersøkelseId,
-            kategoristatus.copy(status = IKKE_PÅBEGYNT)
+            temastatus.copy(status = IKKE_PÅBEGYNT)
         )
 
         call.respond(HttpStatusCode.OK)

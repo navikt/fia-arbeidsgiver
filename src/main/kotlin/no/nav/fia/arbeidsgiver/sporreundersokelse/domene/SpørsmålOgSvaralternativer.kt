@@ -11,7 +11,7 @@ import java.util.*
 data class SpørsmålOgSvaralternativer (
 	@Serializable(with = UUIDSerializer::class)
     val id: UUID,
-	val kategori: Kategori,
+	val tema: Tema,
 	val spørsmål: String,
 	val antallSvar: Int = 0,
 	val svaralternativer: List<Svaralternativ>
@@ -40,6 +40,6 @@ data class SpørsmålOgSvaralternativer (
 				    tekst = svaralternativ.svartekst
 			    )
 		    },
-			kategori = kategori
+			tema = tema
 	    )
 }

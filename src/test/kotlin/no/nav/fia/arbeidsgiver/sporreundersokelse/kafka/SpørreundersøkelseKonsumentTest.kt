@@ -9,7 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import java.util.*
 import kotlin.test.Test
@@ -30,7 +30,7 @@ class SpørreundersøkelseKonsumentTest {
     fun `skal kunne konsumere meldinger med ukjente felt`() {
         val id = UUID.randomUUID()
         val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(id).toJson()
-        val spørreundersøkelseMedEkstraFelt =  spørreundersøkelse.replace("\"kategori\"", "\"ukjentFelt\":\"X\",\"kategori\"")
+        val spørreundersøkelseMedEkstraFelt =  spørreundersøkelse.replace("\"tema\"", "\"ukjentFelt\":\"X\",\"tema\"")
 
         spørreundersøkelseMedEkstraFelt shouldNotBeEqual  spørreundersøkelse
 
@@ -92,9 +92,9 @@ class SpørreundersøkelseKonsumentTest {
 		shouldThrow<Feil> {
 			TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
 		}
-		Kategori.entries.forAll {
+		Tema.entries.forAll {
 			shouldThrow<Feil> {
-				TestContainerHelper.redis.spørreundersøkelseService.hentKategoristatus(id, it) shouldBe null
+				TestContainerHelper.redis.spørreundersøkelseService.hentTemastatus(id, it) shouldBe null
 			}
 		}
 

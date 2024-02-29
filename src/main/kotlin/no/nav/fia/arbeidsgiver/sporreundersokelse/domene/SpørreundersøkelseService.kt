@@ -6,7 +6,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -32,10 +32,10 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 
 		// -- TODO: slett sesjoner knyttet til spørreundersøkelsen
 
-		// -- slett kategoristatus knyttet til spørreundersøkelsen
-		Kategori.entries.forEach { kategori ->
-			logger.info("Sletter type '${Type.KATEGORISTATUS}', kategori '$kategori' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
-			redisService.slett(Type.KATEGORISTATUS, "$kategori-${spørreundersøkelse.spørreundersøkelseId}")
+		// -- slett temastatus knyttet til spørreundersøkelsen
+		Tema.entries.forEach { tema ->
+			logger.info("Sletter type '${Type.TEMASTATUS}', tema '$tema' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
+			redisService.slett(Type.TEMASTATUS, "$tema-${spørreundersøkelse.spørreundersøkelseId}")
 		}
 	}
 
@@ -47,8 +47,8 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 		redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
 	}
 
-	fun lagreKategoristatus(spørreundersøkelseId: UUID, kategoristatus: KategoristatusDTO) {
-		redisService.lagre(Type.KATEGORISTATUS, "${kategoristatus.kategori}-$spørreundersøkelseId", Json.encodeToString(kategoristatus))
+	fun lagreTemastatus(spørreundersøkelseId: UUID, temastatus: TemastatusDTO) {
+		redisService.lagre(Type.TEMASTATUS, "${temastatus.tema}-$spørreundersøkelseId", Json.encodeToString(temastatus))
 	}
 
 	fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
@@ -83,19 +83,19 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 		return redisService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
 	}
 
-	fun hentKategoristatus(spørreundersøkelseId: UUID, kategori: Kategori): KategoristatusDTO? {
-		val kategoristatusDTO = redisService.hente(
-			Type.KATEGORISTATUS,
-			"$kategori-$spørreundersøkelseId"
-		)?.let { Json.decodeFromString<KategoristatusDTO>(it) }
+	fun hentTemastatus(spørreundersøkelseId: UUID, tema: Tema): TemastatusDTO? {
+		val temastatusDTO = redisService.hente(
+			Type.TEMASTATUS,
+			"$tema-$spørreundersøkelseId"
+		)?.let { Json.decodeFromString<TemastatusDTO>(it) }
 
-		if (kategoristatusDTO?.antallSpørsmål != null) {
-			return kategoristatusDTO
+		if (temastatusDTO?.antallSpørsmål != null) {
+			return temastatusDTO
 		} else {
 			val spørreundersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-			val antallSpørsmålIKategori =
-				spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.kategori == kategori }.size
-			return kategoristatusDTO?.copy(antallSpørsmål = antallSpørsmålIKategori)
+			val antallSpørsmålITema =
+				spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.tema == tema }.size
+			return temastatusDTO?.copy(antallSpørsmål = antallSpørsmålITema)
 		}
 	}
 }

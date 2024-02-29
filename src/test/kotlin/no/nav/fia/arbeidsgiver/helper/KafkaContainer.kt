@@ -9,7 +9,7 @@ import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
@@ -122,16 +122,16 @@ class KafkaContainer(network: Network) {
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
-        kategorier: List<Kategori> = Kategori.entries
+        temaer: List<Tema> = Tema.entries
     ) = Spørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId,
             type = "kartlegging",
-            spørsmålOgSvaralternativer = kategorier.flatMap { kategori ->
+            spørsmålOgSvaralternativer = temaer.flatMap { tema ->
                 listOf(
                     SpørsmålOgSvaralternativer(
                         id = UUID.randomUUID(),
-                        kategori = kategori,
+                        tema = tema,
                         spørsmål = "Hva gjør dere med IA?",
                         antallSvar = 2,
                         svaralternativer = listOf(
@@ -147,7 +147,7 @@ class KafkaContainer(network: Network) {
                     ),
                     SpørsmålOgSvaralternativer(
                         id = UUID.randomUUID(),
-                        kategori = kategori,
+                        tema = tema,
                         spørsmål = "Hva gjør dere IKKE med IA?",
                         antallSvar = 2,
                         svaralternativer = listOf(

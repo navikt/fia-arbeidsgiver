@@ -54,5 +54,5 @@ enum class Type {
     SPØRREUNDERSØKELSE,
     SESJON,
     ANTALL_DELTAKERE,
-    KATEGORISTATUS
+    TEMASTATUS
 }

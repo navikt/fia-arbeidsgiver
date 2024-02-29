@@ -21,15 +21,15 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.KategoristatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StarteKategoriRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Kategori
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
@@ -173,7 +173,7 @@ class SpørreundersøkelseTest {
 		    nesteSpørsmålDTO2.sisteSpørsmålIndeks shouldBe 1 + CHARLIE
 		    nesteSpørsmålDTO2.nesteSpørsmålId shouldBe spørsmålOgSvaralternativer[2].id.toString()
 		    nesteSpørsmålDTO2.erNesteÅpnetAvVert shouldBe false
-		    nesteSpørsmålDTO2.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NY_KATEGORI
+		    nesteSpørsmålDTO2.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_TEMA
 		    nesteSpørsmålDTO2.forrigeSpørsmålId shouldBe idTilFørsteSpørsmål.toString()
 	    }
     }
@@ -511,7 +511,7 @@ class SpørreundersøkelseTest {
     }
 
     @Test
-    fun `vert skal ikke kunne inkrementere spørsmålindeks for en kategori som ikke er åpnet`() {
+    fun `vert skal ikke kunne inkrementere spørsmålindeks for ett tema som ikke er åpnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
 
@@ -528,21 +528,21 @@ class SpørreundersøkelseTest {
 
 	    runBlocking {
 
-		    val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-			    url = VERT_KATEGORISTATUS_PATH,
+		    val temastatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+			    url = VERT_TEMA_PATH,
 			    body = VertshandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString()
 			    ),
 		    )
 
-		    val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
+		    val temastatusBody = Json.decodeFromString<TemastatusDTO>(temastatus.bodyAsText())
 
-		    kategoristatusBody.spørsmålindeks shouldBe null
-		    kategoristatusBody.antallSpørsmål shouldBe 2
-		    kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
+		    temastatusBody.spørsmålindeks shouldBe null
+		    temastatusBody.antallSpørsmål shouldBe 2
+		    temastatusBody.status shouldBe TemastatusDTO.Status.OPPRETTET
 
-		    val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+		    val startetTema = TestContainerHelper.fiaArbeidsgiverApi.performPost(
 			    url = VERT_INKREMENTER_SPØRSMÅL_PATH,
 			    body = VertshandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -550,11 +550,11 @@ class SpørreundersøkelseTest {
 			    ),
 		    )
 
-		    startetKategori.status shouldBe HttpStatusCode.Conflict
+		    startetTema.status shouldBe HttpStatusCode.Conflict
 	    }
     }
     @Test
-    fun `vert skal kunne hente gjeldende spørsmålindeks for en kategori og øke den`() {
+    fun `vert skal kunne hente gjeldende spørsmålindeks for ett tema og øke den`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
 
@@ -570,41 +570,41 @@ class SpørreundersøkelseTest {
             }
 
 	    runBlocking {
-		    val kategoristatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-			    url = VERT_KATEGORISTATUS_PATH,
+		    val temastatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+			    url = VERT_TEMA_PATH,
 			    body = VertshandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString()
 			    ),
 		    )
 
-		    val kategoristatusBody = Json.decodeFromString<KategoristatusDTO>(kategoristatus.bodyAsText())
+		    val temastatusBody = Json.decodeFromString<TemastatusDTO>(temastatus.bodyAsText())
 
-		    kategoristatusBody.spørsmålindeks shouldBe null
-		    kategoristatusBody.status shouldBe KategoristatusDTO.Status.OPPRETTET
-		    kategoristatusBody.antallSpørsmål shouldBe 2
+		    temastatusBody.spørsmålindeks shouldBe null
+		    temastatusBody.status shouldBe TemastatusDTO.Status.OPPRETTET
+		    temastatusBody.antallSpørsmål shouldBe 2
 
 		    TestContainerHelper.fiaArbeidsgiverApi.performPost(
-			    url = VERT_START_KATEGORI_PATH,
-			    body = StarteKategoriRequest(
+			    url = VERT_START_TEMA_PATH,
+			    body = StartTemaRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString(),
-				    kategori = Kategori.PARTSSAMARBEID
+				    tema = Tema.PARTSSAMARBEID
 			    ),
 		    )
 
-		    val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+		    val startetTema = TestContainerHelper.fiaArbeidsgiverApi.performPost(
 			    url = VERT_INKREMENTER_SPØRSMÅL_PATH,
 			    body = VertshandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString()
 			    ),
 		    )
-		    val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
+		    val startetTemaBody = Json.decodeFromString<TemastatusDTO>(startetTema.bodyAsText())
 
-		    startetKategoriBody.spørsmålindeks shouldBe 0
-		    startetKategoriBody.antallSpørsmål shouldBe 2
-		    startetKategoriBody.status shouldBe KategoristatusDTO.Status.PÅBEGYNT
+		    startetTemaBody.spørsmålindeks shouldBe 0
+		    startetTemaBody.antallSpørsmål shouldBe 2
+		    startetTemaBody.status shouldBe TemastatusDTO.Status.PÅBEGYNT
 	    }
     }
 
@@ -648,11 +648,11 @@ class SpørreundersøkelseTest {
 		    nesteSpørsmålDTO1.erNesteÅpnetAvVert shouldBe false
 
 		    TestContainerHelper.fiaArbeidsgiverApi.performPost(
-			    url = VERT_START_KATEGORI_PATH,
-			    body = StarteKategoriRequest(
+			    url = VERT_START_TEMA_PATH,
+			    body = StartTemaRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString(),
-				    kategori = Kategori.PARTSSAMARBEID
+				    tema = Tema.PARTSSAMARBEID
 			    ),
 		    )
 
@@ -663,17 +663,17 @@ class SpørreundersøkelseTest {
 				    vertId = vertId.toString()
 			    ),
 		    )
-		    val startetKategori = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+		    val startetTema = TestContainerHelper.fiaArbeidsgiverApi.performPost(
 			    url = VERT_INKREMENTER_SPØRSMÅL_PATH,
 			    body = VertshandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString()
 			    ),
 		    )
-		    val startetKategoriBody = Json.decodeFromString<KategoristatusDTO>(startetKategori.bodyAsText())
+		    val startetTemaBody = Json.decodeFromString<TemastatusDTO>(startetTema.bodyAsText())
 
-		    startetKategoriBody.spørsmålindeks shouldBe 1
-		    startetKategoriBody.antallSpørsmål shouldBe 2
+		    startetTemaBody.spørsmålindeks shouldBe 1
+		    startetTemaBody.antallSpørsmål shouldBe 2
 
 		    val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
 			    url = NESTE_SPØRSMÅL_PATH,
@@ -690,7 +690,7 @@ class SpørreundersøkelseTest {
     }
 
     @Test
-    fun `deltaker skal kunne hente kategoristatus og ingen indeks for `() {
+    fun `deltaker skal kunne hente temastatus og ingen indeks for `() {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
@@ -699,18 +699,18 @@ class SpørreundersøkelseTest {
 	    runBlocking {
 		    val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-		    val kategoristatusResponse = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-			    url = KATEGORISTATUS_PATH,
+		    val temastatusResponse = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+			    url = TEMASTATUS_PATH,
 			    body = DeltakerhandlingRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    sesjonsId = bliMedDTO.sesjonsId
 			    )
 		    )
 
-		    val kategoristatus = Json.decodeFromString<KategoristatusDTO>(kategoristatusResponse.bodyAsText())
-		    kategoristatus.spørsmålindeks shouldBe null
-		    kategoristatus.antallSpørsmål shouldBe 2
-		    kategoristatus.status shouldBe KategoristatusDTO.Status.OPPRETTET
+		    val temastatus = Json.decodeFromString<TemastatusDTO>(temastatusResponse.bodyAsText())
+		    temastatus.spørsmålindeks shouldBe null
+		    temastatus.antallSpørsmål shouldBe 2
+		    temastatus.status shouldBe TemastatusDTO.Status.OPPRETTET
 	    }
     }
 
@@ -816,16 +816,16 @@ class SpørreundersøkelseTest {
 			nesteSpørsmålDTO.erNesteÅpnetAvVert shouldBe false
 
 			// -- START FØRSTE TEMA
-			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_START_KATEGORI_PATH, body = StarteKategoriRequest(
+			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_START_TEMA_PATH, body = StartTemaRequest(
 				spørreundersøkelseId = spørreundersøkelseId.toString(),
 				vertId = spørreundersøkelse.vertId.toString(),
-				kategori = Kategori.PARTSSAMARBEID,
+				tema = Tema.PARTSSAMARBEID,
 			))
 			// -- ÅPNE FØRSTE SPØRSMÅL
 			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_INKREMENTER_SPØRSMÅL_PATH, body = VertshandlingRequest(
 				spørreundersøkelseId = spørreundersøkelseId.toString(),
 				vertId = spørreundersøkelse.vertId.toString(),
-				kategori = Kategori.PARTSSAMARBEID,
+				tema = Tema.PARTSSAMARBEID,
 			))
 
 			// vert har åpnet og deltaker KAN svare på første spørmål
@@ -844,7 +844,7 @@ class SpørreundersøkelseTest {
 			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_INKREMENTER_SPØRSMÅL_PATH, body = VertshandlingRequest(
 				spørreundersøkelseId = spørreundersøkelseId.toString(),
 				vertId = spørreundersøkelse.vertId.toString(),
-				kategori = Kategori.PARTSSAMARBEID,
+				tema = Tema.PARTSSAMARBEID,
 			))
 
 			// vert har åpnet og deltaker KAN svare på andre spørsmål
@@ -855,26 +855,26 @@ class SpørreundersøkelseTest {
 
 			// deltaker HAR svart på andre spørsmål og venter på at vert åpner tredje spørsmål (og nytt tema)
 			val svartPåAndreSpørsmålIsh = TestContainerHelper.fiaArbeidsgiverApi.nesteSpørsmål(bliMedDTO = bliMedDTO, nåværendeSpørsmålId = ventetLengeNokPåAndre.nesteSpørsmålId.toString())
-			svartPåAndreSpørsmålIsh.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NY_KATEGORI
+			svartPåAndreSpørsmålIsh.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_TEMA
 			svartPåAndreSpørsmålIsh.nesteSpørsmålId shouldBe spørreundersøkelse.spørsmålOgSvaralternativer[2].id.toString()
 			svartPåAndreSpørsmålIsh.erNesteÅpnetAvVert shouldBe false
 
 			// -- START ANDRE TEMA
-			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_START_KATEGORI_PATH, body = StarteKategoriRequest(
+			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_START_TEMA_PATH, body = StartTemaRequest(
 				spørreundersøkelseId = spørreundersøkelseId.toString(),
 				vertId = spørreundersøkelse.vertId.toString(),
-				kategori = Kategori.SYKEFRAVÆRSOPPFØLGING,
+				tema = Tema.SYKEFRAVÆRSOPPFØLGING,
 			))
 			// -- ÅPNE TREDJE SPØRSMÅL
 			TestContainerHelper.fiaArbeidsgiverApi.performPost(url = VERT_INKREMENTER_SPØRSMÅL_PATH, body = VertshandlingRequest(
 				spørreundersøkelseId = spørreundersøkelseId.toString(),
 				vertId = spørreundersøkelse.vertId.toString(),
-				kategori = Kategori.SYKEFRAVÆRSOPPFØLGING,
+				tema = Tema.SYKEFRAVÆRSOPPFØLGING,
 			))
 
 			// vert har åpnet tredje spørsmål i nytt tema og deltaker KAN svare på tredje spørmål
 			val ventetLengeNokPåTredje = TestContainerHelper.fiaArbeidsgiverApi.nesteSpørsmål(bliMedDTO = bliMedDTO, nåværendeSpørsmålId = ventetLengeNokPåAndre.nesteSpørsmålId.toString())
-			ventetLengeNokPåTredje.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NY_KATEGORI
+			ventetLengeNokPåTredje.hvaErNesteSteg shouldBe NesteSpørsmålDTO.StegStatus.NYTT_TEMA
 			ventetLengeNokPåTredje.nesteSpørsmålId shouldBe spørreundersøkelse.spørsmålOgSvaralternativer[2].id.toString()
 			ventetLengeNokPåTredje.erNesteÅpnetAvVert shouldBe true
 
