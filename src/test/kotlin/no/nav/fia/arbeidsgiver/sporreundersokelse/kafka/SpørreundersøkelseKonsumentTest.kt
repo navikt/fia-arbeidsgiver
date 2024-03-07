@@ -62,24 +62,6 @@ class SpørreundersøkelseKonsumentTest {
 	    }
     }
 
-    @Test
-    fun `skal kunne konsumere meldinger når antallSvar mangler`() {
-        val id = UUID.randomUUID()
-        val vertId = UUID.randomUUID()
-        val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(
-            spørreundersøkelseId = id,
-            vertId = vertId,
-        ).toJson()
-        val spørreundersøkelseUtenVertId = spørreundersøkelse.replace("\"antallSvar\":2,", "")
-
-        spørreundersøkelseUtenVertId shouldNotBeEqual spørreundersøkelse
-
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
-
-	    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-	    result.spørreundersøkelseId shouldBe id
-    }
-
 	@Test
 	fun `skal håndtere slettede kartlegginger`() {
 		val id = UUID.randomUUID()

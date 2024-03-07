@@ -774,16 +774,22 @@ class SpørreundersøkelseTest {
     fun `skal returnere antallSvar`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
-        TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         )
-            .also { spørreundersøkelse ->
-                TestContainerHelper.kafka.sendSpørreundersøkelse(
-                    spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
-                )
-            }
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+        )
+
+	    spørreundersøkelse.spørsmålOgSvaralternativer.forEach {
+		    TestContainerHelper.kafka.sendAntallSvar(
+				spørreundersøkelseId = spørreundersøkelseId.toString(),
+				spørsmålId = it.id.toString(),
+				antallSvar = 2
+			)
+	    }
 
         val UUIDLength = UUID.randomUUID().toString().length
 	    runBlocking {

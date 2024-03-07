@@ -7,6 +7,7 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*
@@ -16,9 +17,17 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 
 	fun lagre(spørreundersøkelse: Spørreundersøkelse) {
 		redisService.lagre(
-			Type.SPØRREUNDERSØKELSE,
-			spørreundersøkelse.spørreundersøkelseId.toString(),
-			Json.encodeToString(spørreundersøkelse)
+			type = Type.SPØRREUNDERSØKELSE,
+			nøkkel = spørreundersøkelse.spørreundersøkelseId.toString(),
+			verdi = Json.encodeToString(spørreundersøkelse)
+		)
+	}
+
+	fun lagre(spørreundersøkelseAntallSvarDto: SpørreundersøkelseAntallSvarDto) {
+		redisService.lagre(
+			type = Type.ANTALL_SVAR_FOR_SPØRSMÅL,
+			nøkkel = "${spørreundersøkelseAntallSvarDto.spørreundersøkelseId}-${spørreundersøkelseAntallSvarDto.spørsmålId}",
+			verdi = spørreundersøkelseAntallSvarDto.antallSvar.toString()
 		)
 	}
 
@@ -97,5 +106,9 @@ class SpørreundersøkelseService(val redisService: RedisService) {
 				spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.tema == tema }.size
 			return temastatusDTO?.copy(antallSpørsmål = antallSpørsmålITema)
 		}
+	}
+
+	fun hentAntallSvar(spørreundersøkelseId: UUID, spørsmålId: UUID): Int {
+		return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
 	}
 }

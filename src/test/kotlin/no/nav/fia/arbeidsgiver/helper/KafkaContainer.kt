@@ -17,6 +17,7 @@ import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -109,6 +110,20 @@ class KafkaContainer(network: Network) {
         return json.decodeFromString<Spørreundersøkelse>(spørreundersøkelsesStreng)
     }
 
+    fun sendAntallSvar(
+        spørreundersøkelseId: String,
+        spørsmålId: String,
+        antallSvar: Int
+    ): SpørreundersøkelseAntallSvarDto {
+        val antallSvarDto = SpørreundersøkelseAntallSvarDto(spørreundersøkelseId, spørsmålId, antallSvar)
+        sendOgVent(
+            nøkkel = "$spørreundersøkelseId-$spørsmålId",
+            melding = json.encodeToString(antallSvarDto),
+            topic = KafkaTopics.SPØRREUNDERSØKELSE_ANTALL_SVAR
+        )
+        return antallSvarDto
+    }
+
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
@@ -133,7 +148,6 @@ class KafkaContainer(network: Network) {
                         id = UUID.randomUUID(),
                         tema = tema,
                         spørsmål = "Hva gjør dere med IA?",
-                        antallSvar = 2,
                         svaralternativer = listOf(
                             Svaralternativ(
                                 svarId = UUID.randomUUID(),
@@ -149,7 +163,6 @@ class KafkaContainer(network: Network) {
                         id = UUID.randomUUID(),
                         tema = tema,
                         spørsmål = "Hva gjør dere IKKE med IA?",
-                        antallSvar = 2,
                         svaralternativer = listOf(
                             Svaralternativ(
                                 svarId = UUID.randomUUID(),

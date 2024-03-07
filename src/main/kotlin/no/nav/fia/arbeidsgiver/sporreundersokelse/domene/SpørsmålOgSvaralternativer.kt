@@ -13,7 +13,6 @@ data class SpørsmålOgSvaralternativer (
     val id: UUID,
 	val tema: Tema,
 	val spørsmål: String,
-	val antallSvar: Int = 0,
 	val svaralternativer: List<Svaralternativ>
 ) {
     fun toDto(): SpørsmålOgSvaralternativerDTO =

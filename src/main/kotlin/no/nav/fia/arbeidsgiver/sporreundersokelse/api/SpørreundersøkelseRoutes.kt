@@ -294,7 +294,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelse.spørsmålOgSvaralternativer.map { spørsmål ->
                 AntallSvarDTO(
                     spørsmålId = spørsmål.id.toString(),
-                    antall = spørsmål.antallSvar
+                    antall = spørreundersøkelseService.hentAntallSvar(spørreundersøkelse.spørreundersøkelseId, spørsmål.id)
                 )
             }
 

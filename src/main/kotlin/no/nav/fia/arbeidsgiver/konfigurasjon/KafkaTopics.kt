@@ -7,6 +7,7 @@ enum class KafkaTopics(
     private val prefix: String = "pia",
 ) {
     SPØRREUNDERSØKELSE_SVAR("sporreundersokelse-svar-v1"),
+    SPØRREUNDERSØKELSE_ANTALL_SVAR("sporreundersokelse-antall-svar-v1"),
     SPØRREUNDERSØKELSE("sporreundersokelse-v1"),
     SAK_STATUS("ia-sak-status-v1");
 
