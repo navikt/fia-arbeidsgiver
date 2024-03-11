@@ -10,7 +10,7 @@ data class Spørreundersøkelse (
     @Serializable(with = UUIDSerializer::class)
     val spørreundersøkelseId: UUID,
     @Serializable(with = UUIDSerializer::class)
-    val vertId: UUID? = null,
+    val vertId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
     val status: SpørreundersøkelseStatus,
     val type: String,

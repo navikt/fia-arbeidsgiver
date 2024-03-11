@@ -9,15 +9,16 @@ import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SvaralternativDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.TemaMedSpørsmålOgSvaralternativerDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -98,16 +99,16 @@ class KafkaContainer(network: Network) {
 
     fun sendSpørreundersøkelse(
         spørreundersøkelseId: UUID,
-        spørreundersøkelsesStreng: String = json.encodeToString<Spørreundersøkelse>(
+        spørreundersøkelsesStreng: String = json.encodeToString<SpørreundersøkelseDto>(
             enStandardSpørreundersøkelse(spørreundersøkelseId)
         ),
-    ): Spørreundersøkelse {
+    ): SpørreundersøkelseDto {
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
             topic = KafkaTopics.SPØRREUNDERSØKELSE
         )
-        return json.decodeFromString<Spørreundersøkelse>(spørreundersøkelsesStreng)
+        return json.decodeFromString<SpørreundersøkelseDto>(spørreundersøkelsesStreng)
     }
 
     fun sendAntallSvar(
@@ -127,7 +128,7 @@ class KafkaContainer(network: Network) {
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = json.encodeToString<Spørreundersøkelse>(enStandardSpørreundersøkelse(
+            spørreundersøkelsesStreng = json.encodeToString<SpørreundersøkelseDto>(enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
             ))
@@ -138,40 +139,41 @@ class KafkaContainer(network: Network) {
         vertId: UUID = UUID.randomUUID(),
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
         temaer: List<Tema> = Tema.entries
-    ) = Spørreundersøkelse(
-            spørreundersøkelseId = spørreundersøkelseId,
-            vertId = vertId,
+    ) = SpørreundersøkelseDto(
+            spørreundersøkelseId = spørreundersøkelseId.toString(),
+            vertId = vertId.toString(),
             type = "kartlegging",
-            spørsmålOgSvaralternativer = temaer.flatMap { tema ->
-                listOf(
-                    SpørsmålOgSvaralternativer(
-                        id = UUID.randomUUID(),
-                        tema = tema,
-                        spørsmål = "Hva gjør dere med IA?",
-                        svaralternativer = listOf(
-                            Svaralternativ(
-                                svarId = UUID.randomUUID(),
-                                "ingenting"
-                            ),
-                            Svaralternativ(
-                                svarId = UUID.randomUUID(),
-                                "alt"
-                            ),
-                        )
-                    ),
-                    SpørsmålOgSvaralternativer(
-                        id = UUID.randomUUID(),
-                        tema = tema,
-                        spørsmål = "Hva gjør dere IKKE med IA?",
-                        svaralternativer = listOf(
-                            Svaralternativ(
-                                svarId = UUID.randomUUID(),
-                                "noen ting"
-                            ),
-                            Svaralternativ(
-                                svarId = UUID.randomUUID(),
-                                "alt"
-                            ),
+            temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
+                TemaMedSpørsmålOgSvaralternativerDto(
+                    temanavn = tema,
+                    spørsmålOgSvaralternativer = listOf(
+                        SpørsmålOgSvaralternativerDto(
+                            id = UUID.randomUUID().toString(),
+                            spørsmål = "Hva gjør dere med IA?",
+                            svaralternativer = listOf(
+                                SvaralternativDto(
+                                    svarId = UUID.randomUUID().toString(),
+                                    "ingenting"
+                                ),
+                                SvaralternativDto(
+                                    svarId = UUID.randomUUID().toString(),
+                                    "alt"
+                                ),
+                            )
+                        ),
+                        SpørsmålOgSvaralternativerDto(
+                            id = UUID.randomUUID().toString(),
+                            spørsmål = "Hva gjør dere IKKE med IA?",
+                            svaralternativer = listOf(
+                                SvaralternativDto(
+                                    svarId = UUID.randomUUID().toString(),
+                                    "noen ting"
+                                ),
+                                SvaralternativDto(
+                                    svarId = UUID.randomUUID().toString(),
+                                    "alt"
+                                ),
+                            )
                         )
                     )
                 )

@@ -8,6 +8,9 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -52,7 +55,10 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
 
                         records.forEach { record ->
                             try {
-                                val spørreundersøkelse = json.decodeFromString<Spørreundersøkelse>(record.value())
+                                val spørreundersøkelseDto = json.decodeFromString<SpørreundersøkelseDto>(record.value())
+
+                                val spørreundersøkelse = spørreundersøkelseDto.tilDomene()
+
                                 val spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId
 
                                 if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
@@ -119,3 +125,28 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         logger.info("Stopped kafka consumer job for ${topic.navn}")
     }
 }
+
+private fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
+    spørreundersøkelseId = UUID.fromString(spørreundersøkelseId),
+    vertId = UUID.fromString(vertId),
+    spørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.flatMap { temaMedSpørsmålOgSvaralternativer ->
+       temaMedSpørsmålOgSvaralternativer.spørsmålOgSvaralternativer.map { spørsmålOgSvaralternativerDto ->
+           spørsmålOgSvaralternativerDto.tilDomene(tema = temaMedSpørsmålOgSvaralternativer.temanavn)
+       }
+    },
+    status = status,
+    type = type,
+    avslutningsdato = avslutningsdato,
+)
+
+private fun SpørsmålOgSvaralternativerDto.tilDomene(tema: Tema) = SpørsmålOgSvaralternativer(
+    id = UUID.fromString(id),
+    tema = tema,
+    spørsmål = spørsmål,
+    svaralternativer = svaralternativer.map { it.tilDomene() },
+)
+
+private fun SvaralternativDto.tilDomene() = Svaralternativ(
+    svarId = UUID.fromString(svarId),
+    svartekst = svartekst,
+)

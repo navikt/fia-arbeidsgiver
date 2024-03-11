@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import java.util.*
 import kotlin.test.Test
 
@@ -30,31 +29,11 @@ class SpørreundersøkelseKonsumentTest {
     fun `skal kunne konsumere meldinger med ukjente felt`() {
         val id = UUID.randomUUID()
         val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(id).toJson()
-        val spørreundersøkelseMedEkstraFelt =  spørreundersøkelse.replace("\"tema\"", "\"ukjentFelt\":\"X\",\"tema\"")
+        val spørreundersøkelseMedEkstraFelt =  spørreundersøkelse.replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
 
-        spørreundersøkelseMedEkstraFelt shouldNotBeEqual  spørreundersøkelse
+        spørreundersøkelseMedEkstraFelt shouldNotBeEqual spørreundersøkelse
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseMedEkstraFelt)
-
-	    runBlocking {
-		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-		    result.spørreundersøkelseId shouldBe id
-	    }
-    }
-
-    @Test
-    fun `skal kunne konsumere meldinger når vertId mangler`() {
-        val id = UUID.randomUUID()
-        val vertId = UUID.randomUUID()
-        val spørreundersøkelse =  TestContainerHelper.kafka.enStandardSpørreundersøkelse(
-            spørreundersøkelseId = id,
-            vertId = vertId,
-        ).toJson()
-        val spørreundersøkelseUtenVertId = spørreundersøkelse.replace("\"vertId\":\"$vertId\",", "")
-
-        spørreundersøkelseUtenVertId shouldNotBeEqual spørreundersøkelse
-
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id, spørreundersøkelsesStreng = spørreundersøkelseUtenVertId)
 
 	    runBlocking {
 		    val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
@@ -86,5 +65,5 @@ class SpørreundersøkelseKonsumentTest {
 		// -- TODO: sjekk at sesjoner blir borte
 	}
 
-	private fun Spørreundersøkelse.toJson() = Json.encodeToString(this)
+	private fun SpørreundersøkelseDto.toJson() = Json.encodeToString(this)
 }
