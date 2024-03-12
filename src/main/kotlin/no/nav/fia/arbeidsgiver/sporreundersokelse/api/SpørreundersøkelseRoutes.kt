@@ -26,18 +26,34 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import java.util.*
 import kotlin.IllegalArgumentException
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
+
 const val BLI_MED_PATH = "$SPØRREUNDERSØKELSE_PATH/bli-med"
-const val SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/sporsmal-og-svar"
 const val NESTE_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/neste-sporsmal"
+const val SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/sporsmal-og-svar"
 const val SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/svar"
+
+const val VERT_ANTALL_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/antall-svar"
+const val VERT_NESTE_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/neste-sporsmal"
+const val VERT_SPØRREUNDERSØKELSESTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporreundersokelse-status"
+const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsmal-og-svar"
+
+
+@Deprecated("Skal ikke brukes lenger?")
 const val TEMASTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/temastatus"
 
+@Deprecated("Skal erstattes med antall-svar")
 const val VERT_ANTALL_DELTAKERE_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/antall-deltakere"
+
+@Deprecated("Skal erstattes med vert/sporsmal-og-svar")
 const val VERT_START_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/start-tema"
+
+@Deprecated("Skal erstattes med vert/sporsmal-og-svar")
 const val VERT_INKREMENTER_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/inkrementer-sporsmal"
-const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsmal-og-svar"
+
+@Deprecated("Mulig denne utgår helt ?")
 const val VERT_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/temastatus"
 
 fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
@@ -125,19 +141,16 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
 
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val indeksTilSpørsmålId = spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
-        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålOgSvaralternativer.firstOrNull { it.id == spørsmålId }
+        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
 
-        if (indeksTilSpørsmålId == -1 || spørsmålOgSvaralternativer == null) {
-            call.application.log.warn("Spørsmål med id $spørsmålId ble ikke funnet")
-            call.respond(HttpStatusCode.NotFound)
-        } else {
-            val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
-            call.respond(
-                HttpStatusCode.OK,
-                spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
-            )
-        }
+
+        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
+        call.respond(
+            HttpStatusCode.OK,
+            spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
+        )
+
     }
 
     post(NESTE_SPØRSMÅL_PATH) {
@@ -175,7 +188,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
-            if(nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
+            if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
                 spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].tema
             } else {
                 spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].tema
@@ -248,8 +261,6 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
-
-
     post(VERT_TEMA_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
@@ -294,7 +305,10 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelse.spørsmålOgSvaralternativer.map { spørsmål ->
                 AntallSvarDTO(
                     spørsmålId = spørsmål.id.toString(),
-                    antall = spørreundersøkelseService.hentAntallSvar(spørreundersøkelse.spørreundersøkelseId, spørsmål.id)
+                    antall = spørreundersøkelseService.hentAntallSvar(
+                        spørreundersøkelse.spørreundersøkelseId,
+                        spørsmål.id
+                    )
                 )
             }
 
@@ -308,13 +322,39 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
+    post("$VERT_ANTALL_SVAR_PATH/{spørsmålId}") {
+        val vertshandlingRequest = call.receive(VertshandlingRequest::class)
+        val spørsmålId =
+            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+
+        validerVertId(
+            spørreundersøkelseService = spørreundersøkelseService,
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId
+        )
+
+        call.respond(
+            HttpStatusCode.OK,
+            AntallSvarPerSpørsmålDTO(
+                antallDeltakere = spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId),
+                antallSvar = spørreundersøkelseService.hentAntallSvar(spørreundersøkelseId, spørsmålId)
+            )
+        )
+    }
+
     post(VERT_INKREMENTER_SPØRSMÅL_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
-        validerVertId(spørreundersøkelseService = spørreundersøkelseService, spørreundersøkelseId = spørreundersøkelseId, vertId = vertId)
+        validerVertId(
+            spørreundersøkelseService = spørreundersøkelseService,
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId
+        )
 
         val temastatus = spørreundersøkelseService.hentTemastatus(
             spørreundersøkelseId,
@@ -369,6 +409,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         call.respond(HttpStatusCode.OK)
     }
 
+    //TODO: @Deprecated("Denne må erstattes med /{spørsmålId})")
     post(VERT_SPØRSMÅL_OG_SVAR_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
@@ -392,7 +433,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 private fun validerVertId(
     spørreundersøkelseService: SpørreundersøkelseService,
     spørreundersøkelseId: UUID,
-    vertId: UUID?
+    vertId: UUID,
 ) {
     if (spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
         throw Feil(
@@ -404,7 +445,7 @@ private fun validerVertId(
 private fun validerSesjonsId(
     spørreundersøkelseService: SpørreundersøkelseService,
     sesjonsId: UUID,
-    spørreundersøkelseId: UUID
+    spørreundersøkelseId: UUID,
 ) {
     if (spørreundersøkelseService.henteSpørreundersøkelseIdFraSesjon(sesjonsId) != spørreundersøkelseId)
         throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
