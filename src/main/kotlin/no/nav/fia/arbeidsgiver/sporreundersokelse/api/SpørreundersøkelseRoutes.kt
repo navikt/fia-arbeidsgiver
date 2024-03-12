@@ -31,15 +31,17 @@ const val BLI_MED_PATH = "$SPØRREUNDERSØKELSE_PATH/bli-med"
 const val NESTE_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/neste-sporsmal"
 const val SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/sporsmal-og-svar"
 const val SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/svar"
+const val TEMASTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/temastatus"
 
 const val VERT_ANTALL_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/antall-svar"
 const val VERT_NESTE_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/neste-sporsmal"
-const val VERT_SPØRREUNDERSØKELSESTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporreundersokelse-status"
 const val VERT_SPØRSMÅL_OG_SVAR_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/sporsmal-og-svar"
+const val VERT_TEMASTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/temastatus"
 
 
-@Deprecated("Skal ikke brukes lenger?")
-const val TEMASTATUS_PATH = "$SPØRREUNDERSØKELSE_PATH/temastatus"
+@Deprecated("Skal erstattes med sporsmal-og-svar/ID")
+const val DEPRECATED_SPØRSMÅL_OG_SVAR_PATH = SPØRSMÅL_OG_SVAR_PATH
+
 
 @Deprecated("Skal erstattes med antall-svar")
 const val VERT_ANTALL_DELTAKERE_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/antall-deltakere"
@@ -50,8 +52,6 @@ const val VERT_START_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/start-tema"
 @Deprecated("Skal erstattes med vert/sporsmal-og-svar")
 const val VERT_INKREMENTER_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/inkrementer-sporsmal"
 
-@Deprecated("Mulig denne utgår helt ?")
-const val VERT_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/temastatus"
 
 fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
@@ -76,9 +76,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
-    //TODO: Slett dette endepunktet når Spørsmål_Og_SVAR/:id
-    // har blitt tatt i bruk a ver
-    post(SPØRSMÅL_OG_SVAR_PATH) {
+    post(DEPRECATED_SPØRSMÅL_OG_SVAR_PATH) {
         val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
 
         val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -233,7 +231,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
-    post(VERT_TEMA_PATH) {
+    post(VERT_TEMASTATUS_PATH) {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
 
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -388,17 +386,42 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
+
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
+        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
+        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
+
         validerVertId(
             spørreundersøkelseService = spørreundersøkelseService,
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId,
         )
 
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
-        
-        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
-        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
+        spørreundersøkelseService.hentTemastatus(
+            spørreundersøkelseId,
+            vertshandlingRequest.tema
+        )?.let { temastatus ->
+            //TODO: Hvis siste spørsmål, ferdig? per nå:
+            //TODO: Bare øk indeks om vert laster inn spørsmål forbi gjeldende i temastatus (noe rart med testene ?)
+//            val nyIndeks = if (indeksTilSisteSpørsmål <= indeksTilSpørsmålId) {
+//                max((temastatus.spørsmålindeks + 1), indeksTilSisteSpørsmål)
+//            } else {
+//                temastatus.spørsmålindeks
+//            }
+
+            spørreundersøkelseService.lagreTemastatus(
+                spørreundersøkelseId,
+                temastatus.copy(
+                    spørsmålindeks = temastatus.spørsmålindeks + 1,
+                    status = PÅBEGYNT
+                )
+            )
+        } ?: throw Feil(
+            "Finner ikke temastatus på spørreundersøkelse $spørreundersøkelseId",
+            feilkode = HttpStatusCode.InternalServerError
+        )
+
 
         val spørsmålFrontendDto = spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
 

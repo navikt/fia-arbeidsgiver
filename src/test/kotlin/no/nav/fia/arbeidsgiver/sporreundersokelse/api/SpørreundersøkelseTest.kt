@@ -269,7 +269,7 @@ class SpørreundersøkelseTest {
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
             val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerTilFrontendDTO>(body)
-            
+
             spørsmålOgSvaralternativer.id shouldBe UUID.fromString(førsteSpørsmål.id)
             spørsmålOgSvaralternativer.spørsmålIndeks shouldBe 0
             spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe 3
@@ -608,6 +608,7 @@ class SpørreundersøkelseTest {
     }
 
     @Test
+    @Deprecated("Vil ikke lenger være aktuell når inkrementering fjernes")
     fun `vert skal ikke kunne inkrementere spørsmålindeks for ett tema som ikke er åpnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
@@ -626,7 +627,7 @@ class SpørreundersøkelseTest {
         runBlocking {
 
             val temastatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_TEMA_PATH,
+                url = VERT_TEMASTATUS_PATH,
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString()
@@ -655,7 +656,7 @@ class SpørreundersøkelseTest {
     fun `vert skal kunne hente gjeldende spørsmålindeks for ett tema og øke den`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
-        TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         ).also { spørreundersøkelse ->
@@ -665,42 +666,48 @@ class SpørreundersøkelseTest {
             )
         }
 
+        val førsteSpørsmålId = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first()
+            .spørsmålOgSvaralternativer.first()
+            .id
+
         runBlocking {
-            val temastatus = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_TEMA_PATH,
+            val temastatusBody1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_TEMASTATUS_PATH,
                 body = VertshandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    vertId = vertId.toString()
-                ),
-            )
-
-            val temastatusBody = Json.decodeFromString<TemastatusDTO>(temastatus.bodyAsText())
-
-            temastatusBody.spørsmålindeks shouldBe -1
-            temastatusBody.status shouldBe TemastatusDTO.Status.OPPRETTET
-            temastatusBody.antallSpørsmål shouldBe 2
-
-            TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_START_TEMA_PATH,
-                body = StartTemaRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString(),
-                    tema = Tema.UTVIKLE_PARTSSAMARBEID
                 ),
-            )
+            ).also { it.status shouldBe HttpStatusCode.OK }
 
-            val startetTema = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
+            val temastatus1 = Json.decodeFromString<TemastatusDTO>(temastatusBody1.bodyAsText())
+            temastatus1.spørsmålindeks shouldBe -1
+            temastatus1.status shouldBe TemastatusDTO.Status.OPPRETTET
+            temastatus1.antallSpørsmål shouldBe 2
+            temastatus1.tema shouldBe Tema.UTVIKLE_PARTSSAMARBEID
+
+            TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$VERT_SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    vertId = vertId.toString()
+                    vertId = vertId.toString(),
                 ),
-            )
-            val startetTemaBody = Json.decodeFromString<TemastatusDTO>(startetTema.bodyAsText())
+            ).also { it.status shouldBe HttpStatusCode.OK }
 
-            startetTemaBody.spørsmålindeks shouldBe 0
-            startetTemaBody.antallSpørsmål shouldBe 2
-            startetTemaBody.status shouldBe TemastatusDTO.Status.PÅBEGYNT
+
+            val temastatusBody2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = VERT_TEMASTATUS_PATH,
+                body = VertshandlingRequest(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    vertId = vertId.toString(),
+                ),
+            ).also { it.status shouldBe HttpStatusCode.OK }
+
+            val temastatus2 = Json.decodeFromString<TemastatusDTO>(temastatusBody2.bodyAsText())
+            temastatus2.spørsmålindeks shouldBe 0
+            temastatus2.status shouldBe TemastatusDTO.Status.PÅBEGYNT
+            temastatus2.antallSpørsmål shouldBe 2
+            temastatus2.tema shouldBe Tema.UTVIKLE_PARTSSAMARBEID
+
         }
     }
 
@@ -708,7 +715,6 @@ class SpørreundersøkelseTest {
     fun `deltager skal kunne hente neste spørsmål og få riktig status når vert har åpnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
-
         val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
@@ -719,25 +725,29 @@ class SpørreundersøkelseTest {
             )
         }
         val førsteSpørsmålId =
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
-
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer[0].id
+        val andreSpørsmålId =
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer[1].id
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-            val hvaErNesteSpørsmålRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$NESTE_SPØRSMÅL_PATH/$førsteSpørsmålId",
+            val nesteSpørsmål1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$NESTE_SPØRSMÅL_PATH/START",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
                 )
             )
-            hvaErNesteSpørsmålRespons1.status shouldBe HttpStatusCode.OK
-            val nesteSpørsmålDTO1 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons1.bodyAsText())
-            nesteSpørsmålDTO1.erNesteÅpnetAvVert shouldBe false
+
+            nesteSpørsmål1.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDto1 = Json.decodeFromString<NesteSpørsmålDTO>(nesteSpørsmål1.bodyAsText())
+            nesteSpørsmålDto1.nesteSpørsmålId.toString() shouldBe førsteSpørsmålId
+            nesteSpørsmålDto1.forrigeSpørsmålId shouldBe null
+            nesteSpørsmålDto1.erNesteÅpnetAvVert shouldBe false
 
             TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_START_TEMA_PATH,
+                url = "$VERT_SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = StartTemaRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString(),
@@ -745,35 +755,32 @@ class SpørreundersøkelseTest {
                 ),
             )
 
-            TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(
+            val nesteSpørsmål2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+                url = "$NESTE_SPØRSMÅL_PATH/START",
+                body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    vertId = vertId.toString()
-                ),
+                    sesjonsId = bliMedDTO.sesjonsId,
+                )
             )
-            val startetTema = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
-                body = VertshandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    vertId = vertId.toString()
-                ),
-            )
-            val startetTemaBody = Json.decodeFromString<TemastatusDTO>(startetTema.bodyAsText())
 
-            startetTemaBody.spørsmålindeks shouldBe 1
-            startetTemaBody.antallSpørsmål shouldBe 2
+            nesteSpørsmål2.status shouldBe HttpStatusCode.OK
+            val nesteSpørsmålDto2 = Json.decodeFromString<NesteSpørsmålDTO>(nesteSpørsmål2.bodyAsText())
+            nesteSpørsmålDto2.nesteSpørsmålId.toString() shouldBe førsteSpørsmålId
+            nesteSpørsmålDto2.forrigeSpørsmålId shouldBe null
+            nesteSpørsmålDto2.erNesteÅpnetAvVert shouldBe true
 
-            val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+            val nesteSpørsmål3 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = "$NESTE_SPØRSMÅL_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
                 )
             )
-            hvaErNesteSpørsmålRespons2.status shouldBe HttpStatusCode.OK
-            val nesteSpørsmålDTO2 = Json.decodeFromString<NesteSpørsmålDTO>(hvaErNesteSpørsmålRespons2.bodyAsText())
-            nesteSpørsmålDTO2.erNesteÅpnetAvVert shouldBe true
+
+            val nesteSpørsmålDto3 = Json.decodeFromString<NesteSpørsmålDTO>(nesteSpørsmål3.bodyAsText())
+            nesteSpørsmålDto3.nesteSpørsmålId.toString() shouldBe andreSpørsmålId
+            nesteSpørsmålDto3.forrigeSpørsmålId shouldBe null
+            nesteSpørsmålDto3.erNesteÅpnetAvVert shouldBe false
         }
     }
 
@@ -809,17 +816,16 @@ class SpørreundersøkelseTest {
         TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
-        )
-            .also { spørreundersøkelse ->
-                TestContainerHelper.kafka.sendSpørreundersøkelse(
-                    spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelsesStreng = spørreundersøkelse.toJson()
-                )
-            }
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
 
         runBlocking {
             val response = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_INKREMENTER_SPØRSMÅL_PATH,
+                url = "$VERT_NESTE_SPØRSMÅL_PATH/START",
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = UUID.randomUUID().toString()
