@@ -23,7 +23,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
@@ -40,7 +39,6 @@ import kotlin.test.Test
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
 
 class SpørreundersøkelseTest {
-    private val CHARLIE = 2
     private val spørreundersøkelseSvarKonsument =
         TestContainerHelper.kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR)
 
@@ -104,13 +102,24 @@ class SpørreundersøkelseTest {
     @Test
     fun `deltaker skal kunne hente spørsmål og svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+
+        val førsteSpørsmålId = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .first().spørsmålOgSvaralternativer
+            .first().id
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
@@ -118,10 +127,10 @@ class SpørreundersøkelseTest {
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+            val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerTilFrontendDTO>(body)
 
-            spørsmålOgSvaralternativer shouldHaveSize 2 + CHARLIE
-            spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
+            spørsmålOgSvaralternativer.id.toString() shouldBe førsteSpørsmålId
+            spørsmålOgSvaralternativer.svaralternativer shouldHaveSize 2
         }
     }
 
@@ -166,7 +175,7 @@ class SpørreundersøkelseTest {
 
             val nesteSpørsmålFraAndreSpørsmål = TestContainerHelper.fiaArbeidsgiverApi.nesteSpørsmål(
                 bliMedDTO = bliMedDTO,
-                nåværendeSpørsmålId = idTilAndreSpørsmål.toString()
+                nåværendeSpørsmålId = idTilAndreSpørsmål
             )
 
             nesteSpørsmålFraAndreSpørsmål.nesteSpørsmålId shouldBe idTilFørsteSpørsmålForNyttTema
@@ -260,9 +269,10 @@ class SpørreundersøkelseTest {
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
             val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerTilFrontendDTO>(body)
+            
             spørsmålOgSvaralternativer.id shouldBe UUID.fromString(førsteSpørsmål.id)
             spørsmålOgSvaralternativer.spørsmålIndeks shouldBe 0
-            spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe 1 + CHARLIE
+            spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe 3
         }
     }
 
@@ -294,7 +304,7 @@ class SpørreundersøkelseTest {
     fun `vert skal kunne hente spørsmål og svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val vertId = UUID.randomUUID()
-        TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
         ).also { spørreundersøkelse ->
@@ -304,9 +314,13 @@ class SpørreundersøkelseTest {
             )
         }
 
+        val førsteSpørsmålId =
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
+
+
         runBlocking {
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = VERT_SPØRSMÅL_OG_SVAR_PATH,
+                url = "$VERT_SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = VertshandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     vertId = vertId.toString()
@@ -315,22 +329,33 @@ class SpørreundersøkelseTest {
 
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
             val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
+            val spørsmålOgSvaralternativer = Json.decodeFromString<SpørsmålOgSvaralternativerTilFrontendDTO>(body)
 
-            spørsmålOgSvaralternativer shouldHaveSize 2 + CHARLIE
-            spørsmålOgSvaralternativer.first().svaralternativer shouldHaveSize 2
+            spørsmålOgSvaralternativer.id.toString() shouldBe førsteSpørsmålId
+            spørsmålOgSvaralternativer.svaralternativer shouldHaveSize 2
         }
     }
 
     @Test
     fun `skal ikke få spørsmål og svar dersom sesjonsId er ukjent`() {
-        val spørreundersøkelseId = UUID.randomUUID()
         val sesjonsId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+
+        val førsteSpørsmålId = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .first().spørsmålOgSvaralternativer
+            .first().id
 
         runBlocking {
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = sesjonsId.toString()
@@ -344,37 +369,39 @@ class SpørreundersøkelseTest {
     @Test
     fun `skal kunne sende inn et gyldig svar`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+
+        val førsteSpørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .first().spørsmålOgSvaralternativer
+            .first()
+        val førsteSvaralternativ = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .first().spørsmålOgSvaralternativer
+            .first().svaralternativer
+            .first()
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
-                body = DeltakerhandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    sesjonsId = bliMedDTO.sesjonsId
-                )
-            )
-            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
-            val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
-
-            val spørsmål = spørsmålOgSvaralternativer.first()
-            val svaralternativ = spørsmål.svaralternativer.first()
-
-            val svarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
+            val sendSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
                 body = SvarRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
-                    spørsmålId = spørsmål.id.toString(),
-                    svarId = svaralternativ.id.toString()
+                    spørsmålId = førsteSpørsmål.id,
+                    svarId = førsteSvaralternativ.svarId
                 )
             )
-            svarRespons.status shouldBe HttpStatusCode.OK
+            sendSvarRespons.status shouldBe HttpStatusCode.OK
+
             TestContainerHelper.kafka.ventOgKonsumerKafkaMeldinger(
-                key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
+                key = "${bliMedDTO.sesjonsId}_${førsteSpørsmål.id}",
                 konsument = spørreundersøkelseSvarKonsument
             ) { meldinger ->
                 val objektene = meldinger.map {
@@ -384,8 +411,8 @@ class SpørreundersøkelseTest {
                 objektene.forAtLeastOne {
                     it.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
                     it.sesjonId shouldBe bliMedDTO.sesjonsId
-                    it.spørsmålId shouldBe spørsmål.id.toString()
-                    it.svarId shouldBe svaralternativ.id.toString()
+                    it.spørsmålId shouldBe førsteSpørsmål.id
+                    it.svarId shouldBe førsteSvaralternativ.svarId
                 }
             }
         }
@@ -416,35 +443,36 @@ class SpørreundersøkelseTest {
     @Test
     fun `skal få feilkode ved ukjent svar og svaralternativ`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+
+        val førsteSpørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .first().spørsmålOgSvaralternativer
+            .first()
+
+        val førsteSvar = førsteSpørsmål.svaralternativer.first()
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
-                body = DeltakerhandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    sesjonsId = bliMedDTO.sesjonsId
-                )
-            )
-            spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
-            val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
-
-            val spørsmål = spørsmålOgSvaralternativer.first()
-            val svaralternativ = spørsmål.svaralternativer.first()
-
             val ukjentSpørsmålId = UUID.randomUUID()
+
             val svarRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
                 url = SVAR_PATH,
                 body = SvarRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
                     spørsmålId = ukjentSpørsmålId.toString(),
-                    svarId = svaralternativ.id.toString(),
+                    svarId = førsteSvar.svarId,
                 )
             )
+
             svarRespons1.status shouldBe HttpStatusCode.Forbidden
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog "Ukjent spørsmål .$ukjentSpørsmålId.".toRegex()
 
@@ -454,7 +482,7 @@ class SpørreundersøkelseTest {
                 body = SvarRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
-                    spørsmålId = spørsmål.id.toString(),
+                    spørsmålId = førsteSpørsmål.id,
                     svarId = ukjentSvarId.toString(),
                 )
             )
@@ -508,7 +536,17 @@ class SpørreundersøkelseTest {
     @Test
     fun `skal ikke kunne svare på avsluttede spørreundersøkelser`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+
+        val førsteSpørsmålId =
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -522,7 +560,7 @@ class SpørreundersøkelseTest {
             )
 
             val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
+                url = "$SPØRSMÅL_OG_SVAR_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId
@@ -674,27 +712,21 @@ class SpørreundersøkelseTest {
         val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             vertId = vertId
-        )
-        TestContainerHelper.kafka.sendSpørreundersøkelse(
-            spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
-        )
+        ).also { spørreundersøkelse ->
+            TestContainerHelper.kafka.sendSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+            )
+        }
+        val førsteSpørsmålId =
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
+
 
         runBlocking {
             val bliMedDTO = TestContainerHelper.fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val spørsmålOgSvarRespons = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = SPØRSMÅL_OG_SVAR_PATH,
-                body = DeltakerhandlingRequest(
-                    spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    sesjonsId = bliMedDTO.sesjonsId
-                )
-            )
-            val body = spørsmålOgSvarRespons.bodyAsText()
-            val spørsmålOgSvaralternativer = Json.decodeFromString<List<SpørsmålOgSvaralternativerDTO>>(body)
-            val idTilFørsteSpørsmål = spørsmålOgSvaralternativer.first().id
 
             val hvaErNesteSpørsmålRespons1 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$NESTE_SPØRSMÅL_PATH/$idTilFørsteSpørsmål",
+                url = "$NESTE_SPØRSMÅL_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,
@@ -733,7 +765,7 @@ class SpørreundersøkelseTest {
             startetTemaBody.antallSpørsmål shouldBe 2
 
             val hvaErNesteSpørsmålRespons2 = TestContainerHelper.fiaArbeidsgiverApi.performPost(
-                url = "$NESTE_SPØRSMÅL_PATH/$idTilFørsteSpørsmål",
+                url = "$NESTE_SPØRSMÅL_PATH/$førsteSpørsmålId",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     sesjonsId = bliMedDTO.sesjonsId,

@@ -14,7 +14,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
@@ -24,6 +23,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvar
 import java.util.*
 import kotlin.IllegalArgumentException
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 
@@ -76,6 +76,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
     }
 
+    //TODO: Slett dette endepunktet når Spørsmål_Og_SVAR/:id
+    // har blitt tatt i bruk a ver
     post(SPØRSMÅL_OG_SVAR_PATH) {
         val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
 
@@ -123,7 +125,6 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         call.respond(HttpStatusCode.OK, temastatus)
     }
 
-
     post("$SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
         val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
         val spørsmålId =
@@ -147,7 +148,6 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             HttpStatusCode.OK,
             spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
         )
-
     }
 
     post("$NESTE_SPØRSMÅL_PATH/{spørsmålId}") {
@@ -381,23 +381,30 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         call.respond(HttpStatusCode.OK)
     }
 
-    //TODO: @Deprecated("Denne må erstattes med /{spørsmålId})")
-    post(VERT_SPØRSMÅL_OG_SVAR_PATH) {
+    post("$VERT_SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-
+        val spørsmålId =
+            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
-        if (spørreundersøkelse.vertId != vertId)
-            throw Feil(
-                feilmelding = "Ugyldig vertId: $vertId",
-                feilkode = HttpStatusCode.Forbidden
-            )
+        validerVertId(
+            spørreundersøkelseService = spørreundersøkelseService,
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId,
+        )
+
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
+        
+        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
+        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
+
+        val spørsmålFrontendDto = spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
 
         call.respond(
             HttpStatusCode.OK,
-            SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
+            spørsmålFrontendDto
         )
     }
 }
