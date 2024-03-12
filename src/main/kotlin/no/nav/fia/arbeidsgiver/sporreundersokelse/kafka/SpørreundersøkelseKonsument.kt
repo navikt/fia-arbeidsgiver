@@ -91,17 +91,18 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
 
     private fun oppretteEllerLagreTemastatus(
         payload: Spørreundersøkelse,
-        spørreundersøkelseId: UUID
+        spørreundersøkelseId: UUID,
     ) {
         val temaer = payload.spørsmålOgSvaralternativer.groupBy { it.tema }
-        temaer.keys.forEach{ tema ->
+        temaer.keys.forEach { tema ->
             val temastatus = spørreundersøkelseService.hentTemastatus(
                 spørreundersøkelseId = spørreundersøkelseId,
                 tema = tema
             )
 
             if (temastatus == null) {
-                val spørreundersøkelse = spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+                val spørreundersøkelse =
+                    spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
                 val antallSpørsmålITema =
                     spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.tema == tema }.size
                 logger.info("Lagrer temastatus $temastatus for $tema")
@@ -110,7 +111,7 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                     temastatus = TemastatusDTO(
                         tema = tema,
                         status = TemastatusDTO.Status.OPPRETTET,
-                        spørsmålindeks = null,
+                        spørsmålindeks = -1,
                         antallSpørsmål = antallSpørsmålITema
                     )
                 )
@@ -130,9 +131,9 @@ private fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
     spørreundersøkelseId = UUID.fromString(spørreundersøkelseId),
     vertId = UUID.fromString(vertId),
     spørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.flatMap { temaMedSpørsmålOgSvaralternativer ->
-       temaMedSpørsmålOgSvaralternativer.spørsmålOgSvaralternativer.map { spørsmålOgSvaralternativerDto ->
-           spørsmålOgSvaralternativerDto.tilDomene(tema = temaMedSpørsmålOgSvaralternativer.temanavn)
-       }
+        temaMedSpørsmålOgSvaralternativer.spørsmålOgSvaralternativer.map { spørsmålOgSvaralternativerDto ->
+            spørsmålOgSvaralternativerDto.tilDomene(tema = temaMedSpørsmålOgSvaralternativer.temanavn)
+        }
     },
     status = status,
     type = type,

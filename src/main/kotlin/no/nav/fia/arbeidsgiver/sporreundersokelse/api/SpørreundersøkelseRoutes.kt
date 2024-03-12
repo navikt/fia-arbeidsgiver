@@ -14,13 +14,10 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
@@ -153,12 +150,12 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     }
 
-    post(NESTE_SPØRSMÅL_PATH) {
-        val nesteSpørsmålRequest = call.receive(NesteSpørsmålRequest::class)
-
+    post("$NESTE_SPØRSMÅL_PATH/{spørsmålId}") {
+        val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
+        val spørsmålId = call.spørsmålId ?: return@post call.respond(HttpStatusCode.BadRequest)
         val spørreundersøkelseId =
-            nesteSpørsmålRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
-        val sesjonsId = nesteSpørsmålRequest.sesjonsId.tilUUID("sesjonsId")
+            deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
         validerSesjonsId(
             spørreundersøkelseService = spørreundersøkelseService,
@@ -166,60 +163,35 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-
-        val indeksTilNåværendeSpørsmålId = if (nesteSpørsmålRequest.nåværendeSpørsmålId.uppercase() == "START") {
-            null
-        } else {
-            val nåværrendeSpørsmålId = nesteSpørsmålRequest.nåværendeSpørsmålId.tilUUID("nåværrendeSpørsmålId")
-
-            if (spørreundersøkelse.spørsmålOgSvaralternativer.none { it.id == nåværrendeSpørsmålId }) {
-                call.application.log.warn("Ukjent spørsmålId: $nåværrendeSpørsmålId")
-                call.respond(
-                    HttpStatusCode.BadRequest
-                )
-            }
-            spørreundersøkelse.spørsmålOgSvaralternativer.indexOfFirst { it.id == nåværrendeSpørsmålId }
-        }
-
-        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
-        val nesteSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.plus(1) ?: 0
-        val forrigeSpørsmålIndeks = indeksTilNåværendeSpørsmålId?.minus(1) ?: -2
-
-        val temastatus = spørreundersøkelseService.hentTemastatus(
-            spørreundersøkelseId,
-            if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål) {
-                spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilSisteSpørsmål].tema
-            } else {
-                spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].tema
-            }
+        call.respond(
+            HttpStatusCode.OK,
+            spørreundersøkelseService.hentNesteSpørsmål(
+                spørreundersøkelseId = spørreundersøkelseId,
+                nåværendeSpørsmålId = spørsmålId,
+                tematittel = deltakerhandlingRequest.tema,
+            )
         )
+    }
 
-        var åpnetFremTilIndeks = temastatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
+    post("$VERT_NESTE_SPØRSMÅL_PATH/{spørsmålId}") {
+        val vertshandlingRequest = call.receive(VertshandlingRequest::class)
+        val spørsmålId = call.spørsmålId ?: return@post call.respond(HttpStatusCode.BadRequest)
 
-        // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
-        if (temastatus?.tema == Tema.REDUSERE_SYKEFRAVÆR)
-            åpnetFremTilIndeks += 2
-        // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
+        val spørreundersøkelseId =
+            vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-        val nåværendeTema = spørreundersøkelse.spørsmålOgSvaralternativer[indeksTilNåværendeSpørsmålId ?: 0].tema
-        val nesteSteg =
-            if (nesteSpørsmålIndeks > indeksTilSisteSpørsmål)
-                NesteSpørsmålDTO.StegStatus.FERDIG
-            else if (temastatus?.tema != nåværendeTema)
-                NesteSpørsmålDTO.StegStatus.NYTT_TEMA
-            else
-                NesteSpørsmålDTO.StegStatus.NYTT_SPØRSMÅL
+        validerVertId(
+            spørreundersøkelseService = spørreundersøkelseService,
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertshandlingRequest.vertId.tilUUID("vertId"),
+        )
 
         call.respond(
             HttpStatusCode.OK,
-            NesteSpørsmålDTO(
-                nåværendeSpørsmålIndeks = indeksTilNåværendeSpørsmålId ?: -1,
-                sisteSpørsmålIndeks = indeksTilSisteSpørsmål,
-                hvaErNesteSteg = nesteSteg,
-                erNesteÅpnetAvVert = nesteSpørsmålIndeks <= åpnetFremTilIndeks,
-                nesteSpørsmålId = if (nesteSpørsmålIndeks <= indeksTilSisteSpørsmål) spørreundersøkelse.spørsmålOgSvaralternativer[nesteSpørsmålIndeks].id.toString() else null,
-                forrigeSpørsmålId = if (forrigeSpørsmålIndeks >= 0) spørreundersøkelse.spørsmålOgSvaralternativer[forrigeSpørsmålIndeks].id.toString() else null,
+            spørreundersøkelseService.hentNesteSpørsmål(
+                spørreundersøkelseId = spørreundersøkelseId,
+                nåværendeSpørsmålId = spørsmålId,
+                tematittel = vertshandlingRequest.tema,
             )
         )
     }
@@ -360,7 +332,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseId,
             vertshandlingRequest.tema
         ) ?: throw Feil(
-            "Finner ikke temastatus på undersøkelse $spørreundersøkelseId",
+            "Finner ikke temastatus på spørreundersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
 
@@ -397,7 +369,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseId,
             tema
         ) ?: throw Feil(
-            "Temastatus på undersøkelse $spørreundersøkelseId finnes ikke",
+            "Finner ikke temastatus på spørreundersøkelse $spørreundersøkelseId",
             feilkode = HttpStatusCode.InternalServerError
         )
 
@@ -451,7 +423,7 @@ private fun validerSesjonsId(
         throw Feil(feilmelding = "Ugyldig sesjonsId", feilkode = HttpStatusCode.Forbidden)
 }
 
-private fun String.tilUUID(hvaErJeg: String) = try {
+internal fun String.tilUUID(hvaErJeg: String) = try {
     UUID.fromString(this)
 } catch (e: IllegalArgumentException) {
     throw Feil("Ugyldig formatert UUID $hvaErJeg: $this", e, HttpStatusCode.BadRequest)

@@ -27,6 +27,7 @@ import org.testcontainers.images.builder.ImageFromDockerfile
 import java.time.Duration
 import kotlin.io.path.Path
 import java.util.*
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 
 class TestContainerHelper {
     companion object {
@@ -50,9 +51,9 @@ class TestContainerHelper {
                             altinnProxy.getEnv() +
                             kafka.getEnv() +
                             redis.getEnv() +
-                        mapOf(
-                            "NAIS_CLUSTER_NAME" to "lokal"
-                        )
+                            mapOf(
+                                "NAIS_CLUSTER_NAME" to "lokal"
+                            )
                 )
                 .dependsOn(authServer.container, kafka.container, redis.container)
                 .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
@@ -86,7 +87,7 @@ private val httpClient = HttpClient(CIO) {
 
 private suspend fun GenericContainer<*>.performRequest(
     url: String,
-    config: HttpRequestBuilder.() -> Unit = {}
+    config: HttpRequestBuilder.() -> Unit = {},
 ) =
     httpClient.request {
         config()
@@ -109,7 +110,11 @@ internal suspend fun GenericContainer<*>.performGet(url: String, config: HttpReq
         method = HttpMethod.Get
     }
 
-internal suspend inline fun<reified T> GenericContainer<*>.performPost(url: String, body: T, crossinline config: HttpRequestBuilder.() -> Unit = {}) =
+internal suspend inline fun <reified T> GenericContainer<*>.performPost(
+    url: String,
+    body: T,
+    crossinline config: HttpRequestBuilder.() -> Unit = {},
+) =
     performRequest(url) {
         config()
         method = HttpMethod.Post
@@ -131,13 +136,12 @@ internal suspend fun GenericContainer<*>.bliMed(
 
 internal suspend fun GenericContainer<*>.nesteSpørsmål(
     bliMedDTO: BliMedDTO,
-    nåværendeSpørsmålId: String = "Start"
+    nåværendeSpørsmålId: String,
 ) =
     performPost(
-        url = NESTE_SPØRSMÅL_PATH,
-        body = NesteSpørsmålRequest(
+        url = "$NESTE_SPØRSMÅL_PATH/$nåværendeSpørsmålId",
+        body = DeltakerhandlingRequest(
             spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
             sesjonsId = bliMedDTO.sesjonsId,
-            nåværendeSpørsmålId = nåværendeSpørsmålId,
         )
     ).body<NesteSpørsmålDTO>()
