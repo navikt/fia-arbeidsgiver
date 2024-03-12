@@ -591,7 +591,7 @@ class SpørreundersøkelseTest {
 			    body = StartTemaRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString(),
-				    tema = Tema.PARTSSAMARBEID
+				    tema = Tema.UTVIKLE_PARTSSAMARBEID
 			    ),
 		    )
 
@@ -654,7 +654,7 @@ class SpørreundersøkelseTest {
 			    body = StartTemaRequest(
 				    spørreundersøkelseId = spørreundersøkelseId.toString(),
 				    vertId = vertId.toString(),
-				    tema = Tema.PARTSSAMARBEID
+				    tema = Tema.UTVIKLE_PARTSSAMARBEID
 			    ),
 		    )
 

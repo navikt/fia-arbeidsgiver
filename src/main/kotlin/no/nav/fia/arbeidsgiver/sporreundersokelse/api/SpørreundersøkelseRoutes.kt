@@ -185,7 +185,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         var åpnetFremTilIndeks = temastatus?.spørsmålindeks ?: -1 // ikke åpnet når vi ikke har katgoristatus
 
         // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
-        if (temastatus?.tema == Tema.SYKEFRAVÆRSOPPFØLGING)
+        if (temastatus?.tema == Tema.REDUSERE_SYKEFRAVÆR)
             åpnetFremTilIndeks += 2
         // -- TODO: restrukturer temaer og spøsmålsgrupper ------- shun charlieee
 

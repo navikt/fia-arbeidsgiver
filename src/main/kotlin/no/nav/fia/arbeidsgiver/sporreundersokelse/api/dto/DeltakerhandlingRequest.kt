@@ -7,5 +7,5 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 data class DeltakerhandlingRequest(
 	val spørreundersøkelseId: String,
 	val sesjonsId: String,
-	val tema: Tema = Tema.PARTSSAMARBEID,
+	val tema: Tema = Tema.UTVIKLE_PARTSSAMARBEID,
 )
