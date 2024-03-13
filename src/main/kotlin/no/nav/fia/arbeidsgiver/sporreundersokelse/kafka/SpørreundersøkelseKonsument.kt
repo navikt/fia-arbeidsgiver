@@ -11,9 +11,11 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSta
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvaralternativerDto
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -138,9 +140,15 @@ private fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
             spørsmålOgSvaralternativerDto.tilDomene(tema = temaMedSpørsmålOgSvaralternativer.temanavn)
         }
     },
+    temaMedSpørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
     status = status,
     type = type,
     avslutningsdato = avslutningsdato,
+)
+
+private fun TemaMedSpørsmålOgSvaralternativerDto.tilDomene() = TemaMedSpørsmålOgSvaralternativer(
+    tema = temanavn,
+    spørsmålOgSvaralternativer = spørsmålOgSvaralternativer.map { it.tilDomene(temanavn) }
 )
 
 private fun SpørsmålOgSvaralternativerDto.tilDomene(tema: Tema) = SpørsmålOgSvaralternativer(

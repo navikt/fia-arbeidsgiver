@@ -14,6 +14,7 @@ data class Spørreundersøkelse(
     @Serializable(with = UUIDSerializer::class)
     val vertId: UUID,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
+    val temaMedSpørsmålOgSvaralternativer: List<TemaMedSpørsmålOgSvaralternativer>,
     val status: SpørreundersøkelseStatus,
     val type: String,
     val avslutningsdato: LocalDate,
