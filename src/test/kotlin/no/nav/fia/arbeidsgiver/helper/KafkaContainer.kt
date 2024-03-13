@@ -14,11 +14,11 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørsmålOgSvaralternativerDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SvaralternativDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.TemaMedSpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvaralternativerDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig

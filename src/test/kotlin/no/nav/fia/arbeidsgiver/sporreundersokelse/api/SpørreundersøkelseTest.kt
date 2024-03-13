@@ -30,8 +30,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
 import org.junit.After
 import org.junit.Before
 import java.util.*

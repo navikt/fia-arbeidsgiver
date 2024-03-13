@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
+package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json

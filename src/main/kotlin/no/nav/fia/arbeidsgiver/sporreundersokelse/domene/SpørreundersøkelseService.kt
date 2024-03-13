@@ -7,7 +7,7 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.*

@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
+package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto
 
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
