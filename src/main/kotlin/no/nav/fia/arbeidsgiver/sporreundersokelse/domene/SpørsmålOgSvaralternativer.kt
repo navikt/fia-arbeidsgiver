@@ -29,7 +29,7 @@ data class SpørsmålOgSvaralternativer (
 
     fun toFrontendDto(indeksTilSpørsmål: Int, indeksTilSisteSpørsmål: Int): SpørsmålOgSvaralternativerTilFrontendDTO =
 	    SpørsmålOgSvaralternativerTilFrontendDTO(
-		    id = this.id,
+		    id = this.id.toString(),
 		    spørsmålIndeks = indeksTilSpørsmål,
 		    sisteSpørsmålIndeks = indeksTilSisteSpørsmål,
 		    spørsmål = this.spørsmål,

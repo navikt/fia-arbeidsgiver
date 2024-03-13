@@ -87,11 +87,11 @@ class SpørreundersøkelseService(val redisService: RedisService) {
     fun hentNesteSpørsmål(
         spørreundersøkelseId: UUID,
         nåværendeSpørsmålId: String,
-        tematittel: Tema,
+        tema: Tema,
     ): NesteSpørsmålDTO {
         val spørreundersøkelse = hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
-        val tema = hentTemastatus(spørreundersøkelseId = spørreundersøkelseId, tema = tematittel)
+        val temastatus = hentTemastatus(spørreundersøkelseId = spørreundersøkelseId, tema = tema)
             ?: throw Feil(
                 "Finner ikke temastatus på spørreundersøkelse $spørreundersøkelseId",
                 feilkode = HttpStatusCode.InternalServerError
@@ -100,7 +100,7 @@ class SpørreundersøkelseService(val redisService: RedisService) {
         val gjeldendeSpørsmålIndeks = if (nåværendeSpørsmålId.uppercase() == "START") {
             -1
         } else {
-            spørreundersøkelse.indeksFraSpørsmålId(nåværendeSpørsmålId.tilUUID("spørsmålId"))
+            spørreundersøkelse.indeksFraSpørsmålId(tema, nåværendeSpørsmålId.tilUUID("spørsmålId"))
         }
 
 
@@ -115,7 +115,7 @@ class SpørreundersøkelseService(val redisService: RedisService) {
             } else null
 
         return NesteSpørsmålDTO(
-            erNesteÅpnetAvVert = gjeldendeSpørsmålIndeks + 1 <= tema.spørsmålindeks,
+            erNesteÅpnetAvVert = gjeldendeSpørsmålIndeks + 1 <= temastatus.spørsmålindeks,
             nesteSpørsmålId = nesteSpørsmålId,
             forrigeSpørsmålId = forrigeSpørsmålId,
         )

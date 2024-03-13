@@ -137,8 +137,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         )
 
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
-        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
+        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(deltakerhandlingRequest.tema, spørsmålId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(deltakerhandlingRequest.tema, spørsmålId)
 
 
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
@@ -166,7 +166,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseService.hentNesteSpørsmål(
                 spørreundersøkelseId = spørreundersøkelseId,
                 nåværendeSpørsmålId = spørsmålId,
-                tematittel = deltakerhandlingRequest.tema,
+                tema = deltakerhandlingRequest.tema,
             )
         )
     }
@@ -189,7 +189,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
             spørreundersøkelseService.hentNesteSpørsmål(
                 spørreundersøkelseId = spørreundersøkelseId,
                 nåværendeSpørsmålId = spørsmålId,
-                tematittel = vertshandlingRequest.tema,
+                tema = vertshandlingRequest.tema,
             )
         )
     }
@@ -388,8 +388,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
 
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(spørsmålId)
-        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(spørsmålId)
+        val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(vertshandlingRequest.tema, spørsmålId)
+        val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(vertshandlingRequest.tema, spørsmålId)
         val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
 
         validerVertId(
