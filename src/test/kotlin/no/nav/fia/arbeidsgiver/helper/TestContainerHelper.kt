@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
@@ -29,7 +30,9 @@ import kotlin.io.path.Path
 import java.util.*
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 
 class TestContainerHelper {
     companion object {
@@ -134,6 +137,22 @@ internal suspend fun GenericContainer<*>.hentSpørsmål(
         body = DeltakerhandlingRequest(
             spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
             sesjonsId = bliMedDTO.sesjonsId,
+            tema = tema,
+        )
+    )
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
+    tema: Tema,
+    spørsmålId: String,
+    spørreundersøkelse: SpørreundersøkelseDto,
+) : SpørsmålOgSvaralternativerTilFrontendDTO {
+    val response = performPost(
+        url = "$VERT_SPØRSMÅL_OG_SVAR_PATH/$spørsmålId",
+        body = VertshandlingRequest(
+            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+            vertId = spørreundersøkelse.vertId,
             tema = tema,
         )
     )

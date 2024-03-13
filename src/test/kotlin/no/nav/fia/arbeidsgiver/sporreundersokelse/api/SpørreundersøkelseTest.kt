@@ -18,6 +18,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmål
+import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 import no.nav.fia.arbeidsgiver.helper.nesteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.performPost
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
@@ -109,6 +110,8 @@ class SpørreundersøkelseTest {
             )
             spørsmålPartssamarbeid.tema shouldBe Tema.UTVIKLE_PARTSSAMARBEID
             spørsmålPartssamarbeid.id shouldBe spørsmålIdIPartssamarbeid
+            spørsmålPartssamarbeid.spørsmålIndeks shouldBe 0
+            spørsmålPartssamarbeid.sisteSpørsmålIndeks shouldBe 1
 
             val spørsmålRedusereSykefravær = fiaArbeidsgiverApi.hentSpørsmål(
                 tema = Tema.REDUSERE_SYKEFRAVÆR,
@@ -117,8 +120,46 @@ class SpørreundersøkelseTest {
             )
             spørsmålRedusereSykefravær.tema shouldBe Tema.REDUSERE_SYKEFRAVÆR
             spørsmålRedusereSykefravær.id shouldBe spørsmålIdIRedusereSykefravær
+            spørsmålRedusereSykefravær.spørsmålIndeks shouldBe 0
+            spørsmålRedusereSykefravær.sisteSpørsmålIndeks shouldBe 1
         }
+    }
 
+    @Test
+    fun `vert skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+        )
+        TestContainerHelper.kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = spørreundersøkelse.toJson()
+        )
+
+        runBlocking {
+            val spørsmålIdIPartssamarbeid = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.temanavn == Tema.UTVIKLE_PARTSSAMARBEID }.spørsmålOgSvaralternativer.first().id
+            val spørsmålIdIRedusereSykefravær = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.temanavn == Tema.REDUSERE_SYKEFRAVÆR }.spørsmålOgSvaralternativer.first().id
+
+            val spørsmålPartssamarbeid = fiaArbeidsgiverApi.hentSpørsmålSomVert(
+                tema = Tema.UTVIKLE_PARTSSAMARBEID,
+                spørsmålId = spørsmålIdIPartssamarbeid,
+                spørreundersøkelse = spørreundersøkelse
+            )
+            spørsmålPartssamarbeid.tema shouldBe Tema.UTVIKLE_PARTSSAMARBEID
+            spørsmålPartssamarbeid.id shouldBe spørsmålIdIPartssamarbeid
+            spørsmålPartssamarbeid.spørsmålIndeks shouldBe 0
+            spørsmålPartssamarbeid.sisteSpørsmålIndeks shouldBe 1
+
+            val spørsmålRedusereSykefravær = fiaArbeidsgiverApi.hentSpørsmålSomVert(
+                tema = Tema.REDUSERE_SYKEFRAVÆR,
+                spørsmålId = spørsmålIdIRedusereSykefravær,
+                spørreundersøkelse = spørreundersøkelse
+            )
+            spørsmålRedusereSykefravær.tema shouldBe Tema.REDUSERE_SYKEFRAVÆR
+            spørsmålRedusereSykefravær.id shouldBe spørsmålIdIRedusereSykefravær
+            spørsmålRedusereSykefravær.spørsmålIndeks shouldBe 0
+            spørsmålRedusereSykefravær.sisteSpørsmålIndeks shouldBe 1
+        }
     }
 
     @Test
@@ -301,7 +342,8 @@ class SpørreundersøkelseTest {
                 url = "$SPØRSMÅL_OG_SVAR_PATH/${førsteSpørsmål.id}",
                 body = DeltakerhandlingRequest(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    sesjonsId = bliMedDTO.sesjonsId
+                    sesjonsId = bliMedDTO.sesjonsId,
+                    tema = Tema.UTVIKLE_PARTSSAMARBEID
                 )
             )
             spørsmålOgSvarRespons.status shouldBe HttpStatusCode.OK
@@ -310,7 +352,7 @@ class SpørreundersøkelseTest {
 
             spørsmålOgSvaralternativer.id shouldBe førsteSpørsmål.id
             spørsmålOgSvaralternativer.spørsmålIndeks shouldBe 0
-            spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe 3
+            spørsmålOgSvaralternativer.sisteSpørsmålIndeks shouldBe 1
         }
     }
 

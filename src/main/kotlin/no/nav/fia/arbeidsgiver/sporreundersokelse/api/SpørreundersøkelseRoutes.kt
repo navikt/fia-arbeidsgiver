@@ -139,9 +139,8 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
         val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(deltakerhandlingRequest.tema, spørsmålId)
         val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(deltakerhandlingRequest.tema, spørsmålId)
+        val indeksTilSisteSpørsmål = spørreundersøkelse.hentAlleSpørsmålITema(tema = deltakerhandlingRequest.tema).size - 1
 
-
-        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
         call.respond(
             HttpStatusCode.OK,
             spørsmålOgSvaralternativer.toFrontendDto(indeksTilSpørsmålId, indeksTilSisteSpørsmål)
@@ -386,11 +385,10 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
-
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
         val spørsmålOgSvaralternativer = spørreundersøkelse.spørsmålFraId(vertshandlingRequest.tema, spørsmålId)
         val indeksTilSpørsmålId = spørreundersøkelse.indeksFraSpørsmålId(vertshandlingRequest.tema, spørsmålId)
-        val indeksTilSisteSpørsmål = spørreundersøkelse.spørsmålOgSvaralternativer.size - 1
+        val indeksTilSisteSpørsmål = spørreundersøkelse.hentAlleSpørsmålITema(tema = vertshandlingRequest.tema).size - 1
 
         validerVertId(
             spørreundersøkelseService = spørreundersøkelseService,
