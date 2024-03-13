@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
@@ -156,6 +157,23 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
             tema = tema,
         )
     )
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
+    spørreundersøkelseId: String,
+    vertId: String
+) : Int {
+    val response = performPost(
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/status",
+        body = VertshandlingRequest(
+            spørreundersøkelseId = spørreundersøkelseId,
+            vertId = vertId,
+        )
+    )
+
+    response.status shouldBe HttpStatusCode.OK
+
     return response.body()
 }
 

@@ -141,4 +141,12 @@ class SpørreundersøkelseService(val redisService: RedisService) {
     fun hentAntallSvar(spørreundersøkelseId: UUID, spørsmålId: UUID): Int {
         return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
     }
+
+    fun åpneSpørsmål(spørreundersøkelseId: UUID, spørsmålId: UUID) {
+        redisService.lagre(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId", "ja")
+    }
+
+    fun erSpørsmålÅpent(spørreundersøkelseId: UUID, spørsmålId: UUID): Boolean {
+        return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null
+    }
 }
