@@ -1,39 +1,51 @@
 package no.nav.fia.arbeidsgiver.helper
 
+import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.*
+import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.*
+import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.request.header
+import io.ktor.client.request.request
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.URLProtocol
+import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.DELTAKER_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.dto.StartDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.Network
+import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
 import org.testcontainers.images.builder.ImageFromDockerfile
 import java.time.Duration
-import kotlin.io.path.Path
 import java.util.*
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import kotlin.io.path.Path
 
 class TestContainerHelper {
     companion object {
@@ -139,6 +151,57 @@ internal suspend fun GenericContainer<*>.hentSpørsmål(
             spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
             sesjonsId = bliMedDTO.sesjonsId,
             tema = tema,
+        )
+    )
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
+    bliMedDTO: BliMedDTO
+) : StartDto {
+    val response = performPost(
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
+        body = DeltakerhandlingRequest(
+            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
+            sesjonsId = bliMedDTO.sesjonsId,
+        )
+    )
+
+    response.status shouldBe HttpStatusCode.OK
+
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
+    tema: Tema,
+    spørsmålId: String,
+    bliMedDTO: BliMedDTO
+) : SpørsmålsoversiktDto? {
+    val response = performPost(
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/$tema/$spørsmålId",
+        body = DeltakerhandlingRequest(
+            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
+            sesjonsId = bliMedDTO.sesjonsId,
+        )
+    )
+
+    return when (response.status) {
+        HttpStatusCode.OK -> response.body()
+        HttpStatusCode.Accepted -> null
+        else -> fail("Fikk feil status tilbake (${response.status})")
+    }
+}
+
+internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
+    tema: Tema,
+    spørsmålId: String,
+    spørreundersøkelse: SpørreundersøkelseDto,
+) : SpørsmålsoversiktDto {
+    val response = performPost(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/$tema/$spørsmålId",
+        body = VertshandlingRequest(
+            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+            vertId = spørreundersøkelse.vertId,
         )
     )
     return response.body()

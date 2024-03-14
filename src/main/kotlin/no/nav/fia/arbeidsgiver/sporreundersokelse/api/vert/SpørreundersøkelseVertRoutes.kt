@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.api
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
@@ -7,14 +7,15 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaOversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilSpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
 
 
-const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert/v2/"
+const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert/v2"
 
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
     post("$VERT_BASEPATH/{spørreundersøkelseId}") {
@@ -61,17 +62,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            SpørsmålsoversiktDto(
-                spørsmålTekst = spørsmålMedSvarAlternativer.spørsmål,
-                svaralternativer = spørsmålMedSvarAlternativer.svaralternativer.map { SvaralternativDto(
-                    svarId = it.svarId.toString(),
-                    svartekst = it.svartekst
-                )},
-                nesteId = nesteSpørsmålDTO.nesteSpørsmålId,
-                nesteType = if (nesteSpørsmålDTO.nesteSpørsmålId != null ) "SPØRSMÅL" else "FERDIG",
-                forrigeId = nesteSpørsmålDTO.forrigeSpørsmålId,
-                forrigeType = if (nesteSpørsmålDTO.forrigeSpørsmålId != null ) "SPØRSMÅL" else "OVERSIKT",
-            )
+            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(nesteSpørsmålDTO = nesteSpørsmålDTO)
         )
     }
 

@@ -23,7 +23,11 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvar
 import java.util.*
 import kotlin.IllegalArgumentException
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 
@@ -461,6 +465,19 @@ private fun validerVertId(
             feilkode = HttpStatusCode.Forbidden
         )
 }
+
+fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(nesteSpørsmålDTO: NesteSpørsmålDTO) = SpørsmålsoversiktDto(
+    spørsmålTekst = spørsmål,
+    svaralternativer = svaralternativer.map { SvaralternativDto(
+        svarId = it.svarId.toString(),
+        svartekst = it.svartekst
+    )
+    },
+    nesteId = nesteSpørsmålDTO.nesteSpørsmålId,
+    nesteType = if (nesteSpørsmålDTO.nesteSpørsmålId != null ) "SPØRSMÅL" else "FERDIG",
+    forrigeId = nesteSpørsmålDTO.forrigeSpørsmålId,
+    forrigeType = if (nesteSpørsmålDTO.forrigeSpørsmålId != null ) "SPØRSMÅL" else "OVERSIKT",
+)
 
 private fun validerSesjonsId(
     spørreundersøkelseService: SpørreundersøkelseService,

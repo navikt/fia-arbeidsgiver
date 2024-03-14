@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.api
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
 import io.kotest.assertions.shouldFail
 import io.kotest.matchers.shouldBe

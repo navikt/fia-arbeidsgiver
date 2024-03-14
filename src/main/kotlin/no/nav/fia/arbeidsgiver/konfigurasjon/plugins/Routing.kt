@@ -9,7 +9,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.spørreundersøkelseDeltaker
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.spørreundersøkelseVert
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 fun Application.configureRouting(redisService: RedisService) {
@@ -18,6 +19,7 @@ fun Application.configureRouting(redisService: RedisService) {
         helse()
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 
+        spørreundersøkelseDeltaker(spørreundersøkelseService = spørreundersøkelseService)
         medVerifisertVertsId(spørreundersøkelseService = spørreundersøkelseService) {
             spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
         }
