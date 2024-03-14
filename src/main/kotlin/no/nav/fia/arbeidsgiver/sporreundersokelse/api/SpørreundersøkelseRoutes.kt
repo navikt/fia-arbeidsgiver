@@ -378,6 +378,26 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
         call.respond(HttpStatusCode.OK)
     }
 
+    //TODO: @Deprecated("Denne må erstattes med /{spørsmålId})")
+    post(VERT_SPØRSMÅL_OG_SVAR_PATH) {
+        val vertshandlingRequest = call.receive(VertshandlingRequest::class)
+
+        val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
+        val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+
+        if (spørreundersøkelse.vertId != vertId)
+            throw Feil(
+                feilmelding = "Ugyldig vertId: $vertId",
+                feilkode = HttpStatusCode.Forbidden
+            )
+
+        call.respond(
+            HttpStatusCode.OK,
+            SpørsmålOgSvaralternativerDTO.toDto(spørreundersøkelse.spørsmålOgSvaralternativer)
+        )
+    }
+
     post("$VERT_SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
         val spørsmålId =
