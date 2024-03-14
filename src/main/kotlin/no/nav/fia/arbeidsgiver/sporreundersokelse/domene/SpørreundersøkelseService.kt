@@ -115,6 +115,11 @@ class SpørreundersøkelseService(val redisService: RedisService) {
             } else null
 
         return NesteSpørsmålDTO(
+            hvaErNesteSteg = if ( gjeldendeSpørsmålIndeks >= temastatus.antallSpørsmål - 1) {
+                "FERDIG"
+            } else {
+                "NYTT_SPØRSMÅL"
+            },
             erNesteÅpnetAvVert = gjeldendeSpørsmålIndeks + 1 <= temastatus.spørsmålindeks,
             nesteSpørsmålId = nesteSpørsmålId,
             forrigeSpørsmålId = forrigeSpørsmålId,
