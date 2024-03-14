@@ -27,6 +27,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
@@ -129,8 +130,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     post("$SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
         val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
-        val spørsmålId =
-            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørsmålId = call.spørsmålId
         val spørreundersøkelseId = deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
 
@@ -153,7 +153,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     post("$NESTE_SPØRSMÅL_PATH/{spørsmålId}") {
         val deltakerhandlingRequest = call.receive(DeltakerhandlingRequest::class)
-        val spørsmålId = call.spørsmålId ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørsmålId = call.parameters["spørsmålId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
         val spørreundersøkelseId =
             deltakerhandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val sesjonsId = deltakerhandlingRequest.sesjonsId.tilUUID("sesjonsId")
@@ -176,7 +176,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     post("$VERT_NESTE_SPØRSMÅL_PATH/{spørsmålId}") {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-        val spørsmålId = call.spørsmålId ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørsmålId = call.parameters["spørsmålId"] ?: return@post call.respond(HttpStatusCode.BadRequest)
 
         val spørreundersøkelseId =
             vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
@@ -297,8 +297,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     post("$VERT_ANTALL_SVAR_PATH/{spørsmålId}") {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-        val spørsmålId =
-            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørsmålId = call.spørsmålId
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
@@ -404,8 +403,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
     post("$VERT_SPØRSMÅL_OG_SVAR_PATH/{spørsmålId}") {
         val vertshandlingRequest = call.receive(VertshandlingRequest::class)
-        val spørsmålId =
-            call.spørsmålId?.tilUUID("spørsmålId") ?: return@post call.respond(HttpStatusCode.BadRequest)
+        val spørsmålId = call.spørsmålId
         val spørreundersøkelseId = vertshandlingRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
         val vertId = vertshandlingRequest.vertId.tilUUID("vertId")
 
@@ -494,5 +492,18 @@ internal fun String.tilUUID(hvaErJeg: String) = try {
     throw Feil("Ugyldig formatert UUID $hvaErJeg: $this", e, HttpStatusCode.BadRequest)
 }
 
-private val ApplicationCall.spørsmålId
-    get() = parameters["spørsmålId"]
+
+internal val ApplicationCall.spørreundersøkelseId
+    get() =
+        parameters["spørreundersøkelseId"]?.tilUUID("spørreundersøkelseId")
+            ?: throw Feil(feilmelding = "Mangler spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
+
+internal val ApplicationCall.tema
+    get() =
+        parameters["temaId"]?.let { Tema.valueOf(it) }
+            ?: throw Feil(feilmelding = "Mangler temaId", feilkode = HttpStatusCode.BadRequest)
+
+internal val ApplicationCall.spørsmålId
+    get() =
+        parameters["spørsmålId"]?.tilUUID("spørsmålId")
+            ?: throw Feil(feilmelding = "Mangler spørsmålId", feilkode = HttpStatusCode.BadRequest)

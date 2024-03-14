@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -11,10 +10,12 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.dto.StartDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
 
 const val DELTAKER_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/deltaker"
@@ -65,18 +66,3 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         )
     }
 }
-
-private val ApplicationCall.spørreundersøkelseId
-    get() =
-        parameters["spørreundersøkelseId"]?.tilUUID("spørreundersøkelseId")
-            ?: throw Feil(feilmelding = "Mangler spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
-
-private val ApplicationCall.tema
-    get() =
-        parameters["temaId"]?.let { Tema.valueOf(it) }
-            ?: throw Feil(feilmelding = "Mangler temaId", feilkode = HttpStatusCode.BadRequest)
-
-private val ApplicationCall.spørsmålId
-    get() =
-        parameters["spørsmålId"]?.tilUUID("spørsmålId")
-            ?: throw Feil(feilmelding = "Mangler spørsmålId", feilkode = HttpStatusCode.BadRequest)
