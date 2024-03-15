@@ -1,5 +1,7 @@
 package no.nav.fia.arbeidsgiver.helper
 
+import HEADER_SESJON_ID
+import HEADER_VERT_ID
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -159,13 +161,11 @@ internal suspend fun GenericContainer<*>.hentSpørsmål(
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
     bliMedDTO: BliMedDTO
 ) : StartDto {
-    val response = performPost(
+    val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
-        body = DeltakerhandlingRequest(
-            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
-            sesjonsId = bliMedDTO.sesjonsId,
-        )
-    )
+    ) {
+        header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
+    }
 
     response.status shouldBe HttpStatusCode.OK
 
@@ -177,13 +177,11 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
     spørsmålId: String,
     bliMedDTO: BliMedDTO
 ) : SpørsmålsoversiktDto? {
-    val response = performPost(
+    val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/$tema/$spørsmålId",
-        body = DeltakerhandlingRequest(
-            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
-            sesjonsId = bliMedDTO.sesjonsId,
-        )
-    )
+    ) {
+        header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
+    }
 
     return when (response.status) {
         HttpStatusCode.OK -> response.body()
@@ -197,13 +195,11 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
     spørsmålId: String,
     spørreundersøkelse: SpørreundersøkelseDto,
 ) : SpørsmålsoversiktDto {
-    val response = performPost(
+    val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/$tema/$spørsmålId",
-        body = VertshandlingRequest(
-            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
-            vertId = spørreundersøkelse.vertId,
-        )
-    )
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    }
     return response.body()
 }
 
@@ -227,13 +223,11 @@ internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: String,
     vertId: String
 ) : Int {
-    val response = performPost(
+    val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/status",
-        body = VertshandlingRequest(
-            spørreundersøkelseId = spørreundersøkelseId,
-            vertId = vertId,
-        )
-    )
+    ) {
+        header(HEADER_VERT_ID, vertId)
+    }
 
     response.status shouldBe HttpStatusCode.OK
 

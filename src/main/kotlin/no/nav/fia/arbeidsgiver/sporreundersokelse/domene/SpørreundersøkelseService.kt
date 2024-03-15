@@ -4,6 +4,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
@@ -13,9 +14,16 @@ import org.slf4j.LoggerFactory
 import java.util.*
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
 
-class SpørreundersøkelseService(val redisService: RedisService) {
+class SpørreundersøkelseService(
+    val redisService: RedisService,
+) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    private val spørreundersøkelseSvarProdusent by lazy {
+        SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
+    }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
         redisService.lagre(
@@ -154,4 +162,17 @@ class SpørreundersøkelseService(val redisService: RedisService) {
     fun erSpørsmålÅpent(spørreundersøkelseId: UUID, spørsmålId: UUID): Boolean {
         return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null
     }
+
+    fun sendSvar(
+        spørreundersøkelseId: UUID,
+        sesjonsId: UUID,
+        spørsmålId: UUID,
+        svarId: UUID,
+    )  =
+        spørreundersøkelseSvarProdusent.sendSvar(svar = SpørreundersøkelseSvarDTO(
+            spørreundersøkelseId = spørreundersøkelseId.toString(),
+            sesjonId = sesjonsId.toString(),
+            spørsmålId = spørsmålId.toString(),
+            svarId = svarId.toString(),
+        ))
 }

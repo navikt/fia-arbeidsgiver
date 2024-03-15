@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
+import io.kotest.assertions.shouldFail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
@@ -9,10 +10,25 @@ import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import java.util.*
 import kotlin.test.Test
 
 class SpørreundersøkelseDeltakerTest {
+	@Test
+	fun `skal verifisere sesjonsid for deltakere`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			shouldFail {
+				fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = BliMedDTO(
+					spørreundersøkelseId = spørreundersøkelseDto.spørreundersøkelseId,
+					sesjonsId = UUID.randomUUID().toString(),
+				))
+			}
+		}
+	}
 
 	@Test
 	fun `skal kunne finne ut hvilket tema og spørsmål som er det første`() {

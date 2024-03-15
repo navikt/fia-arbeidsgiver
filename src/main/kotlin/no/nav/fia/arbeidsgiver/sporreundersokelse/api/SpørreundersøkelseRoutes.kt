@@ -58,6 +58,7 @@ const val VERT_START_TEMA_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/start-tema"
 const val VERT_INKREMENTER_SPØRSMÅL_PATH = "$SPØRREUNDERSØKELSE_PATH/vert/inkrementer-sporsmal"
 
 
+@Deprecated("Skal erstattes med henholdsvis spørreundersøkelseVert / spørreundersøkelseDeltaker")
 fun Route.spørreundersøkelse(spørreundersøkelseService: SpørreundersøkelseService) {
     val spørreundersøkelseSvarProdusent = SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
     post(BLI_MED_PATH) {
