@@ -6,10 +6,10 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
@@ -53,15 +53,12 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         spørreundersøkelseService.åpneSpørsmål(spørreundersøkelseId = spørreundersøkelseId, spørsmålId = spørsmålId)
 
-        val nesteSpørsmålDTO = spørreundersøkelseService.hentNesteSpørsmål(
-            spørreundersøkelseId = spørreundersøkelseId,
-            nåværendeSpørsmålId = spørsmålId.toString(),
-            tema = tema
-        )
-
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(nesteSpørsmålDTO = nesteSpørsmålDTO)
+            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(
+                nesteSpørsmålId = spørreundersøkelse.hentNesteSpørsmål(tema, spørsmålId)?.id?.toString(),
+                forrigeSpørsmålId = spørreundersøkelse.hentForrigeSpørsmål(tema, spørsmålId)?.id?.toString()
+            )
         )
     }
 

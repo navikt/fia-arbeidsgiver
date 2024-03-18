@@ -1,34 +1,32 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.*
+import io.ktor.server.application.ApplicationCall
+import io.ktor.server.application.call
+import io.ktor.server.application.log
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.*
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.IKKE_PÅBEGYNT
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallDeltakereDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.StartTemaRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.IKKE_PÅBEGYNT
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO.Status.PÅBEGYNT
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
-import java.util.*
-import kotlin.IllegalArgumentException
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.AntallSvarPerSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
+import java.util.*
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 
@@ -464,19 +462,6 @@ private fun validerVertId(
             feilkode = HttpStatusCode.Forbidden
         )
 }
-
-fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(nesteSpørsmålDTO: NesteSpørsmålDTO) = SpørsmålsoversiktDto(
-    spørsmålTekst = spørsmål,
-    svaralternativer = svaralternativer.map { SvaralternativDto(
-        svarId = it.svarId.toString(),
-        svartekst = it.svartekst
-    )
-    },
-    nesteId = nesteSpørsmålDTO.nesteSpørsmålId,
-    nesteType = if (nesteSpørsmålDTO.nesteSpørsmålId != null ) "SPØRSMÅL" else "FERDIG",
-    forrigeId = nesteSpørsmålDTO.forrigeSpørsmålId,
-    forrigeType = if (nesteSpørsmålDTO.forrigeSpørsmålId != null ) "SPØRSMÅL" else "OVERSIKT",
-)
 
 private fun validerSesjonsId(
     spørreundersøkelseService: SpørreundersøkelseService,

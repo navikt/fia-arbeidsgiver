@@ -57,7 +57,7 @@ class SpørreundersøkelseTest {
     }
 
     @Test
-    fun `skal kunne starte spørreundersøkelse`() {
+    fun `skal kunne bli med i spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
@@ -69,14 +69,14 @@ class SpørreundersøkelseTest {
     }
 
     @Test
-    fun `skal kunne starte spørreundersøkelse dersom pin er med`() { //Gir svar på om vi støtter ukjente felter i requestene våre
+    fun `skal kunne bli med i spørreundersøkelse dersom ukjente felter`() { //Gir svar på om vi støtter ukjente felter i requestene våre
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val response = fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequestMedPin(spørreundersøkelseId = spørreundersøkelseId.toString(), pinkode = "654321")
+                body = BliMedRequestMedUkjentFelt(spørreundersøkelseId = spørreundersøkelseId.toString(), ukjentFelt = "654321")
             )
             response.status shouldBe HttpStatusCode.OK
         }
@@ -84,7 +84,7 @@ class SpørreundersøkelseTest {
 
     @Suppress("unused")
     @Serializable
-    class BliMedRequestMedPin(val spørreundersøkelseId: String, val pinkode: String)
+    private class BliMedRequestMedUkjentFelt(val spørreundersøkelseId: String, val ukjentFelt: String)
 
     @Test
     fun `skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {

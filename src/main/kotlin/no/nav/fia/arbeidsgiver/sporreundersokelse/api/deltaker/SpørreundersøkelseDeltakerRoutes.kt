@@ -2,7 +2,6 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
-import io.ktor.server.application.log
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -12,10 +11,10 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.dto.StartDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
@@ -45,14 +44,13 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         }
 
         val spørsmålMedSvarAlternativer = spørreundersøkelse.spørsmålFraId(tema = tema, spørsmålId = spørsmålId)
-        val nesteSpørsmålDTO = spørreundersøkelseService.hentNesteSpørsmål(
-            spørreundersøkelseId = spørreundersøkelseId,
-            nåværendeSpørsmålId = spørsmålId.toString(),
-            tema = tema
-        )
+
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(nesteSpørsmålDTO = nesteSpørsmålDTO)
+            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(
+                nesteSpørsmålId = spørreundersøkelse.hentNesteSpørsmål(tema, spørsmålId)?.id?.toString(),
+                forrigeSpørsmålId = spørreundersøkelse.hentForrigeSpørsmål(tema, spørsmålId)?.id?.toString()
+            )
         )
     }
 
@@ -70,7 +68,6 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         if (spørsmål.svaralternativer.none { it.svarId == svarId })
             throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
 
-        call.application.log.info("Har fått inn svar $svarId")
         spørreundersøkelseService.sendSvar(
             spørreundersøkelseId = spørreundersøkelseId,
             sesjonsId = svarRequest.sesjonsId.tilUUID("sesjonsId"),

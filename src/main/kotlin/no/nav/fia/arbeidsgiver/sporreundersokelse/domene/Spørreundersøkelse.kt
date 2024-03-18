@@ -28,6 +28,16 @@ data class Spørreundersøkelse(
         return indeks
     }
 
+    fun hentNesteSpørsmål(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer? {
+        val gjeldeneSpørsmålIdx = indeksFraSpørsmålId(tema = tema, spørsmålId = spørsmålId)
+        return hentAlleSpørsmålITema(tema = tema).elementAtOrNull(gjeldeneSpørsmålIdx + 1)
+    }
+
+    fun hentForrigeSpørsmål(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer? {
+        val gjeldeneSpørsmålIdx = indeksFraSpørsmålId(tema = tema, spørsmålId = spørsmålId)
+        return hentAlleSpørsmålITema(tema = tema).elementAtOrNull(gjeldeneSpørsmålIdx - 1)
+    }
+
     fun spørsmålFraId(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer {
         val spørsmålOgSvaralternativer =
             hentAlleSpørsmålITema(tema = tema).firstOrNull { it.id == spørsmålId }

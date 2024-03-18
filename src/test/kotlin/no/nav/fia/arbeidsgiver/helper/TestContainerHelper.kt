@@ -36,6 +36,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaraltern
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import org.slf4j.Logger
@@ -197,6 +198,17 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
 ) : SpørsmålsoversiktDto {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/$tema/$spørsmålId",
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    }
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentTemaoversikt(
+    spørreundersøkelse: SpørreundersøkelseDto,
+) : List<TemaOversiktDto> {
+    val response = performGet(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     }

@@ -44,6 +44,47 @@ class SpørreundersøkelseDeltakerTest {
 	}
 
 	@Test
+	fun `skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+
+			// vert åpner spørsmål i tema 1
+			val tema1 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+			val spørsmålITema1 = tema1.spørsmålOgSvaralternativer.first().id
+			fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
+				tema = tema1.temanavn,
+				spørsmålId = spørsmålITema1,
+				spørreundersøkelse = spørreundersøkelseDto
+			)
+
+			// vert åpner spørsmål i tema 1
+			val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
+			val spørsmålITema2 = tema2.spørsmålOgSvaralternativer.first().id
+			fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
+				tema = tema2.temanavn,
+				spørsmålId = spørsmålITema2,
+				spørreundersøkelse = spørreundersøkelseDto
+			)
+
+			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+				tema = tema1.temanavn,
+				spørsmålId = spørsmålITema1,
+				bliMedDTO = bliMedDTO
+			) shouldNotBe null
+
+			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+				tema = tema2.temanavn,
+				spørsmålId = spørsmålITema2,
+				bliMedDTO = bliMedDTO
+			) shouldNotBe null
+
+		}
+	}
+
+	@Test
 	fun `skal kunne få spørsmål når verten har åpnet det`() {
 		val spørreundersøkelseId = UUID.randomUUID()
 		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
