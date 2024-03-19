@@ -1,6 +1,6 @@
 package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
-import VerifisertSesjonsId
+import VerifisertSesjonId
 import VerifisertVertId
 import io.ktor.server.routing.*
 import io.ktor.server.application.*
@@ -20,7 +20,7 @@ fun Application.configureRouting(redisService: RedisService) {
         helse()
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 
-        medVerifisertSesjonsId(spørreundersøkelseService = spørreundersøkelseService) {
+        medVerifisertSesjonId(spørreundersøkelseService = spørreundersøkelseService) {
             spørreundersøkelseDeltaker(spørreundersøkelseService = spørreundersøkelseService)
         }
 
@@ -50,15 +50,17 @@ fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) = creat
 
 fun Route.medVerifisertVertsId(
     spørreundersøkelseService: SpørreundersøkelseService,
-    authorizedRoutes: Route.() -> Unit) = createChild(CustomSelector()).apply {
+    authorizedRoutes: Route.() -> Unit,
+) = createChild(CustomSelector()).apply {
     install(VerifisertVertId(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()
 }
 
-fun Route.medVerifisertSesjonsId(
+fun Route.medVerifisertSesjonId(
     spørreundersøkelseService: SpørreundersøkelseService,
-    authorizedRoutes: Route.() -> Unit) = createChild(CustomSelector()).apply {
-    install(VerifisertSesjonsId(spørreundersøkelseService = spørreundersøkelseService))
+    authorizedRoutes: Route.() -> Unit,
+) = createChild(CustomSelector()).apply {
+    install(VerifisertSesjonId(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()
 }
 
