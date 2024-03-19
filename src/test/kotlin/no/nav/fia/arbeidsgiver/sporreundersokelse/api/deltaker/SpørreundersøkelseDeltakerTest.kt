@@ -182,6 +182,18 @@ class SpørreundersøkelseDeltakerTest {
 				temanavn = startDto.tema,
 				spørsmålId = startDto.spørsmålId
 			)?.id
+
+			// -- Test at "nesteSpørsmål" for siste spørsmål i ett tema peker på første spørsmål i neste tema
+			val sisteSpørsmålITema = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
+				tema = startDto.tema,
+				spørsmålId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer
+					.first().spørsmålOgSvaralternativer.last().id,
+				bliMedDTO = bliMedDTO
+			)
+			sisteSpørsmålITema.nesteSpørsmål?.tema shouldBe
+					spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer[1].temanavn
+			sisteSpørsmålITema.nesteSpørsmål?.spørsmålId shouldBe
+					spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer[1].spørsmålOgSvaralternativer.first().id
 		}
 	}
 
