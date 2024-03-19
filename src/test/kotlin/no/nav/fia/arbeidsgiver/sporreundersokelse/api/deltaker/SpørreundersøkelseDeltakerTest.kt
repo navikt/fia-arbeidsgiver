@@ -13,7 +13,6 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
-import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
@@ -130,36 +129,21 @@ class SpørreundersøkelseDeltakerTest {
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
-			// vert åpner spørsmål i tema 1
 			val tema1 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
 			val spørsmålITema1 = tema1.spørsmålOgSvaralternativer.first().id
-			fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
+			spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
 				tema = tema1.temanavn,
 				spørsmålId = spørsmålITema1,
-				spørreundersøkelse = spørreundersøkelseDto
-			)
+				bliMedDTO = bliMedDTO
+			) shouldNotBe null
 
-			// vert åpner spørsmål i tema 1
 			val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
 			val spørsmålITema2 = tema2.spørsmålOgSvaralternativer.first().id
-			fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
-				tema = tema2.temanavn,
-				spørsmålId = spørsmålITema2,
-				spørreundersøkelse = spørreundersøkelseDto
-			)
-
-			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
-				tema = tema1.temanavn,
-				spørsmålId = spørsmålITema1,
-				bliMedDTO = bliMedDTO
-			) shouldNotBe null
-
-			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+			spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
 				tema = tema2.temanavn,
 				spørsmålId = spørsmålITema2,
 				bliMedDTO = bliMedDTO
 			) shouldNotBe null
-
 		}
 	}
 
