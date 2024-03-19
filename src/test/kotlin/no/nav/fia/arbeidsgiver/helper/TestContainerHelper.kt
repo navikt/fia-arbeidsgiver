@@ -32,6 +32,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NySvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
@@ -171,6 +172,22 @@ internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
     response.status shouldBe HttpStatusCode.OK
 
     return response.body()
+}
+
+internal suspend fun GenericContainer<*>.svarPåSpørsmål(
+    tema: Tema,
+    spørsmålId: String,
+    svarId: String,
+    bliMedDTO: BliMedDTO,
+)  {
+    val response = performPost(
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/$tema/$spørsmålId/svar",
+        body = NySvarRequest(svarId = svarId)
+    ) {
+        header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
+    }
+
+    response.status shouldBe HttpStatusCode.OK
 }
 
 internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(

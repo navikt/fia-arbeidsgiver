@@ -1,28 +1,52 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import io.kotest.assertions.shouldFail
+import io.kotest.inspectors.forAtLeastOne
+import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
+import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.åpneSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
+import org.junit.After
+import org.junit.Before
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
+	private val spørreundersøkelseSvarKonsument =
+		kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR)
+
+	@Before
+	fun setUp() {
+		spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navnMedNamespace))
+	}
+
+	@After
+	fun tearDown() {
+		spørreundersøkelseSvarKonsument.unsubscribe()
+		spørreundersøkelseSvarKonsument.close()
+	}
+
 	@Test
 	fun `skal verifisere sesjonsid for deltakere`() {
 		val spørreundersøkelseId = UUID.randomUUID()
-		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
 		runBlocking {
 			shouldFail {
@@ -35,9 +59,29 @@ class SpørreundersøkelseDeltakerTest {
 	}
 
 	@Test
+	fun `skal ikke kunne bli med i en spørreundersøkelse som ikke er påbegynt`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		kafka.sendSpørreundersøkelse(
+			spørreundersøkelseId = spørreundersøkelseId,
+			spørreundersøkelsesStreng = Json.encodeToString<SpørreundersøkelseDto>(
+				kafka.enStandardSpørreundersøkelse(
+					spørreundersøkelseId = spørreundersøkelseId,
+					spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
+				)
+			)
+		)
+
+		runBlocking {
+			shouldFail {
+				fiaArbeidsgiverApi.bliMed(spørreundersøkelseId)
+			}
+		}
+	}
+
+	@Test
 	fun `skal kunne finne ut hvilket tema og spørsmål som er det første`() {
 		val spørreundersøkelseId = UUID.randomUUID()
-		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -50,7 +94,7 @@ class SpørreundersøkelseDeltakerTest {
 	@Test
 	fun `skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {
 		val spørreundersøkelseId = UUID.randomUUID()
-		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -91,7 +135,7 @@ class SpørreundersøkelseDeltakerTest {
 	@Test
 	fun `deltaker skal få neste spørsmålId når hen henter et spørsmål`() {
 		val spørreundersøkelseId = UUID.randomUUID()
-		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -113,7 +157,7 @@ class SpørreundersøkelseDeltakerTest {
 	@Test
 	fun `skal kunne få spørsmål når verten har åpnet det`() {
 		val spørreundersøkelseId = UUID.randomUUID()
-		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -134,6 +178,43 @@ class SpørreundersøkelseDeltakerTest {
 				temanavn = startDto.tema,
 				spørsmålId = startDto.spørsmålId
 			)?.spørsmål
+		}
+	}
+
+	@Test
+	fun `deltaker skal kunne svare på ett spørsmål`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto =
+			kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+			val spørsmål =
+				spørreundersøkelseDto.hentSpørsmålITema(temanavn = startDto.tema, spørsmålId = startDto.spørsmålId)
+			assertNotNull(spørsmål)
+			fiaArbeidsgiverApi.svarPåSpørsmål(
+				tema = startDto.tema,
+				spørsmålId = startDto.spørsmålId,
+				svarId = spørsmål.svaralternativer.first().svarId,
+				bliMedDTO = bliMedDTO
+			)
+
+			kafka.ventOgKonsumerKafkaMeldinger(
+				key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
+				konsument = spørreundersøkelseSvarKonsument
+			) { meldinger ->
+				val objektene = meldinger.map {
+					Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
+				}
+				objektene shouldHaveAtLeastSize 1
+				objektene.forAtLeastOne {
+					it.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
+					it.sesjonId shouldBe bliMedDTO.sesjonsId
+					it.spørsmålId shouldBe spørsmål.id
+					it.svarId shouldBe spørsmål.svaralternativer.first().svarId
+				}
+			}
 		}
 	}
 }
