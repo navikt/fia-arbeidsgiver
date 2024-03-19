@@ -16,6 +16,7 @@ import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.åpneSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
@@ -93,14 +94,10 @@ class SpørreundersøkelseDeltakerTest {
 				)
 			)
 
-			val spørsmål =
-				spørreundersøkelseDto.hentSpørsmålITema(temanavn = startDto.tema, spørsmålId = startDto.spørsmålId)
-			assertNotNull(spørsmål)
-
 			shouldFail {
+				val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
 				fiaArbeidsgiverApi.svarPåSpørsmål(
-					tema = startDto.tema,
-					spørsmålId = startDto.spørsmålId,
+					spørsmål = startDto,
 					svarId = spørsmål.svaralternativer.first().svarId,
 					bliMedDTO = bliMedDTO
 				)
@@ -128,20 +125,17 @@ class SpørreundersøkelseDeltakerTest {
 
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-
 			val tema1 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
 			val spørsmålITema1 = tema1.spørsmålOgSvaralternativer.first().id
 			spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-				tema = tema1.temanavn,
-				spørsmålId = spørsmålITema1,
+				spørsmål = IdentifiserbartSpørsmål(tema = tema1.temanavn,spørsmålId = spørsmålITema1),
 				bliMedDTO = bliMedDTO
 			) shouldNotBe null
 
 			val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
 			val spørsmålITema2 = tema2.spørsmålOgSvaralternativer.first().id
 			spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-				tema = tema2.temanavn,
-				spørsmålId = spørsmålITema2,
+				spørsmål = IdentifiserbartSpørsmål(tema = tema2.temanavn, spørsmålId = spørsmålITema2),
 				bliMedDTO = bliMedDTO
 			) shouldNotBe null
 		}
@@ -157,8 +151,7 @@ class SpørreundersøkelseDeltakerTest {
 			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
 
 			val spørsmål = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-				tema = startDto.tema,
-				spørsmålId = startDto.spørsmålId,
+				spørsmål = startDto,
 				bliMedDTO = bliMedDTO
 			)
 
@@ -169,9 +162,11 @@ class SpørreundersøkelseDeltakerTest {
 
 			// -- Test at "nesteSpørsmål" for siste spørsmål i ett tema peker på første spørsmål i neste tema
 			val sisteSpørsmålITema = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-				tema = startDto.tema,
-				spørsmålId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer
-					.first().spørsmålOgSvaralternativer.last().id,
+				spørsmål = IdentifiserbartSpørsmål(
+					tema = startDto.tema,
+					spørsmålId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer
+						.first().spørsmålOgSvaralternativer.last().id
+				),
 				bliMedDTO = bliMedDTO
 			)
 			sisteSpørsmålITema.nesteSpørsmål?.tema shouldBe
@@ -192,19 +187,14 @@ class SpørreundersøkelseDeltakerTest {
 
 			// -- Vert har ikke åpnet spørsmål ennå
 			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
-				tema = startDto.tema,
-				spørsmålId = startDto.spørsmålId,
+				spørsmål = startDto,
 				bliMedDTO = bliMedDTO) shouldBe null
 
 			val spørsmålsoversiktDto = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-				tema = startDto.tema,
-				spørsmålId = startDto.spørsmålId,
+				spørsmål = startDto,
 				bliMedDTO = bliMedDTO
 			)
-			spørsmålsoversiktDto.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(
-				temanavn = startDto.tema,
-				spørsmålId = startDto.spørsmålId
-			)?.spørsmål
+			spørsmålsoversiktDto.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(startDto).spørsmål
 		}
 	}
 
@@ -217,12 +207,9 @@ class SpørreundersøkelseDeltakerTest {
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-			val spørsmål =
-				spørreundersøkelseDto.hentSpørsmålITema(temanavn = startDto.tema, spørsmålId = startDto.spørsmålId)
-			assertNotNull(spørsmål)
+			val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
 			fiaArbeidsgiverApi.svarPåSpørsmål(
-				tema = startDto.tema,
-				spørsmålId = startDto.spørsmålId,
+				spørsmål = startDto,
 				svarId = spørsmål.svaralternativer.first().svarId,
 				bliMedDTO = bliMedDTO
 			)
@@ -231,15 +218,15 @@ class SpørreundersøkelseDeltakerTest {
 				key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
 				konsument = spørreundersøkelseSvarKonsument
 			) { meldinger ->
-				val objektene = meldinger.map {
+				val deserialiserteSvar = meldinger.map {
 					Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
 				}
-				objektene shouldHaveAtLeastSize 1
-				objektene.forAtLeastOne {
-					it.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
-					it.sesjonId shouldBe bliMedDTO.sesjonsId
-					it.spørsmålId shouldBe spørsmål.id
-					it.svarId shouldBe spørsmål.svaralternativer.first().svarId
+				deserialiserteSvar shouldHaveAtLeastSize 1
+				deserialiserteSvar.forAtLeastOne { svar ->
+					svar.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
+					svar.sesjonId shouldBe bliMedDTO.sesjonsId
+					svar.spørsmålId shouldBe spørsmål.id
+					svar.svarId shouldBe spørsmål.svaralternativer.first().svarId
 				}
 			}
 		}
@@ -247,21 +234,21 @@ class SpørreundersøkelseDeltakerTest {
 }
 
 private suspend fun SpørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
-	tema: Tema,
-	spørsmålId: String,
+	spørsmål: IdentifiserbartSpørsmål,
 	bliMedDTO: BliMedDTO
-) = åpneSpørsmål(tema = tema, spørsmålId = spørsmålId).let {
-	val spørsmål = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
-		tema, spørsmålId, bliMedDTO
-	)
-	assertNotNull(spørsmål)
-	spørsmål
+) = åpneSpørsmål(spørsmål).let {
+	val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = spørsmål, bliMedDTO = bliMedDTO)
+	assertNotNull(spørsmålsoversiktDto)
+	spørsmålsoversiktDto
 }
 
-private fun SpørreundersøkelseDto.hentSpørsmålITema(temanavn: Tema, spørsmålId: String) =
-	temaMedSpørsmålOgSvaralternativer.firstOrNull { it.temanavn == temanavn }?.let { tema ->
-		val spørsmålIdx = tema.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
+private fun SpørreundersøkelseDto.hentSpørsmålITema(spørsmål: IdentifiserbartSpørsmål) =
+	temaMedSpørsmålOgSvaralternativer.firstOrNull { it.temanavn == spørsmål.tema }?.let { tema ->
+		val spørsmålIdx = tema.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmål.spørsmålId }
 		tema.spørsmålOgSvaralternativer.elementAtOrNull(spørsmålIdx)
+	}.let {
+		assertNotNull(it)
+		it
 	}
 
 private fun SpørreundersøkelseDto.nesteSpørsmålITema(temanavn: Tema, spørsmålId: String) =

@@ -11,8 +11,8 @@ import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
 import kotlin.test.Test
@@ -87,14 +87,14 @@ class SpørreundersøkelseVertTest {
         runBlocking {
             val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
             val spørsmål = tema.spørsmålOgSvaralternativer.first()
-            val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
-                tema = tema.temanavn,
-                spørsmålId = spørsmål.id,
-                spørreundersøkelse = spørreundersøkelseDto
+            val spørsmålsoversiktDto = spørreundersøkelseDto.åpneSpørsmål(
+                spørsmål = IdentifiserbartSpørsmål(
+                    tema = tema.temanavn,
+                    spørsmålId = spørsmål.id
+                )
             )
             spørsmålsoversiktDto.spørsmålTekst shouldBe spørsmål.spørsmål
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
-
             spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe tema.spørsmålOgSvaralternativer[1].id
             spørsmålsoversiktDto.nesteSpørsmål?.tema shouldBe tema.temanavn
 
@@ -104,24 +104,22 @@ class SpørreundersøkelseVertTest {
         runBlocking {
             val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
             val spørsmål = tema.spørsmålOgSvaralternativer.last()
-            val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
-                tema = tema.temanavn,
-                spørsmålId = spørsmål.id,
-                spørreundersøkelse = spørreundersøkelseDto
+            val spørsmålsoversiktDto = spørreundersøkelseDto.åpneSpørsmål(
+                spørsmål = IdentifiserbartSpørsmål(
+                    tema = tema.temanavn,
+                    spørsmålId = spørsmål.id
+                )
             )
             spørsmålsoversiktDto.spørsmålTekst shouldBe spørsmål.spørsmål
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
-
             spørsmålsoversiktDto.nesteSpørsmål shouldBe null
         }
     }
 }
 
 suspend fun SpørreundersøkelseDto.åpneSpørsmål(
-    tema: Tema,
-    spørsmålId: String
+    spørsmål: IdentifiserbartSpørsmål
 ) = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
-    tema = tema,
-    spørsmålId = spørsmålId,
+    spørsmål = spørsmål,
     spørreundersøkelse = this
 )
