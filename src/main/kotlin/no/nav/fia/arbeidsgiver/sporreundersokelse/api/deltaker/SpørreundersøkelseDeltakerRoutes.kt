@@ -9,7 +9,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.dto.StartDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NySvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
@@ -30,8 +30,8 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         val førsteTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().tema
         call.respond(
-            HttpStatusCode.OK, StartDto(
-                temaId = førsteTema,
+            HttpStatusCode.OK, IdentifiserbartSpørsmål(
+                tema = førsteTema,
                 spørsmålId = spørreundersøkelse.hentAlleSpørsmålITema(førsteTema).first().id.toString()
             )
         )
@@ -56,10 +56,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(
-                nesteSpørsmålId = spørreundersøkelse.hentNesteSpørsmål(tema, spørsmålId)?.id?.toString(),
-                forrigeSpørsmålId = spørreundersøkelse.hentForrigeSpørsmål(tema, spørsmålId)?.id?.toString()
-            )
+            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(spørreundersøkelse = spørreundersøkelse)
         )
     }
 

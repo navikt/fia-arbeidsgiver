@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import java.util.UUID
 import no.nav.fia.arbeidsgiver.http.Feil
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 
 @Serializable
@@ -36,6 +37,42 @@ data class Spørreundersøkelse(
     fun hentForrigeSpørsmål(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer? {
         val gjeldeneSpørsmålIdx = indeksFraSpørsmålId(tema = tema, spørsmålId = spørsmålId)
         return hentAlleSpørsmålITema(tema = tema).elementAtOrNull(gjeldeneSpørsmålIdx - 1)
+    }
+
+    fun hentNesteSpørsmålOgTema(nåværendeTema: Tema, nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == nåværendeTema }
+        val nesteSpørsmålIgjeldeneTema = hentNesteSpørsmål(tema = nåværendeTema, spørsmålId = nåværendeSpørmålId)
+        return if (nesteSpørsmålIgjeldeneTema != null) {
+            IdentifiserbartSpørsmål(
+                tema = nåværendeTema,
+                spørsmålId = nesteSpørsmålIgjeldeneTema.id.toString(),
+            )
+        } else {
+            temaMedSpørsmålOgSvaralternativer.elementAtOrNull(gjeldeneTemaIdx + 1)?.let {
+                IdentifiserbartSpørsmål(
+                    tema = it.tema,
+                    spørsmålId = it.spørsmålOgSvaralternativer.first().id.toString()
+                )
+            }
+        }
+    }
+
+    fun hentForrigeSpørsmålOgTema(nåværendeTema: Tema, nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == nåværendeTema }
+        val forrigeSpørsmålIgjeldeneTema = hentForrigeSpørsmål(tema = nåværendeTema, spørsmålId = nåværendeSpørmålId)
+        return if (forrigeSpørsmålIgjeldeneTema != null) {
+            IdentifiserbartSpørsmål(
+                tema = nåværendeTema,
+                spørsmålId = forrigeSpørsmålIgjeldeneTema.id.toString(),
+            )
+        } else {
+            temaMedSpørsmålOgSvaralternativer.elementAtOrNull(gjeldeneTemaIdx - 1)?.let {
+                IdentifiserbartSpørsmål(
+                    tema = it.tema,
+                    spørsmålId = it.spørsmålOgSvaralternativer.last().id.toString()
+                )
+            }
+        }
     }
 
     fun spørsmålFraId(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer {

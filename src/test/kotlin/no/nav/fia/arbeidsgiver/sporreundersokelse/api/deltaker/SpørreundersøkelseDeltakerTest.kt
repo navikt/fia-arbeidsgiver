@@ -11,8 +11,12 @@ import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.åpneSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
 import kotlin.test.Test
+import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
 	@Test
@@ -38,7 +42,7 @@ class SpørreundersøkelseDeltakerTest {
 		runBlocking {
 			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-			startDto.temaId shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temanavn
+			startDto.tema shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temanavn
 			startDto.spørsmålId shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
 		}
 	}
@@ -85,6 +89,28 @@ class SpørreundersøkelseDeltakerTest {
 	}
 
 	@Test
+	fun `deltaker skal få neste spørsmålId når hen henter et spørsmål`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+
+			val spørsmål = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
+				tema = startDto.tema,
+				spørsmålId = startDto.spørsmålId,
+				bliMedDTO = bliMedDTO
+			)
+
+			spørsmål.nesteSpørsmål?.spørsmålId shouldBe spørreundersøkelseDto.nesteSpørsmålITema(
+				temanavn = startDto.tema,
+				spørsmålId = startDto.spørsmålId
+			)?.id
+		}
+	}
+
+	@Test
 	fun `skal kunne få spørsmål når verten har åpnet det`() {
 		val spørreundersøkelseId = UUID.randomUUID()
 		val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
@@ -95,24 +121,43 @@ class SpørreundersøkelseDeltakerTest {
 
 			// -- Vert har ikke åpnet spørsmål ennå
 			fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
-				tema = startDto.temaId,
+				tema = startDto.tema,
 				spørsmålId = startDto.spørsmålId,
 				bliMedDTO = bliMedDTO) shouldBe null
 
-			// -- Vert åpner spørsmål
-			fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
-				tema = startDto.temaId,
-				spørsmålId = startDto.spørsmålId,
-				spørreundersøkelse = spørreundersøkelseDto
-			)
-			// --
-
-			val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
-				tema = startDto.temaId,
+			val spørsmålsoversiktDto = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
+				tema = startDto.tema,
 				spørsmålId = startDto.spørsmålId,
 				bliMedDTO = bliMedDTO
 			)
-			spørsmålsoversiktDto shouldNotBe null
+			spørsmålsoversiktDto.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(
+				temanavn = startDto.tema,
+				spørsmålId = startDto.spørsmålId
+			)?.spørsmål
 		}
 	}
 }
+
+private suspend fun SpørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
+	tema: Tema,
+	spørsmålId: String,
+	bliMedDTO: BliMedDTO
+) = åpneSpørsmål(tema = tema, spørsmålId = spørsmålId).let {
+	val spørsmål = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+		tema, spørsmålId, bliMedDTO
+	)
+	assertNotNull(spørsmål)
+	spørsmål
+}
+
+private fun SpørreundersøkelseDto.hentSpørsmålITema(temanavn: Tema, spørsmålId: String) =
+	temaMedSpørsmålOgSvaralternativer.firstOrNull { it.temanavn == temanavn }?.let { tema ->
+		val spørsmålIdx = tema.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
+		tema.spørsmålOgSvaralternativer.elementAtOrNull(spørsmålIdx)
+	}
+
+private fun SpørreundersøkelseDto.nesteSpørsmålITema(temanavn: Tema, spørsmålId: String) =
+	temaMedSpørsmålOgSvaralternativer.firstOrNull { it.temanavn == temanavn }?.let { tema ->
+		val spørsmålIdx = tema.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmålId }
+		tema.spørsmålOgSvaralternativer.elementAtOrNull(spørsmålIdx + 1)
+	}

@@ -55,10 +55,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(
-                nesteSpørsmålId = spørreundersøkelse.hentNesteSpørsmål(tema, spørsmålId)?.id?.toString(),
-                forrigeSpørsmålId = spørreundersøkelse.hentForrigeSpørsmål(tema, spørsmålId)?.id?.toString()
-            )
+            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(spørreundersøkelse = spørreundersøkelse)
         )
     }
 

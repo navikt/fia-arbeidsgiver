@@ -12,6 +12,8 @@ import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
 import kotlin.test.Test
 
@@ -93,13 +95,14 @@ class SpørreundersøkelseVertTest {
             spørsmålsoversiktDto.spørsmålTekst shouldBe spørsmål.spørsmål
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
 
-            spørsmålsoversiktDto.nesteId shouldBe tema.spørsmålOgSvaralternativer[1].id
-            spørsmålsoversiktDto.nesteType shouldBe "SPØRSMÅL"
+            spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe tema.spørsmålOgSvaralternativer[1].id
+            spørsmålsoversiktDto.nesteSpørsmål?.tema shouldBe tema.temanavn
+
         }
 
-        // på siste spørsmål i tema
+        // på siste spørsmål
         runBlocking {
-            val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+            val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
             val spørsmål = tema.spørsmålOgSvaralternativer.last()
             val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
                 tema = tema.temanavn,
@@ -109,8 +112,16 @@ class SpørreundersøkelseVertTest {
             spørsmålsoversiktDto.spørsmålTekst shouldBe spørsmål.spørsmål
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
 
-            spørsmålsoversiktDto.nesteId shouldBe null
-            spørsmålsoversiktDto.nesteType shouldBe "FERDIG"
+            spørsmålsoversiktDto.nesteSpørsmål shouldBe null
         }
     }
 }
+
+suspend fun SpørreundersøkelseDto.åpneSpørsmål(
+    tema: Tema,
+    spørsmålId: String
+) = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
+    tema = tema,
+    spørsmålId = spørsmålId,
+    spørreundersøkelse = this
+)

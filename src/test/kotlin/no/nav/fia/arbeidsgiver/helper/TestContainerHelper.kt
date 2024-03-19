@@ -27,10 +27,10 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.DELTAKER_BASEPATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.dto.StartDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
@@ -161,7 +161,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmål(
 
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
     bliMedDTO: BliMedDTO
-) : StartDto {
+) : IdentifiserbartSpørsmål {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
     ) {
