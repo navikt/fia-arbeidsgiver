@@ -79,6 +79,37 @@ class SpørreundersøkelseDeltakerTest {
 	}
 
 	@Test
+	fun `skal ikke kunne svare på spørsmål etter at en undersøkelse er avsluttet`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+
+			kafka.sendSpørreundersøkelse(
+				spørreundersøkelseId = spørreundersøkelseId,
+				spørreundersøkelsesStreng = Json.encodeToString<SpørreundersøkelseDto>(
+					spørreundersøkelseDto.copy(status = SpørreundersøkelseStatus.AVSLUTTET)
+				)
+			)
+
+			val spørsmål =
+				spørreundersøkelseDto.hentSpørsmålITema(temanavn = startDto.tema, spørsmålId = startDto.spørsmålId)
+			assertNotNull(spørsmål)
+
+			shouldFail {
+				fiaArbeidsgiverApi.svarPåSpørsmål(
+					tema = startDto.tema,
+					spørsmålId = startDto.spørsmålId,
+					svarId = spørsmål.svaralternativer.first().svarId,
+					bliMedDTO = bliMedDTO
+				)
+			}
+		}
+	}
+
+	@Test
 	fun `skal kunne finne ut hvilket tema og spørsmål som er det første`() {
 		val spørreundersøkelseId = UUID.randomUUID()
 		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
@@ -155,7 +186,7 @@ class SpørreundersøkelseDeltakerTest {
 	}
 
 	@Test
-	fun `skal kunne få spørsmål når verten har åpnet det`() {
+	fun `skal kunne få spørsmål først når verten har åpnet spørsmålet`() {
 		val spørreundersøkelseId = UUID.randomUUID()
 		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
