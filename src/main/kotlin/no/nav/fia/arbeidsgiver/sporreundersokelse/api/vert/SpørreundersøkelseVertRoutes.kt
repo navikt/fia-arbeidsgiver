@@ -35,7 +35,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/status") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {
         call.respond(
             HttpStatusCode.OK,
             spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId = call.spørreundersøkelseId)
@@ -59,10 +59,12 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/status") {
-        call.respond(HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
-            spørreundersøkelseId = call.spørreundersøkelseId,
-            spørsmålId = call.spørsmålId
-        ))
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/antall-svar") {
+        call.respond(
+            HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
+                spørreundersøkelseId = call.spørreundersøkelseId,
+                spørsmålId = call.spørsmålId
+            )
+        )
     }
 }
