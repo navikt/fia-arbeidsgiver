@@ -44,15 +44,15 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val tema = call.tema
         val spørsmålId = call.spørsmålId
 
+        val spørsmålMedSvarAlternativer = spørreundersøkelse.spørsmålFraId(tema = tema, spørsmålId = spørsmålId)
+
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørsmålId = spørsmålId
+                spørsmålId = spørsmålMedSvarAlternativer.id
             )
         ) {
             return@get call.respond(HttpStatusCode.Accepted)
         }
-
-        val spørsmålMedSvarAlternativer = spørreundersøkelse.spørsmålFraId(tema = tema, spørsmålId = spørsmålId)
 
         call.respond(
             HttpStatusCode.OK,

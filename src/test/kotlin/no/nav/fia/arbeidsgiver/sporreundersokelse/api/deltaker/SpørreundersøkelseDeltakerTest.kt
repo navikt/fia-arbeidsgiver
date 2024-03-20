@@ -1,10 +1,13 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
+import HEADER_SESJON_ID
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.request.header
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -13,6 +16,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
+import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
@@ -115,6 +119,22 @@ class SpørreundersøkelseDeltakerTest {
 			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
 			startDto.tema shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temanavn
 			startDto.spørsmålId shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
+		}
+	}
+
+	@Test
+	fun `deltaker får NOT_FOUND dersom spørsmål er ikke funnet`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+
+			fiaArbeidsgiverApi.performGet(
+				url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/${Tema.UTVIKLE_PARTSSAMARBEID}/${UUID.randomUUID()}"
+			) {
+				header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
+			}.status shouldBe HttpStatusCode.NotFound
 		}
 	}
 
