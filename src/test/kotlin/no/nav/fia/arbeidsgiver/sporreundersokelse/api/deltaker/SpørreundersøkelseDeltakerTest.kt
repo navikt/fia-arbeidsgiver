@@ -13,6 +13,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
@@ -249,6 +250,46 @@ class SpørreundersøkelseDeltakerTest {
 					svar.svarId shouldBe spørsmål.svaralternativer.first().svarId
 				}
 			}
+		}
+	}
+
+	@Test
+	fun `skal ikke kunne svare på en ukjent spørreundersøkelse`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+			shouldFail {
+				fiaArbeidsgiverApi.svarPåSpørsmål(
+					spørsmål = startDto,
+					svarId = spørreundersøkelseDto.hentSpørsmålITema(startDto).svaralternativer.first().svarId,
+					bliMedDTO = bliMedDTO.copy(spørreundersøkelseId = UUID.randomUUID().toString())
+				)
+			}
+			// -- tester på "Ugyldig sesjonsId", da vi verifiserer sesjonsId mot spørreundersøkelsesId
+			fiaArbeidsgiverApi shouldContainLog "Ugyldig sesjonId".toRegex()
+		}
+	}
+
+	@Test
+	fun `skal ikke kunne svare med ukjent svarId`() {
+		val spørreundersøkelseId = UUID.randomUUID()
+		kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+		runBlocking {
+			val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+			val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+			val svarId = UUID.randomUUID().toString()
+			shouldFail {
+				fiaArbeidsgiverApi.svarPåSpørsmål(
+					spørsmål = startDto,
+					svarId = svarId,
+					bliMedDTO = bliMedDTO
+				)
+			}
+			fiaArbeidsgiverApi shouldContainLog "Ukjent svar \\($svarId\\)".toRegex()
 		}
 	}
 }

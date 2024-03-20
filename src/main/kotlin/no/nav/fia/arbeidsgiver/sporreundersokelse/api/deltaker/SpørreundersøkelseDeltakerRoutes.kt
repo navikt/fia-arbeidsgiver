@@ -61,7 +61,6 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
     }
 
     post("$DELTAKER_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/svar") {
-        // -- TODO: lag test for denne
         val svarId = call.receive(NySvarRequest::class).svarId.tilUUID("svarId")
 
         val spørreundersøkelseId = call.spørreundersøkelseId
