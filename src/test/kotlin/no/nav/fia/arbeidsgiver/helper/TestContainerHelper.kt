@@ -178,6 +178,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     svarId: String,
     bliMedDTO: BliMedDTO,
+    block: () -> Unit = {}
 ) {
     val response = performPost(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/svar",
@@ -187,6 +188,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     }
 
     response.status shouldBe HttpStatusCode.OK
+    block()
 }
 
 internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
@@ -212,6 +214,18 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
 ): SpørsmålsoversiktDto {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}",
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    }
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
+    spørsmål: IdentifiserbartSpørsmål,
+    spørreundersøkelse: SpørreundersøkelseDto,
+) : Int {
+    val response = performGet(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/antall-svar",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     }

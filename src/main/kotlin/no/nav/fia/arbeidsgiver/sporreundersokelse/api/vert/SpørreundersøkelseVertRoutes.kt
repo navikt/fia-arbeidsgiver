@@ -28,7 +28,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map {
                 TemaOversiktDto(
                     tittel = it.tema.name,
-                    temaId = it.tema.name,
+                    temaId = it.tema,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id.toString()
                 )
             }

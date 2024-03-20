@@ -8,9 +8,12 @@ import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.bliMed
+import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
+import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
@@ -71,7 +74,7 @@ class SpørreundersøkelseVertTest {
             temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.map {
                 TemaOversiktDto(
                     tittel = it.temanavn.name,
-                    temaId = it.temanavn.name,
+                    temaId = it.temanavn,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }
@@ -113,6 +116,42 @@ class SpørreundersøkelseVertTest {
             spørsmålsoversiktDto.spørsmålTekst shouldBe spørsmål.spørsmål
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
             spørsmålsoversiktDto.nesteSpørsmål shouldBe null
+        }
+    }
+
+    @Test
+    fun `vert skal kunne vite hvor mange som har svart på ett spørsmål`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val temaOversiktListe = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
+            val førsteSpørsmål = temaOversiktListe.first().tilIdentifiserbartSpørsmål()
+            spørreundersøkelseDto.åpneSpørsmål(spørsmål = førsteSpørsmål)
+            fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+                spørsmål = førsteSpørsmål,
+                spørreundersøkelse = spørreundersøkelseDto
+            ) shouldBe 0
+
+            (1..5).forEach { antallSvar ->
+                val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+                fiaArbeidsgiverApi.svarPåSpørsmål(
+                    spørsmål = førsteSpørsmål,
+                    svarId = spørreundersøkelseDto.hentSpørsmålITema(førsteSpørsmål).svaralternativer.first().svarId,
+                    bliMedDTO = bliMedDTO,
+                ) {
+                    TestContainerHelper.kafka.sendAntallSvar(
+                        spørreundersøkelseId = spørreundersøkelseId.toString(),
+                        spørsmålId = førsteSpørsmål.spørsmålId,
+                        antallSvar = antallSvar
+                    )
+                }
+
+                fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+                    spørsmål = førsteSpørsmål,
+                    spørreundersøkelse = spørreundersøkelseDto
+                ) shouldBe antallSvar
+            }
         }
     }
 }

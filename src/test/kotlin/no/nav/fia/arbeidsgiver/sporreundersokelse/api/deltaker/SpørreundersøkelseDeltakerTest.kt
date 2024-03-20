@@ -303,7 +303,7 @@ private suspend fun SpørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
 	spørsmålsoversiktDto
 }
 
-private fun SpørreundersøkelseDto.hentSpørsmålITema(spørsmål: IdentifiserbartSpørsmål) =
+fun SpørreundersøkelseDto.hentSpørsmålITema(spørsmål: IdentifiserbartSpørsmål) =
 	temaMedSpørsmålOgSvaralternativer.firstOrNull { it.temanavn == spørsmål.tema }?.let { tema ->
 		val spørsmålIdx = tema.spørsmålOgSvaralternativer.indexOfFirst { it.id == spørsmål.spørsmålId }
 		tema.spørsmålOgSvaralternativer.elementAtOrNull(spørsmålIdx)
