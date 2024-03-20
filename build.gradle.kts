@@ -74,6 +74,12 @@ dependencies {
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
+        testImplementation("org.apache.commons:commons-compress") {
+            version {
+                require("1.26.0")
+            }
+            because("testcontainers har sårbar versjon")
+        }
         testImplementation("com.jayway.jsonpath:json-path") {
             version {
                 require("2.9.0")
