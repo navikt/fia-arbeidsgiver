@@ -38,7 +38,7 @@ class RedisContainer(network: Network) {
     }
 
     val container = GenericContainer(
-        DockerImageName.parse("redis:6.2.12-alpine")
+        DockerImageName.parse("redis:7.2.4-alpine")
     )
         .withNetwork(network)
         .withNetworkAliases(networkAlias)

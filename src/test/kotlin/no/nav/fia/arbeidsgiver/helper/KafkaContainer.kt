@@ -49,7 +49,7 @@ class KafkaContainer(network: Network) {
     }
 
     val container: KafkaContainer = KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.4.3")
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.0")
     )
         .withKraft()
         .withNetwork(network)
