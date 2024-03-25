@@ -104,11 +104,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
 private fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
     spørreundersøkelseId = UUID.fromString(spørreundersøkelseId),
     vertId = UUID.fromString(vertId),
-    spørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.flatMap { temaMedSpørsmålOgSvaralternativer ->
-        temaMedSpørsmålOgSvaralternativer.spørsmålOgSvaralternativer.map { spørsmålOgSvaralternativerDto ->
-            spørsmålOgSvaralternativerDto.tilDomene(tema = temaMedSpørsmålOgSvaralternativer.temanavn)
-        }
-    },
     temaMedSpørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
     status = status,
     type = type,
