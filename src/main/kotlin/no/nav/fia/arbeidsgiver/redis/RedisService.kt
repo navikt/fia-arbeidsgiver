@@ -10,7 +10,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.Redis
 class RedisService(
     url: String = Redis.redisUrl,
     username: String = Redis.redisUsername,
-    password: String? = Redis.redisPassword
+    password: String? = Redis.redisPassword,
 ) {
     val redisUri: RedisURI = RedisURI.create(url)
     val sync: RedisCommands<String, String>
@@ -43,7 +43,7 @@ class RedisService(
 
     fun hente(
         type: Type,
-        nøkkel: String
+        nøkkel: String,
     ): String? {
         return sync.get("${type.name}-$nøkkel")
     }
@@ -54,7 +54,6 @@ enum class Type {
     SPØRREUNDERSØKELSE,
     SESJON,
     ANTALL_DELTAKERE,
-    TEMASTATUS,
     ANTALL_SVAR_FOR_SPØRSMÅL,
     ER_SPØRSMÅL_ÅPENT,
 }

@@ -47,12 +47,6 @@ class SpørreundersøkelseService(
         }
 
         // -- TODO: slett sesjoner knyttet til spørreundersøkelsen
-
-        // -- slett temastatus knyttet til spørreundersøkelsen
-        Tema.entries.forEach { tema ->
-            logger.info("Sletter type '${Type.TEMASTATUS}', tema '$tema' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
-            redisService.slett(Type.TEMASTATUS, "$tema-${spørreundersøkelse.spørreundersøkelseId}")
-        }
     }
 
     fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {
