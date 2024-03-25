@@ -146,6 +146,8 @@ class KafkaContainer(network: Network) {
             temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
                 TemaMedSpørsmålOgSvaralternativerDto(
                     temanavn = tema,
+                    introtekst = "Dette er et bra tema",
+                    beskrivelse = "Beskrivelse for dette temaet",
                     spørsmålOgSvaralternativer = listOf(
                         SpørsmålOgSvaralternativerDto(
                             id = UUID.randomUUID().toString(),

@@ -4,11 +4,13 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
@@ -16,13 +18,28 @@ import kotlin.test.Test
 
 class SpørreundersøkelseKonsumentTest {
     @Test
-    fun `skal kunne konsumere meldinger`() {
+    fun `skal kunne konsumere meldinger og lagre dem i Redis`() {
         val id = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         runBlocking {
             val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.spørreundersøkelseId shouldBe id
+            result.temaMedSpørsmålOgSvaralternativer.forEach {
+                it.introtekst shouldNotBe null
+                it.beskrivelse shouldNotBe null
+                it.spørsmålOgSvaralternativer shouldNotBe emptyList<SpørsmålOgSvaralternativer>()
+            }
+        }
+
+        runBlocking {
+            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+            result.spørreundersøkelseId shouldBe id
+            result.temaMedSpørsmålOgSvaralternativer.forEach {
+                it.introtekst shouldNotBe null
+                it.beskrivelse shouldNotBe null
+                it.spørsmålOgSvaralternativer shouldNotBe emptyList<SpørsmålOgSvaralternativer>()
+            }
         }
     }
 
