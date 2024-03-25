@@ -6,8 +6,10 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
 @Serializable
 data class TemaOversiktDto(
-	val tittel: String,
 	val temaId: Tema,
+	val tittel: String,
+	val beskrivelse: String,
+	val introtekst: String,
 	val førsteSpørsmålId: String,
 ) {
 	fun tilIdentifiserbartSpørsmål() = IdentifiserbartSpørsmål(

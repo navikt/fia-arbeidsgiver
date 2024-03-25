@@ -29,6 +29,8 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
                 TemaOversiktDto(
                     tittel = it.tema.name,
                     temaId = it.tema,
+                    beskrivelse = it.beskrivelse,
+                    introtekst = it.introtekst,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id.toString()
                 )
             }

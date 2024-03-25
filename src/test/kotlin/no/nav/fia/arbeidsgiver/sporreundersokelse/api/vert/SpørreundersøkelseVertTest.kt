@@ -75,6 +75,8 @@ class SpørreundersøkelseVertTest {
                 TemaOversiktDto(
                     tittel = it.temanavn.name,
                     temaId = it.temanavn,
+                    beskrivelse = it.beskrivelse,
+                    introtekst = it.introtekst,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }
