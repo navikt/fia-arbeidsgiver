@@ -21,21 +21,17 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
+import java.time.Duration
+import java.util.*
+import kotlin.io.path.Path
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.NESTE_SPØRSMÅL_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRSMÅL_OG_SVAR_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_SPØRSMÅL_OG_SVAR_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerhandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NySvarRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålOgSvaralternativerTilFrontendDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.VertshandlingRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
@@ -47,9 +43,6 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
 import org.testcontainers.images.builder.ImageFromDockerfile
-import java.time.Duration
-import java.util.*
-import kotlin.io.path.Path
 
 class TestContainerHelper {
     companion object {
@@ -144,22 +137,6 @@ internal suspend inline fun <reified T> GenericContainer<*>.performPost(
         setBody(body)
     }
 
-internal suspend fun GenericContainer<*>.hentSpørsmål(
-    tema: Tema,
-    spørsmålId: String,
-    bliMedDTO: BliMedDTO,
-): SpørsmålOgSvaralternativerTilFrontendDTO {
-    val response = performPost(
-        url = "$SPØRSMÅL_OG_SVAR_PATH/$spørsmålId",
-        body = DeltakerhandlingRequest(
-            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
-            sesjonsId = bliMedDTO.sesjonsId,
-            tema = tema,
-        )
-    )
-    return response.body()
-}
-
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
     bliMedDTO: BliMedDTO,
 ): IdentifiserbartSpørsmål {
@@ -178,11 +155,11 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     svarId: String,
     bliMedDTO: BliMedDTO,
-    block: () -> Unit = {}
+    block: () -> Unit = {},
 ) {
     val response = performPost(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/svar",
-        body = NySvarRequest(svarId = svarId)
+        body = SvarRequest(svarId = svarId)
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
@@ -223,7 +200,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     spørreundersøkelse: SpørreundersøkelseDto,
-) : Int {
+): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/antall-svar",
     ) {
@@ -255,21 +232,6 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     return response.body()
 }
 
-internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
-    tema: Tema,
-    spørsmålId: String,
-    spørreundersøkelse: SpørreundersøkelseDto,
-): SpørsmålOgSvaralternativerTilFrontendDTO {
-    val response = performPost(
-        url = "$VERT_SPØRSMÅL_OG_SVAR_PATH/$spørsmålId",
-        body = VertshandlingRequest(
-            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
-            vertId = spørreundersøkelse.vertId,
-            tema = tema,
-        )
-    )
-    return response.body()
-}
 
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: String,
@@ -297,15 +259,3 @@ internal suspend fun GenericContainer<*>.bliMed(
     val body = response.bodyAsText()
     return Json.decodeFromString<BliMedDTO>(body)
 }
-
-internal suspend fun GenericContainer<*>.nesteSpørsmål(
-    bliMedDTO: BliMedDTO,
-    nåværendeSpørsmålId: String,
-) =
-    performPost(
-        url = "$NESTE_SPØRSMÅL_PATH/$nåværendeSpørsmålId",
-        body = DeltakerhandlingRequest(
-            spørreundersøkelseId = bliMedDTO.spørreundersøkelseId,
-            sesjonsId = bliMedDTO.sesjonsId,
-        )
-    ).body<NesteSpørsmålDTO>()

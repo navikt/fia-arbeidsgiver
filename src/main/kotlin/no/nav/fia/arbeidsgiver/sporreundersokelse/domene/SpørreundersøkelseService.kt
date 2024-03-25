@@ -1,24 +1,21 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
 import io.ktor.http.HttpStatusCode
+import java.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.util.*
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NesteSpørsmålDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
 
 class SpørreundersøkelseService(
-    val redisService: RedisService,
+    private val redisService: RedisService,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val spørreundersøkelseSvarProdusent by lazy {
@@ -66,9 +63,6 @@ class SpørreundersøkelseService(
         redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
 
-    fun lagreTemastatus(spørreundersøkelseId: UUID, temastatus: TemastatusDTO) {
-        redisService.lagre(Type.TEMASTATUS, "${temastatus.tema}-$spørreundersøkelseId", Json.encodeToString(temastatus))
-    }
 
     fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = redisService.hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
@@ -92,48 +86,6 @@ class SpørreundersøkelseService(
         )
     }
 
-    fun hentNesteSpørsmål(
-        spørreundersøkelseId: UUID,
-        nåværendeSpørsmålId: String,
-        tema: Tema,
-    ): NesteSpørsmålDTO {
-        val spørreundersøkelse = hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-
-        val temastatus = hentTemastatus(spørreundersøkelseId = spørreundersøkelseId, tema = tema)
-            ?: throw Feil(
-                "Finner ikke temastatus på spørreundersøkelse $spørreundersøkelseId",
-                feilkode = HttpStatusCode.InternalServerError
-            )
-
-        val gjeldendeSpørsmålIndeks = if (nåværendeSpørsmålId.uppercase() == "START") {
-            -1
-        } else {
-            spørreundersøkelse.indeksFraSpørsmålId(tema, nåværendeSpørsmålId.tilUUID("spørsmålId"))
-        }
-
-
-        val nesteSpørsmålId: String? =
-            if (gjeldendeSpørsmålIndeks + 1 < spørreundersøkelse.spørsmålOgSvaralternativer.size) {
-                spørreundersøkelse.spørsmålOgSvaralternativer[gjeldendeSpørsmålIndeks + 1].id.toString()
-            } else null
-
-        val forrigeSpørsmålId: String? =
-            if (gjeldendeSpørsmålIndeks - 1 >= 0) {
-                spørreundersøkelse.spørsmålOgSvaralternativer[gjeldendeSpørsmålIndeks - 1].id.toString()
-            } else null
-
-        return NesteSpørsmålDTO(
-            hvaErNesteSteg = if ( gjeldendeSpørsmålIndeks >= temastatus.antallSpørsmål - 1) {
-                "FERDIG"
-            } else {
-                "NYTT_SPØRSMÅL"
-            },
-            erNesteÅpnetAvVert = gjeldendeSpørsmålIndeks + 1 <= temastatus.spørsmålindeks,
-            nesteSpørsmålId = nesteSpørsmålId,
-            forrigeSpørsmålId = forrigeSpørsmålId,
-        )
-    }
-
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {
         return redisService.hente(Type.SESJON, sesjonsId.toString())?.let {
             UUID.fromString(it)
@@ -144,12 +96,6 @@ class SpørreundersøkelseService(
         return redisService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
     }
 
-    fun hentTemastatus(spørreundersøkelseId: UUID, tema: Tema): TemastatusDTO? {
-        return redisService.hente(
-            Type.TEMASTATUS,
-            "$tema-$spørreundersøkelseId"
-        )?.let { Json.decodeFromString<TemastatusDTO>(it) }
-    }
 
     fun hentAntallSvar(spørreundersøkelseId: UUID, spørsmålId: UUID): Int {
         return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
@@ -168,11 +114,13 @@ class SpørreundersøkelseService(
         sesjonsId: UUID,
         spørsmålId: UUID,
         svarId: UUID,
-    )  =
-        spørreundersøkelseSvarProdusent.sendSvar(svar = SpørreundersøkelseSvarDTO(
-            spørreundersøkelseId = spørreundersøkelseId.toString(),
-            sesjonId = sesjonsId.toString(),
-            spørsmålId = spørsmålId.toString(),
-            svarId = svarId.toString(),
-        ))
+    ) =
+        spørreundersøkelseSvarProdusent.sendSvar(
+            svar = SpørreundersøkelseSvarDTO(
+                spørreundersøkelseId = spørreundersøkelseId.toString(),
+                sesjonId = sesjonsId.toString(),
+                spørsmålId = spørsmålId.toString(),
+                svarId = svarId.toString(),
+            )
+        )
 }

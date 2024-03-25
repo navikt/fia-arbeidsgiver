@@ -11,7 +11,7 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.NySvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
@@ -61,7 +61,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
     }
 
     post("$DELTAKER_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/svar") {
-        val svarId = call.receive(NySvarRequest::class).svarId.tilUUID("svarId")
+        val svarId = call.receive(SvarRequest::class).svarId.tilUUID("svarId")
 
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse =

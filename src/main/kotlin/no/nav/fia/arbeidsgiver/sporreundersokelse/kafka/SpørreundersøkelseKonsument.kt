@@ -4,7 +4,6 @@ import kotlinx.coroutines.*
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemastatusDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
@@ -72,7 +71,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                                 } else {
                                     logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
                                     spørreundersøkelseService.lagre(spørreundersøkelse)
-                                    oppretteEllerLagreTemastatus(spørreundersøkelse, spørreundersøkelseId)
                                 }
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
@@ -94,35 +92,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         }
     }
 
-    private fun oppretteEllerLagreTemastatus(
-        payload: Spørreundersøkelse,
-        spørreundersøkelseId: UUID,
-    ) {
-        val temaer = payload.spørsmålOgSvaralternativer.groupBy { it.tema }
-        temaer.keys.forEach { tema ->
-            val temastatus = spørreundersøkelseService.hentTemastatus(
-                spørreundersøkelseId = spørreundersøkelseId,
-                tema = tema
-            )
-
-            if (temastatus == null) {
-                val spørreundersøkelse =
-                    spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-                val antallSpørsmålITema =
-                    spørreundersøkelse.spørsmålOgSvaralternativer.filter { it.tema == tema }.size
-                logger.info("Lagrer temastatus $temastatus for $tema")
-                spørreundersøkelseService.lagreTemastatus(
-                    spørreundersøkelseId = spørreundersøkelseId,
-                    temastatus = TemastatusDTO(
-                        tema = tema,
-                        status = TemastatusDTO.Status.OPPRETTET,
-                        spørsmålindeks = -1,
-                        antallSpørsmål = antallSpørsmålITema
-                    )
-                )
-            }
-        }
-    }
 
     private fun cancel() = runBlocking {
         logger.info("Stopping kafka consumer job for ${topic.navn}")

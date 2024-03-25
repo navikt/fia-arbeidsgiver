@@ -1,20 +1,18 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import io.kotest.assertions.throwables.shouldThrow
-import io.kotest.inspectors.forAll
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import java.util.*
+import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
-import java.util.*
-import kotlin.test.Test
 
 class SpørreundersøkelseKonsumentTest {
     @Test
@@ -74,9 +72,6 @@ class SpørreundersøkelseKonsumentTest {
         TestContainerHelper.kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
         shouldThrow<Feil> {
             TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
-        }
-        Tema.entries.forAll {
-            TestContainerHelper.redis.spørreundersøkelseService.hentTemastatus(id, it) shouldBe null
         }
         TestContainerHelper.redis.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
         // -- TODO: sjekk at sesjoner blir borte
