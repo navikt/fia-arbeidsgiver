@@ -4,6 +4,7 @@ import io.kotest.assertions.shouldFail
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
@@ -19,6 +20,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
 import kotlin.test.Test
+import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
 class SpørreundersøkelseVertTest {
     @Test
@@ -80,6 +83,27 @@ class SpørreundersøkelseVertTest {
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }
+        }
+    }
+
+    @Test
+    fun `vert skal kunne få ut oversikt over ett tema i en spørreundersøkelse`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto = TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversiktForEttTema(
+                spørreundersøkelse = spørreundersøkelseDto,
+                tema = Tema.REDUSERE_SYKEFRAVÆR
+            )
+            temaOversikt shouldNotBe null
+            temaOversikt.temaId shouldBe Tema.REDUSERE_SYKEFRAVÆR
+
+            val temaRedusereSykefravær =
+                spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first { it.temanavn == Tema.REDUSERE_SYKEFRAVÆR }
+            temaOversikt.beskrivelse shouldBe temaRedusereSykefravær.beskrivelse
+            temaOversikt.introtekst shouldBe temaRedusereSykefravær.introtekst
+            temaOversikt.førsteSpørsmålId shouldBe temaRedusereSykefravær.spørsmålOgSvaralternativer.first().id
         }
     }
 

@@ -10,7 +10,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversikt
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 
@@ -25,15 +25,20 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map {
-                TemaOversiktDto(
-                    tittel = it.tema.name,
-                    temaId = it.tema,
-                    beskrivelse = it.beskrivelse,
-                    introtekst = it.introtekst,
-                    førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id.toString()
-                )
-            }
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto()
+        )
+    }
+
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}") {
+        val spørreundersøkelseId = call.spørreundersøkelseId
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+
+        call.respond(
+            HttpStatusCode.OK,
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.tema == call.tema }
+                .tilTemaOversiktDto()
         )
     }
 

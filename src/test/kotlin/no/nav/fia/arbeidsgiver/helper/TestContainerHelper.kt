@@ -243,6 +243,18 @@ internal suspend fun GenericContainer<*>.hentTemaoversikt(
     return response.body()
 }
 
+internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
+    spørreundersøkelse: SpørreundersøkelseDto,
+    tema: Tema,
+): TemaOversiktDto {
+    val response = performGet(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${tema.name}",
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    }
+    return response.body()
+}
+
 internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
     tema: Tema,
     spørsmålId: String,
