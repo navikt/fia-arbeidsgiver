@@ -3,6 +3,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 import HEADER_SESJON_ID
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
+import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -163,7 +164,7 @@ class SpørreundersøkelseDeltakerTest {
     }
 
     @Test
-    fun `skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {
+    fun `deltaker skal kunne hente spørsmål i en spørreundersøkelse med flere temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
@@ -228,6 +229,8 @@ class SpørreundersøkelseDeltakerTest {
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val førsteTema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+            val førsteSpørsmål = førsteTema.spørsmålOgSvaralternativer.first()
 
             // -- Vert har ikke åpnet spørsmål ennå
             fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
@@ -239,7 +242,14 @@ class SpørreundersøkelseDeltakerTest {
                 spørsmål = startDto,
                 bliMedDTO = bliMedDTO
             )
-            spørsmålsoversiktDto.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(startDto).spørsmål
+            spørsmålsoversiktDto.spørsmålTekst shouldBe førsteSpørsmål.spørsmål
+            spørsmålsoversiktDto.svaralternativer shouldContainInOrder førsteSpørsmål.svaralternativer
+            spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe førsteTema.spørsmålOgSvaralternativer[1].id
+            spørsmålsoversiktDto.nesteSpørsmål?.temaId shouldBe førsteTema.temaId
+            spørsmålsoversiktDto.temanummer shouldBe 1
+            spørsmålsoversiktDto.antallTema shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
+            spørsmålsoversiktDto.spørsmålnummer shouldBe 1
+            spørsmålsoversiktDto.antallSpørsmål shouldBe førsteTema.spørsmålOgSvaralternativer.size
         }
     }
 

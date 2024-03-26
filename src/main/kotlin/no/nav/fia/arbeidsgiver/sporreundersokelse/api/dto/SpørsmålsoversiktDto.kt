@@ -13,11 +13,16 @@ data class SpørsmålsoversiktDto(
     val svaralternativer: List<SvaralternativDto>,
     val nesteSpørsmål: IdentifiserbartSpørsmål?,
     val forrigeSpørsmål: IdentifiserbartSpørsmål?,
+    val antallTema: Int,
+    val temanummer: Int,
+    val antallSpørsmål: Int,
+    val spørsmålnummer: Int,
 )
 
-fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(spørreundersøkelse: Spørreundersøkelse) =
-    SpørsmålsoversiktDto(
-        temabeskrivelse = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(spørsmålId = id).beskrivelse,
+fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(spørreundersøkelse: Spørreundersøkelse): SpørsmålsoversiktDto {
+    val tema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(id)
+    return SpørsmålsoversiktDto(
+        temabeskrivelse = tema.beskrivelse,
         spørsmålTekst = spørsmål,
         svaralternativer = svaralternativer.map {
             SvaralternativDto(
@@ -26,6 +31,11 @@ fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(spørreundersøkelse:
             )
         },
         nesteSpørsmål = spørreundersøkelse.hentNesteSpørsmålOgTema(id),
-        forrigeSpørsmål = spørreundersøkelse.hentForrigeSpørsmålOgTema(id)
+        forrigeSpørsmål = spørreundersøkelse.hentForrigeSpørsmålOgTema(id),
+        temanummer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.temaId == tema.temaId } + 1,
+        antallTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.size,
+        spørsmålnummer = tema.indeksFraSpørsmålId(spørsmålId = id) + 1,
+        antallSpørsmål = tema.spørsmålOgSvaralternativer.size
     )
+}
 

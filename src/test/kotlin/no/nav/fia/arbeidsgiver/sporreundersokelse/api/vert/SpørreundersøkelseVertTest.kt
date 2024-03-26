@@ -72,8 +72,7 @@ class SpørreundersøkelseVertTest {
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
             temaOversikt shouldHaveSize spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
-            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed {
-                index, it ->
+            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed { index, it ->
                 TemaOversiktDto(
                     temaId = it.temaId,
                     tittel = it.temanavn.name,
@@ -116,7 +115,6 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseDto =
             TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        // har flere spørsmål i tema
         runBlocking {
             val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
             val spørsmål = tema.spørsmålOgSvaralternativer.first()
@@ -130,7 +128,10 @@ class SpørreundersøkelseVertTest {
             spørsmålsoversiktDto.svaralternativer shouldContainInOrder spørsmål.svaralternativer
             spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe tema.spørsmålOgSvaralternativer[1].id
             spørsmålsoversiktDto.nesteSpørsmål?.temaId shouldBe tema.temaId
-
+            spørsmålsoversiktDto.temanummer shouldBe 1
+            spørsmålsoversiktDto.antallTema shouldBe spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
+            spørsmålsoversiktDto.spørsmålnummer shouldBe 1
+            spørsmålsoversiktDto.antallSpørsmål shouldBe tema.spørsmålOgSvaralternativer.size
         }
 
         // på siste spørsmål
