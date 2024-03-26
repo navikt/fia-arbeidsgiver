@@ -17,10 +17,9 @@ data class TemaOversiktDto(
 )
 
 
-
-fun TemaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto(temaStatus: List<TemaSvarStatus>, del: Int):TemaOversiktDto {
+fun TemaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto(temaStatus: List<TemaSvarStatus>, del: Int): TemaOversiktDto {
     val temaIndex = temaStatus.indexOfFirst { it.temaId == temaId }
-    val temaIdTilForrigeTema = if (temaIndex > 0) temaStatus[temaIndex].temaId else -1
+    val temaIdTilForrigeTema = if (temaIndex > 0) temaStatus[temaIndex - 1].temaId else -1
 
     val status = when {
         temaStatus.any { it.temaId == temaId && it.harÅpnetAlleSpørsmål } -> TemaStatus.ALLE_SPØRSMÅL_ÅPNET

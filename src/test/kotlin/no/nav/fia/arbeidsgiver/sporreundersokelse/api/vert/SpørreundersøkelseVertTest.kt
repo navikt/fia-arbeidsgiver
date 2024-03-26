@@ -89,6 +89,74 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
+    fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål i tema 1 men ikke noen i tema 2`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val førsteTema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+            førsteTema.spørsmålOgSvaralternativer.forEach {
+                spørreundersøkelseDto.åpneSpørsmål(
+                    spørsmål = IdentifiserbartSpørsmål(
+                        temaId = førsteTema.temaId,
+                        spørsmålId = it.id
+                    ),
+                )
+            }
+            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
+            temaOversikt shouldHaveSize spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
+            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed { index, it ->
+                TemaOversiktDto(
+                    temaId = it.temaId,
+                    tittel = it.temanavn.name,
+                    del = index + 1,
+                    temanavn = it.temanavn,
+                    beskrivelse = it.beskrivelse,
+                    introtekst = it.introtekst,
+                    status = if(it.temaId == førsteTema.temaId) TemaStatus.ALLE_SPØRSMÅL_ÅPNET else TemaStatus.ÅPNET,
+                    førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
+                )
+            }
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål alle temaer`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.forEach { tema ->
+                tema.spørsmålOgSvaralternativer.forEach {
+                    spørreundersøkelseDto.åpneSpørsmål(
+                        spørsmål = IdentifiserbartSpørsmål(
+                            temaId = tema.temaId,
+                            spørsmålId = it.id
+                        ),
+                    )
+                }
+            }
+
+            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
+            temaOversikt shouldHaveSize spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
+            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed { index, it ->
+                TemaOversiktDto(
+                    temaId = it.temaId,
+                    tittel = it.temanavn.name,
+                    del = index + 1,
+                    temanavn = it.temanavn,
+                    beskrivelse = it.beskrivelse,
+                    introtekst = it.introtekst,
+                    status = TemaStatus.ALLE_SPØRSMÅL_ÅPNET,
+                    førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
+                )
+            }
+        }
+    }
+
+    @Test
     fun `vert skal kunne få ut oversikt over ett tema i en spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelseDto =
