@@ -1,10 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import io.ktor.http.HttpStatusCode
+import java.util.UUID
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
-import java.util.UUID
-import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 
@@ -20,30 +18,13 @@ data class Spørreundersøkelse(
     val avslutningsdato: LocalDate,
 ) {
 
-    fun indeksFraSpørsmålId(tema: Tema, spørsmålId: UUID): Int {
-        val indeks = hentAlleSpørsmålITema(tema = tema).indexOfFirst { it.id == spørsmålId }
-        if (indeks == -1) {
-            throw Feil(feilmelding = "Spørsmål med id $spørsmålId ble ikke funnet", feilkode = HttpStatusCode.NotFound)
-        }
-        return indeks
-    }
-
-    fun hentNesteSpørsmål(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer? {
-        val gjeldeneSpørsmålIdx = indeksFraSpørsmålId(tema = tema, spørsmålId = spørsmålId)
-        return hentAlleSpørsmålITema(tema = tema).elementAtOrNull(gjeldeneSpørsmålIdx + 1)
-    }
-
-    fun hentForrigeSpørsmål(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer? {
-        val gjeldeneSpørsmålIdx = indeksFraSpørsmålId(tema = tema, spørsmålId = spørsmålId)
-        return hentAlleSpørsmålITema(tema = tema).elementAtOrNull(gjeldeneSpørsmålIdx - 1)
-    }
-
-    fun hentNesteSpørsmålOgTema(nåværendeTema: Tema, nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
-        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == nåværendeTema }
-        val nesteSpørsmålIgjeldeneTema = hentNesteSpørsmål(tema = nåværendeTema, spørsmålId = nåværendeSpørmålId)
+    fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+        val gjeldendeTema = temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(nåværendeSpørmålId)
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == gjeldendeTema.tema }
+        val nesteSpørsmålIgjeldeneTema = gjeldendeTema.hentNesteSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (nesteSpørsmålIgjeldeneTema != null) {
             IdentifiserbartSpørsmål(
-                tema = nåværendeTema,
+                tema = gjeldendeTema.tema,
                 spørsmålId = nesteSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
@@ -56,12 +37,13 @@ data class Spørreundersøkelse(
         }
     }
 
-    fun hentForrigeSpørsmålOgTema(nåværendeTema: Tema, nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
-        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == nåværendeTema }
-        val forrigeSpørsmålIgjeldeneTema = hentForrigeSpørsmål(tema = nåværendeTema, spørsmålId = nåværendeSpørmålId)
+    fun hentForrigeSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+        val gjeldendeTema = temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(nåværendeSpørmålId)
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == gjeldendeTema.tema }
+        val forrigeSpørsmålIgjeldeneTema = gjeldendeTema.hentForrigeSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (forrigeSpørsmålIgjeldeneTema != null) {
             IdentifiserbartSpørsmål(
-                tema = nåværendeTema,
+                tema = gjeldendeTema.tema,
                 spørsmålId = forrigeSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
@@ -73,9 +55,4 @@ data class Spørreundersøkelse(
             }
         }
     }
-
-    fun hentAlleSpørsmålITema(tema: Tema) =
-        temaMedSpørsmålOgSvaralternativer.firstOrNull { it.tema == tema }?.spørsmålOgSvaralternativer
-            ?: throw Feil("Fant ikke tema $tema", feilkode = HttpStatusCode.NotFound)
-
 }

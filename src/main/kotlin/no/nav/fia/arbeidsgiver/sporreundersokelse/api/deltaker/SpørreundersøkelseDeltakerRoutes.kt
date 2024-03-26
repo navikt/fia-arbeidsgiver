@@ -28,11 +28,11 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        val førsteTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().tema
+        val førsteTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first()
         call.respond(
             HttpStatusCode.OK, IdentifiserbartSpørsmål(
-                tema = førsteTema,
-                spørsmålId = spørreundersøkelse.hentAlleSpørsmålITema(førsteTema).first().id.toString()
+                tema = førsteTema.tema,
+                spørsmålId = førsteTema.spørsmålOgSvaralternativer.first().id.toString()
             )
         )
     }
