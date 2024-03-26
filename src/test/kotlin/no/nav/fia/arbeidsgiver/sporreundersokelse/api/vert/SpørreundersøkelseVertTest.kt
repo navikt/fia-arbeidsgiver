@@ -11,6 +11,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgi
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import java.util.*
 import kotlin.test.Test
@@ -80,6 +81,7 @@ class SpørreundersøkelseVertTest {
                     temanavn = it.temanavn,
                     beskrivelse = it.beskrivelse,
                     introtekst = it.introtekst,
+                    status = if(it.temaId == spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }

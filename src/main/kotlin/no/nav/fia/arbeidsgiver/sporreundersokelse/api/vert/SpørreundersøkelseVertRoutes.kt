@@ -10,6 +10,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversikt
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaSvarStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
@@ -24,10 +25,17 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
         )
-
+        val temaStatus = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map { tema ->
+            TemaSvarStatus(
+                temaId = tema.temaId,
+                harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
+                    spørreundersøkelseService.erSpørsmålÅpent(spørreundersøkelseId, spørsmål.id)
+                }
+            )
+        }
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto()
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto(temaStatus)
         )
     }
 
@@ -40,10 +48,19 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         val temaMedSpørsmålOgSvaralternativerIndexedValue: IndexedValue<TemaMedSpørsmålOgSvaralternativer> =
             spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.withIndex().first { it.value.temaId == call.temaId }
 
+        val temaStatus = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map { tema ->
+            TemaSvarStatus(
+                temaId = tema.temaId,
+                harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
+                    spørreundersøkelseService.erSpørsmålÅpent(spørreundersøkelseId, spørsmål.id)
+                }
+            )
+        }
+
         call.respond(
             HttpStatusCode.OK,
             temaMedSpørsmålOgSvaralternativerIndexedValue.value
-                .tilTemaOversiktDto(temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
+                .tilTemaOversiktDto(temaStatus, temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
         )
     }
 
