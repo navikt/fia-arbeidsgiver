@@ -8,7 +8,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
 data class SpørsmålOgSvaralternativer(
     @Serializable(with = UUIDSerializer::class)
     val id: UUID,
-    val tema: Tema,
     val spørsmål: String,
     val svaralternativer: List<Svaralternativ>,
 )

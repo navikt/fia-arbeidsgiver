@@ -1,15 +1,23 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
-import kotlinx.coroutines.*
+import java.time.Duration
+import java.util.*
+import kotlin.coroutines.CoroutineContext
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
@@ -21,9 +29,6 @@ import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Duration
-import java.util.*
-import kotlin.coroutines.CoroutineContext
 
 class SpørreundersøkelseKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -114,14 +119,11 @@ private fun TemaMedSpørsmålOgSvaralternativerDto.tilDomene() = TemaMedSpørsm�
     tema = temanavn,
     beskrivelse = beskrivelse,
     introtekst = introtekst,
-    spørsmålOgSvaralternativer = spørsmålOgSvaralternativer.map {
-        it.tilDomene(temanavn)
-    }
+    spørsmålOgSvaralternativer = spørsmålOgSvaralternativer.map { it.tilDomene() }
 )
 
-private fun SpørsmålOgSvaralternativerDto.tilDomene(tema: Tema) = SpørsmålOgSvaralternativer(
+private fun SpørsmålOgSvaralternativerDto.tilDomene() = SpørsmålOgSvaralternativer(
     id = UUID.fromString(id),
-    tema = tema,
     spørsmål = spørsmål,
     svaralternativer = svaralternativer.map { it.tilDomene() },
 )
