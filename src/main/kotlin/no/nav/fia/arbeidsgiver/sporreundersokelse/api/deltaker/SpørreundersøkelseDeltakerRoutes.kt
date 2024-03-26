@@ -10,13 +10,13 @@ import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import sesjonId
 
 
@@ -41,10 +41,10 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-        val tema = call.tema
         val spørsmålId = call.spørsmålId
 
-        val spørsmålMedSvarAlternativer = spørreundersøkelse.spørsmålFraId(tema = tema, spørsmålId = spørsmålId)
+        val spørsmålMedSvarAlternativer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .spørsmålFraId(spørsmålId = spørsmålId)
 
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,
@@ -67,10 +67,9 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørsmålId = call.spørsmålId
-        val tema = call.tema
         val sesjonId = call.sesjonId
 
-        if (spørreundersøkelse.spørsmålFraId(tema, spørsmålId).svaralternativer.none { it.svarId == svarId })
+        if (spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId).svaralternativer.none { it.svarId == svarId })
             throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
 
         spørreundersøkelseService.sendSvar(

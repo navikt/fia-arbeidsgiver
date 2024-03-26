@@ -74,16 +74,6 @@ data class Spørreundersøkelse(
         }
     }
 
-    fun spørsmålFraId(tema: Tema, spørsmålId: UUID): SpørsmålOgSvaralternativer {
-        val spørsmålOgSvaralternativer =
-            hentAlleSpørsmålITema(tema = tema).firstOrNull { it.id == spørsmålId }
-
-        if (spørsmålOgSvaralternativer == null) {
-            throw Feil(feilmelding = "Spørsmål med id $spørsmålId ble ikke funnet", feilkode = HttpStatusCode.NotFound)
-        }
-        return spørsmålOgSvaralternativer
-    }
-
     fun hentAlleSpørsmålITema(tema: Tema) =
         temaMedSpørsmålOgSvaralternativer.firstOrNull { it.tema == tema }?.spørsmålOgSvaralternativer
             ?: throw Feil("Fant ikke tema $tema", feilkode = HttpStatusCode.NotFound)

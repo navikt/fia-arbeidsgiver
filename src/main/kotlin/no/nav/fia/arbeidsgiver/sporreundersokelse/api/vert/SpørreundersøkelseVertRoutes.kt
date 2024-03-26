@@ -12,6 +12,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 
 
 const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert/v2"
@@ -54,9 +55,9 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
         )
-        val tema = call.tema
         val spørsmålId = call.spørsmålId
-        val spørsmålMedSvarAlternativer = spørreundersøkelse.spørsmålFraId(tema = tema, spørsmålId = spørsmålId)
+        val spørsmålMedSvarAlternativer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+            .spørsmålFraId(spørsmålId = spørsmålId)
 
         spørreundersøkelseService.åpneSpørsmål(spørreundersøkelseId = spørreundersøkelseId, spørsmålId = spørsmålId)
 
