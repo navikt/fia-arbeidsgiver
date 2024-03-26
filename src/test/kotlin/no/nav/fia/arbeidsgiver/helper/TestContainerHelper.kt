@@ -34,7 +34,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -158,7 +157,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     block: () -> Unit = {},
 ) {
     val response = performPost(
-        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/svar",
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/svar",
         body = SvarRequest(svarId = svarId)
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
@@ -173,7 +172,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
     bliMedDTO: BliMedDTO,
 ): SpørsmålsoversiktDto? {
     val response = performGet(
-        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}",
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}",
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
@@ -190,7 +189,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
     spørreundersøkelse: SpørreundersøkelseDto,
 ): SpørsmålsoversiktDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     }
@@ -202,7 +201,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørreundersøkelse: SpørreundersøkelseDto,
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.tema}/${spørsmål.spørsmålId}/antall-svar",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/antall-svar",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     }
@@ -222,10 +221,10 @@ internal suspend fun GenericContainer<*>.hentTemaoversikt(
 
 internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     spørreundersøkelse: SpørreundersøkelseDto,
-    tema: Tema,
+    temaId: Int,
 ): TemaOversiktDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${tema.name}",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${temaId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     }

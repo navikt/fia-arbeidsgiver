@@ -7,7 +7,8 @@ import no.nav.fia.arbeidsgiver.http.Feil
 
 @Serializable
 data class TemaMedSpørsmålOgSvaralternativer(
-    val tema: Tema,
+    val temaId: Int,
+    val temanavn: Temanavn,
     val beskrivelse: String,
     val introtekst: String,
     val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativer>,
@@ -33,7 +34,7 @@ data class TemaMedSpørsmålOgSvaralternativer(
 
 fun List<TemaMedSpørsmålOgSvaralternativer>.spørsmålFraId(spørsmålId: UUID) =
     this.flatMap { it.spørsmålOgSvaralternativer }.firstOrNull { it.id == spørsmålId }
-        ?: throw Feil("Fant ikke spørsmål $spørsmålId i liste av temaer", feilkode = HttpStatusCode.NotFound)
+        ?: throw Feil("Fant ikke spørsmål $spørsmålId i spørreundersøkelse", feilkode = HttpStatusCode.NotFound)
 
 fun List<TemaMedSpørsmålOgSvaralternativer>.temaFraSpørsmålId(spørsmålId: UUID) =
     this.find { tema ->

@@ -12,7 +12,6 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
 const val SPØRREUNDERSØKELSE_PATH = "/fia-arbeidsgiver/sporreundersokelse"
 const val BLI_MED_PATH = "$SPØRREUNDERSØKELSE_PATH/bli-med"
@@ -53,9 +52,9 @@ internal val ApplicationCall.spørreundersøkelseId
         parameters["spørreundersøkelseId"]?.tilUUID("spørreundersøkelseId")
             ?: throw Feil(feilmelding = "Mangler spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
 
-internal val ApplicationCall.tema
+internal val ApplicationCall.temaId
     get() =
-        parameters["temaId"]?.let { Tema.valueOf(it) }
+        parameters["temaId"]?.toInt()
             ?: throw Feil(feilmelding = "Mangler temaId", feilkode = HttpStatusCode.BadRequest)
 
 internal val ApplicationCall.spørsmålId

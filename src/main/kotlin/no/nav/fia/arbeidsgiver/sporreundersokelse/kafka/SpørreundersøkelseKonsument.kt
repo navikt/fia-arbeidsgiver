@@ -116,7 +116,8 @@ private fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
 )
 
 private fun TemaMedSpørsmålOgSvaralternativerDto.tilDomene() = TemaMedSpørsmålOgSvaralternativer(
-    tema = temanavn,
+    temaId = temaId,
+    temanavn = temanavn,
     beskrivelse = beskrivelse,
     introtekst = introtekst,
     spørsmålOgSvaralternativer = spørsmålOgSvaralternativer.map { it.tilDomene() }

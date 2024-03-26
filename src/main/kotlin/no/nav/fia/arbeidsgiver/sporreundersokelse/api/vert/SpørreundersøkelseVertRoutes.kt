@@ -9,7 +9,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
@@ -38,7 +38,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.tema == call.tema }
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.temaId == call.temaId }
                 .tilTemaOversiktDto()
         )
     }

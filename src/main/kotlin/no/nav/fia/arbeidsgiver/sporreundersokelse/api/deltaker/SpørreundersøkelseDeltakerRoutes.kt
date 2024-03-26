@@ -2,6 +2,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
+import io.ktor.server.application.log
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -14,9 +15,11 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
 import sesjonId
 
 
@@ -31,7 +34,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val førsteTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first()
         call.respond(
             HttpStatusCode.OK, IdentifiserbartSpørsmål(
-                tema = førsteTema.tema,
+                temaId = førsteTema.temaId,
                 spørsmålId = førsteTema.spørsmålOgSvaralternativer.first().id.toString()
             )
         )
@@ -42,9 +45,18 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørsmålId = call.spørsmålId
+        val temaId = call.temaId
+
 
         val spørsmålMedSvarAlternativer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
             .spørsmålFraId(spørsmålId = spørsmålId)
+
+        if (spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
+                .temaFraSpørsmålId(spørsmålId = spørsmålId).temaId != temaId
+        ) {
+            call.application.log.warn("TemaId ikke funnet i spørreundersøkelse $temaId")
+            return@get call.respond(HttpStatusCode.NotFound)
+        }
 
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,

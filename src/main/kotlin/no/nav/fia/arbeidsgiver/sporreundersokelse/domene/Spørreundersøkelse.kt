@@ -20,17 +20,17 @@ data class Spørreundersøkelse(
 
     fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
         val gjeldendeTema = temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(nåværendeSpørmålId)
-        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == gjeldendeTema.tema }
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.temaId == gjeldendeTema.temaId }
         val nesteSpørsmålIgjeldeneTema = gjeldendeTema.hentNesteSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (nesteSpørsmålIgjeldeneTema != null) {
             IdentifiserbartSpørsmål(
-                tema = gjeldendeTema.tema,
+                temaId = gjeldendeTema.temaId,
                 spørsmålId = nesteSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
             temaMedSpørsmålOgSvaralternativer.elementAtOrNull(gjeldeneTemaIdx + 1)?.let {
                 IdentifiserbartSpørsmål(
-                    tema = it.tema,
+                    temaId = it.temaId,
                     spørsmålId = it.spørsmålOgSvaralternativer.first().id.toString()
                 )
             }
@@ -39,17 +39,17 @@ data class Spørreundersøkelse(
 
     fun hentForrigeSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
         val gjeldendeTema = temaMedSpørsmålOgSvaralternativer.temaFraSpørsmålId(nåværendeSpørmålId)
-        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.tema == gjeldendeTema.tema }
+        val gjeldeneTemaIdx = temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.temaId == gjeldendeTema.temaId }
         val forrigeSpørsmålIgjeldeneTema = gjeldendeTema.hentForrigeSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (forrigeSpørsmålIgjeldeneTema != null) {
             IdentifiserbartSpørsmål(
-                tema = gjeldendeTema.tema,
+                temaId = gjeldendeTema.temaId,
                 spørsmålId = forrigeSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
             temaMedSpørsmålOgSvaralternativer.elementAtOrNull(gjeldeneTemaIdx - 1)?.let {
                 IdentifiserbartSpørsmål(
-                    tema = it.tema,
+                    temaId = it.temaId,
                     spørsmålId = it.spørsmålOgSvaralternativer.last().id.toString()
                 )
             }

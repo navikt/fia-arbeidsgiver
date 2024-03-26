@@ -13,7 +13,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
@@ -54,7 +54,9 @@ class KafkaContainer(network: Network) {
         .withKraft()
         .withNetwork(network)
         .withNetworkAliases(kafkaNetworkAlias)
-        .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams())
+        .withLogConsumer(
+            Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams()
+        )
         .withEnv(
             mutableMapOf(
                 "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
@@ -82,7 +84,7 @@ class KafkaContainer(network: Network) {
     fun sendStatusOppdateringForVirksomhet(
         orgnr: String,
         status: String,
-        sistOppdatert: LocalDateTime = LocalDateTime.now()
+        sistOppdatert: LocalDateTime = LocalDateTime.now(),
     ) {
         val iaStatusOppdatering = IASakStatus(
             orgnr = orgnr,
@@ -114,7 +116,7 @@ class KafkaContainer(network: Network) {
     fun sendAntallSvar(
         spørreundersøkelseId: String,
         spørsmålId: String,
-        antallSvar: Int
+        antallSvar: Int,
     ): SpørreundersøkelseAntallSvarDto {
         val antallSvarDto = SpørreundersøkelseAntallSvarDto(spørreundersøkelseId, spørsmålId, antallSvar)
         sendOgVent(
@@ -128,61 +130,64 @@ class KafkaContainer(network: Network) {
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = json.encodeToString<SpørreundersøkelseDto>(enStandardSpørreundersøkelse(
-                spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
-            ))
+            spørreundersøkelsesStreng = json.encodeToString<SpørreundersøkelseDto>(
+                enStandardSpørreundersøkelse(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
+                )
+            )
         )
 
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
-        temaer: List<Tema> = Tema.entries
+        temaer: List<Temanavn> = Temanavn.entries,
     ) = SpørreundersøkelseDto(
-            spørreundersøkelseId = spørreundersøkelseId.toString(),
-            vertId = vertId.toString(),
-            type = "kartlegging",
-            temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
-                TemaMedSpørsmålOgSvaralternativerDto(
-                    temanavn = tema,
-                    introtekst = "Dette er et bra tema",
-                    beskrivelse = "Beskrivelse for dette temaet",
-                    spørsmålOgSvaralternativer = listOf(
-                        SpørsmålOgSvaralternativerDto(
-                            id = UUID.randomUUID().toString(),
-                            spørsmål = "Hva gjør dere med IA?",
-                            svaralternativer = listOf(
-                                SvaralternativDto(
-                                    svarId = UUID.randomUUID().toString(),
-                                    "ingenting"
-                                ),
-                                SvaralternativDto(
-                                    svarId = UUID.randomUUID().toString(),
-                                    "alt"
-                                ),
-                            )
-                        ),
-                        SpørsmålOgSvaralternativerDto(
-                            id = UUID.randomUUID().toString(),
-                            spørsmål = "Hva gjør dere IKKE med IA?",
-                            svaralternativer = listOf(
-                                SvaralternativDto(
-                                    svarId = UUID.randomUUID().toString(),
-                                    "noen ting"
-                                ),
-                                SvaralternativDto(
-                                    svarId = UUID.randomUUID().toString(),
-                                    "alt"
-                                ),
-                            )
+        spørreundersøkelseId = spørreundersøkelseId.toString(),
+        vertId = vertId.toString(),
+        type = "kartlegging",
+        temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
+            TemaMedSpørsmålOgSvaralternativerDto(
+                temaId = tema.ordinal,
+                temanavn = tema,
+                introtekst = "Dette er et bra tema",
+                beskrivelse = "Beskrivelse for dette temaet",
+                spørsmålOgSvaralternativer = listOf(
+                    SpørsmålOgSvaralternativerDto(
+                        id = UUID.randomUUID().toString(),
+                        spørsmål = "Hva gjør dere med IA?",
+                        svaralternativer = listOf(
+                            SvaralternativDto(
+                                svarId = UUID.randomUUID().toString(),
+                                "ingenting"
+                            ),
+                            SvaralternativDto(
+                                svarId = UUID.randomUUID().toString(),
+                                "alt"
+                            ),
+                        )
+                    ),
+                    SpørsmålOgSvaralternativerDto(
+                        id = UUID.randomUUID().toString(),
+                        spørsmål = "Hva gjør dere IKKE med IA?",
+                        svaralternativer = listOf(
+                            SvaralternativDto(
+                                svarId = UUID.randomUUID().toString(),
+                                "noen ting"
+                            ),
+                            SvaralternativDto(
+                                svarId = UUID.randomUUID().toString(),
+                                "alt"
+                            ),
                         )
                     )
                 )
-            },
-            status = spørreundersøkelseStatus,
-            avslutningsdato = LocalDate.now().toKotlinLocalDate()
-        )
+            )
+        },
+        status = spørreundersøkelseStatus,
+        avslutningsdato = LocalDate.now().toKotlinLocalDate()
+    )
 
     private fun sendOgVent(
         nøkkel: String,
@@ -196,11 +201,13 @@ class KafkaContainer(network: Network) {
     }
 
     private fun createTopics() {
-        adminClient.createTopics(listOf(
-            NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
-            NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-            NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
-        ))
+        adminClient.createTopics(
+            listOf(
+                NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
+                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
+                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
+            )
+        )
     }
 
     private fun KafkaContainer.producer(): KafkaProducer<String, String> =
