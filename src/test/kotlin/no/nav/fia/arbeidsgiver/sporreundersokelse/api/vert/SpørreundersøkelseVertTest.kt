@@ -5,24 +5,20 @@ import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.util.UUID
-import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
+import no.nav.fia.arbeidsgiver.helper.*
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
-import no.nav.fia.arbeidsgiver.helper.bliMed
-import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForSpørsmål
-import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVertV2
-import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
-import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
-import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
-import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import java.util.*
+import kotlin.test.Test
 
 class SpørreundersøkelseVertTest {
+
+    val TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR = 1
+
     @Test
     fun `vertssider skal ikke kunne hentes uten gyldig vertsId`() {
         val spørreundersøkelseId = UUID.randomUUID()
@@ -76,10 +72,12 @@ class SpørreundersøkelseVertTest {
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
             temaOversikt shouldHaveSize spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
-            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.map {
+            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed {
+                index, it ->
                 TemaOversiktDto(
                     temaId = it.temaId,
                     tittel = it.temanavn.name,
+                    del = index + 1,
                     temanavn = it.temanavn,
                     beskrivelse = it.beskrivelse,
                     introtekst = it.introtekst,
@@ -95,18 +93,17 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseDto =
             TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+        val temaRedusereSykefravær =
+            spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first { it.temaId == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
 
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversiktForEttTema(
                 spørreundersøkelse = spørreundersøkelseDto,
-                temaId = tema.temaId
+                temaId = TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR
             )
             temaOversikt shouldNotBe null
-            temaOversikt.temanavn shouldBe tema.temanavn
-
-            val temaRedusereSykefravær =
-                spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first { it.temaId == tema.temaId }
+            temaOversikt.temanavn shouldBe temaRedusereSykefravær.temanavn
+            temaOversikt.del shouldBe 2
             temaOversikt.beskrivelse shouldBe temaRedusereSykefravær.beskrivelse
             temaOversikt.introtekst shouldBe temaRedusereSykefravær.introtekst
             temaOversikt.førsteSpørsmålId shouldBe temaRedusereSykefravær.spørsmålOgSvaralternativer.first().id

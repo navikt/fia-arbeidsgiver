@@ -12,6 +12,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 
 
@@ -36,10 +37,13 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             spørreundersøkelseId = spørreundersøkelseId
         )
 
+        val temaMedSpørsmålOgSvaralternativerIndexedValue: IndexedValue<TemaMedSpørsmålOgSvaralternativer> =
+            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.withIndex().first { it.value.temaId == call.temaId }
+
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first { it.temaId == call.temaId }
-                .tilTemaOversiktDto()
+            temaMedSpørsmålOgSvaralternativerIndexedValue.value
+                .tilTemaOversiktDto(temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
         )
     }
 
