@@ -64,19 +64,19 @@ dependencies {
     constraints {
         implementation("net.minidev:json-smart") {
             version {
-                require("2.5.0")
+                require("2.5.1")
             }
             because("From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.")
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.107.Final")
+                require("4.1.108.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
         testImplementation("org.apache.commons:commons-compress") {
             version {
-                require("1.26.0")
+                require("1.26.1")
             }
             because("testcontainers har sårbar versjon")
         }
