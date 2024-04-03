@@ -10,6 +10,9 @@ spec:
   resources:
     requests:
       cpu: 100m
+  azure:
+    application:
+      enabled: true
   tokenx:
     enabled: true
   accessPolicy:
