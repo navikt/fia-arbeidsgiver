@@ -75,18 +75,30 @@ class TestContainerHelper {
                     start()
                 }
 
-        internal fun accessToken(
+        internal fun tokenXAccessToken(
             subject: String = "123",
-            audience: String = "hei",
+            audience: String = "tokenx:fia-arbeidsgiver",
             claims: Map<String, String> = mapOf(
                 "acr" to "Level4",
                 "pid" to subject,
-                "client_id" to "hei",
             ),
         ) = authServer.issueToken(
             subject = subject,
             audience = audience,
-            claims = claims
+            claims = claims,
+            issuerId = "tokenx"
+        )
+        internal fun azureAccessToken(
+            subject: String = "123",
+            audience: String = "azure:fia-arbeidsgiver",
+            claims: Map<String, String> = mapOf(
+                "NAVident" to "Z12345",
+            ),
+        ) = authServer.issueToken(
+            subject = subject,
+            audience = audience,
+            claims = claims,
+            issuerId = "azure"
         )
 
         infix fun GenericContainer<*>.shouldContainLog(regex: Regex) = logs shouldContain regex
@@ -114,8 +126,14 @@ private suspend fun GenericContainer<*>.performRequest(
         }
     }
 
-internal fun withToken(): HttpRequestBuilder.() -> Unit = {
-    header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.accessToken().serialize()}")
+internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit = {
+    header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
+}
+
+internal fun HttpRequestBuilder.medAzureToken(
+    token: String = TestContainerHelper.azureAccessToken().serialize()
+) {
+    header(HttpHeaders.Authorization, "Bearer $token")
 }
 
 internal suspend fun GenericContainer<*>.performGet(url: String, config: HttpRequestBuilder.() -> Unit = {}) =
@@ -184,14 +202,16 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
     }
 }
 
-internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
+internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
     spørsmål: IdentifiserbartSpørsmål,
     spørreundersøkelse: SpørreundersøkelseDto,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): SpørsmålsoversiktDto {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
     }
     return response.body()
 }
@@ -199,22 +219,26 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVertV2(
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     spørreundersøkelse: SpørreundersøkelseDto,
+    token: String = TestContainerHelper.azureAccessToken().serialize()
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/antall-svar",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
     }
     return response.body()
 }
 
 internal suspend fun GenericContainer<*>.hentTemaoversikt(
     spørreundersøkelse: SpørreundersøkelseDto,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): List<TemaOversiktDto> {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
     }
     return response.body()
 }
@@ -222,11 +246,13 @@ internal suspend fun GenericContainer<*>.hentTemaoversikt(
 internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     spørreundersøkelse: SpørreundersøkelseDto,
     temaId: Int,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): TemaOversiktDto {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${temaId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
     }
     return response.body()
 }
@@ -235,11 +261,13 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: String,
     vertId: String,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
     ) {
         header(HEADER_VERT_ID, vertId)
+        medAzureToken(token = token)
     }
 
     response.status shouldBe HttpStatusCode.OK

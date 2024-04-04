@@ -6,7 +6,7 @@ import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.performGet
-import no.nav.fia.arbeidsgiver.helper.withToken
+import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import kotlin.test.Test
 
 class AuditLogTest {
@@ -15,7 +15,7 @@ class AuditLogTest {
     fun `det skal auditlogges (Permit) dersom man går mot status med gyldig token og altinn tilgang`() {
         runBlocking {
             val orgnr = AltinnProxyContainer.ALTINN_ORGNR_1
-            TestContainerHelper.fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$orgnr", withToken())
+            TestContainerHelper.fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$orgnr", withTokenXToken())
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = "123",
                 orgnummer = orgnr,
@@ -29,7 +29,7 @@ class AuditLogTest {
         runBlocking {
             val orgnr = AltinnProxyContainer.ORGNR_UTEN_TILKNYTNING
             TestContainerHelper.fiaArbeidsgiverApi.performGet(
-                "$SAMARBEIDSSTATUS_PATH/$orgnr", withToken()
+                "$SAMARBEIDSSTATUS_PATH/$orgnr", withTokenXToken()
             )
             TestContainerHelper.fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = "123",

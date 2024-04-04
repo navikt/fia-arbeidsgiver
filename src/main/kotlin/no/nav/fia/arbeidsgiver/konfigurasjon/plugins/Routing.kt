@@ -24,8 +24,10 @@ fun Application.configureRouting(redisService: RedisService) {
             spørreundersøkelseDeltaker(spørreundersøkelseService = spørreundersøkelseService)
         }
 
-        medVerifisertVertsId(spørreundersøkelseService = spørreundersøkelseService) {
-            spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
+        authenticate("azure") {
+            medVerifisertVertsId(spørreundersøkelseService = spørreundersøkelseService) {
+                spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
+            }
         }
 
         authenticate("tokenx") {
