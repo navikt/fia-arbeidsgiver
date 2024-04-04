@@ -1,10 +1,14 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
+import HEADER_VERT_ID
 import io.kotest.assertions.shouldFail
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.request.header
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.*
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
@@ -19,6 +23,40 @@ import kotlin.test.Test
 class SpørreundersøkelseVertTest {
 
     val TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR = 1
+
+    @Test
+    fun `skal ikke kunne laste vertssider uten azure-token`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            fiaArbeidsgiverApi.performGet(
+                url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
+            ) {
+                header(HEADER_VERT_ID, spørreundersøkelseDto.vertId)
+            }.status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    @Test
+    fun `skal ikke kunne laste vertssider uten gyldig scopet azure-token`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            fiaArbeidsgiverApi.performGet(
+                url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
+            ) {
+                header(HEADER_VERT_ID, spørreundersøkelseDto.vertId)
+                header(HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
+                    issuerId = "azure",
+                    audience = "azure:fia-arbeidsgiver-frontend"
+                ).serialize())
+            }.status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
 
     @Test
     fun `vertssider skal ikke kunne hentes uten gyldig vertsId`() {
@@ -263,7 +301,7 @@ class SpørreundersøkelseVertTest {
 
 suspend fun SpørreundersøkelseDto.åpneSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
-) = fiaArbeidsgiverApi.hentSpørsmålSomVertV2(
+) = fiaArbeidsgiverApi.hentSpørsmålSomVert(
     spørsmål = spørsmål,
     spørreundersøkelse = this
 )

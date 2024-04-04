@@ -11,20 +11,39 @@ import java.net.URI
 import java.util.concurrent.TimeUnit
 
 fun Application.configureSecurity() {
-    val jwkProvider = JwkProviderBuilder(URI(Miljø.tokenxJwkPath).toURL())
+    val tokenxJwkProvider = JwkProviderBuilder(URI(Miljø.tokenxJwksUri).toURL())
         .cached(10, 24, TimeUnit.HOURS)
         .rateLimited(10, 1, TimeUnit.MINUTES)
         .build()
+
+    val azureJwkProvider = JwkProviderBuilder(URI(Miljø.azureJwksUri).toURL())
+        .cached(10, 24, TimeUnit.HOURS)
+        .rateLimited(10, 1, TimeUnit.MINUTES)
+        .build()
+
     authentication {
         jwt(name = "tokenx") {
             val tokenFortsattGyldigFørUtløpISekunder = 3L
-            verifier(jwkProvider, issuer = Miljø.tokenxIssuer) {
+            verifier(tokenxJwkProvider, issuer = Miljø.tokenxIssuer) {
                 acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
                 withAudience(Miljø.tokenxClientId)
                 withClaim("acr") { claim: Claim, _: DecodedJWT ->
                     claim.asString().equals("Level4") || claim.asString().equals("idporten-loa-high")
                 }
                 withClaimPresence("pid")
+            }
+            validate { token ->
+                JWTPrincipal(token.payload)
+            }
+        }
+
+        jwt(name = "azure") {
+            val tokenFortsattGyldigFørUtløpISekunder = 3L
+            verifier(azureJwkProvider, issuer = Miljø.azureIssuer) {
+                acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
+                withAudience(Miljø.azureClientId)
+                withClaimPresence("NAVident")
+                // -- TODO: sjekk gruppetilhørighet (rolle)
             }
             validate { token ->
                 JWTPrincipal(token.payload)

@@ -21,7 +21,6 @@ import java.util.*
 
 class AuthContainer(network: Network) {
     private val port = "6969"
-    private val issuerName = "default"
     private val networkalias = "authserver"
     private val baseEndpointUrl = "http://$networkalias:$port"
     private val oAuth2Config = OAuth2Config()
@@ -41,13 +40,13 @@ class AuthContainer(network: Network) {
         .apply { start() }
 
     internal fun issueToken(
-        issuerId: String = issuerName,
+        issuerId: String,
         subject: String = UUID.randomUUID().toString(),
         audience: String,
         claims: Map<String, Any> = emptyMap(),
         expiry: Long = 3600
     ): SignedJWT {
-        val issuerUrl = "$baseEndpointUrl/$issuerName"
+        val issuerUrl = "$baseEndpointUrl/$issuerId"
         val tokenCallback = DefaultOAuth2TokenCallback(
             issuerId,
             subject,
@@ -59,17 +58,17 @@ class AuthContainer(network: Network) {
 
         val tokenRequest = TokenRequest(
             URI.create(baseEndpointUrl),
-            ClientSecretBasic(ClientID(issuerName), Secret("secret")),
+            ClientSecretBasic(ClientID(issuerId), Secret("secret")),
             AuthorizationCodeGrant(AuthorizationCode("123"), URI.create("http://localhost"))
         )
         return oAuth2Config.tokenProvider.accessToken(tokenRequest, issuerUrl.toHttpUrl(), tokenCallback, null)
     }
 
     fun getEnv() = mapOf(
-        "TOKEN_X_CLIENT_ID" to "hei",
-        "TOKEN_X_ISSUER" to "http://$networkalias:$port/default",
-        "TOKEN_X_JWKS_URI" to "http://$networkalias:$port/default/jwks",
-        "TOKEN_X_TOKEN_ENDPOINT" to "http://$networkalias:$port/default/token",
+        "TOKEN_X_CLIENT_ID" to "tokenx:fia-arbeidsgiver",
+        "TOKEN_X_ISSUER" to "http://$networkalias:$port/tokenx",
+        "TOKEN_X_JWKS_URI" to "http://$networkalias:$port/tokenx/jwks",
+        "TOKEN_X_TOKEN_ENDPOINT" to "http://$networkalias:$port/tokenx/token",
         "TOKEN_X_PRIVATE_JWK" to  """{
                                         "p": "1sKc9CQFXJ5q14wGjk6bAhIaWBiM2ZJHNCLcME0P60q_dNaC7osoj0-zDTwUWdiREIiI2y3DAArAGNlhyZqZwDNumL08_pM-ePXVoqiZWZ87Ch8g8csx27yU_AsDj6h64qRpV07x_TOzXRJdP5iQm_IO3qjyul9qlnXyd2X9h3c",
                                         "kty": "RSA",
@@ -84,9 +83,8 @@ class AuthContainer(network: Network) {
                                         "dq": "Ccu_xKHLwGzfNwMq7gnqJnIuFCy8R72-1bpVLNq4JZZgc91iZbBcSVK7Ju3PuCiuAEvLsB1cHC91IF062cXkYhijZOalY_c2Ug2ERUtGr5X8eoDPUnZyccOefm37A0I5Aedra3n2AS8_FtqIwAMJVFC4bylUxkkBPoO0eHm24Yk",
                                         "n": "plQx4or1C_Xany-wjM7mPHB4CAJPk3oOEdDSKpTwJ2dzGji5tEq7dUxExyhFN8f0PUjBjXyPph0gmDWaJG64fnhSSwVI-8Tdf2PppuK4rdCtWSPLgZ_DJ2DruxHgeXgwvJnX1HRfqhJF2p4ClkRUiVXZKFOhRPMGVgg18fnV9fXz5C4JacP_fmh498ktEohwcL3Pbv5DI_po_i0OiyF_M-9Iic3Ss80j22hs1wsNBGEMHvofWs7sl3ufwxmUCIstnDNSat840-n21Q4GV2v4L2kpROUw6l4ZmqZxoGl7eRSDS_VC5rPQoQEZYfyCiq6o1W5p9UXnoQin1zn0lr5Iaw"
                                     }""".trimIndent(),
-        "IDPORTEN_ISSUER" to "http://$networkalias:$port/default",
-        "IDPORTEN_JWKS_URI" to "http://$networkalias:$port/default/jwks",
-        "IDPORTEN_CLIENT_ID" to "hei",
-        "IDPORTEN_AUDIENCE" to "hei",
+        "AZURE_APP_CLIENT_ID" to "azure:fia-arbeidsgiver",
+        "AZURE_OPENID_CONFIG_ISSUER" to "http://$networkalias:$port/azure",
+        "AZURE_OPENID_CONFIG_JWKS_URI" to "http://$networkalias:$port/azure/jwks",
     )
 }
