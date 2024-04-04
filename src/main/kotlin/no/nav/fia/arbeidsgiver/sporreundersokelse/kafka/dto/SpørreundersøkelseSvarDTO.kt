@@ -10,6 +10,7 @@ data class SpørreundersøkelseSvarDTO(
     val sesjonId: String,
     val spørsmålId: String,
     val svarId: String,
+    val svarIder: List<String>,
 ) {
     fun tilNøkkel() = "${sesjonId}_$spørsmålId"
 

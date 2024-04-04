@@ -107,14 +107,15 @@ class SpørreundersøkelseService(
         spørreundersøkelseId: UUID,
         sesjonsId: UUID,
         spørsmålId: UUID,
-        svarId: UUID,
+        svarIder: List<UUID>,
     ) =
         spørreundersøkelseSvarProdusent.sendSvar(
             svar = SpørreundersøkelseSvarDTO(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
                 sesjonId = sesjonsId.toString(),
                 spørsmålId = spørsmålId.toString(),
-                svarId = svarId.toString(),
+                svarId = svarIder.first().toString(),
+                svarIder = svarIder.map { it.toString() },
             )
         )
 }

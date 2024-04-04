@@ -17,6 +17,7 @@ data class SpørsmålsoversiktDto(
     val temanummer: Int,
     val antallSpørsmål: Int,
     val spørsmålnummer: Int,
+    val flervalg: Boolean,
 )
 
 fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(spørreundersøkelse: Spørreundersøkelse): SpørsmålsoversiktDto {
@@ -35,7 +36,8 @@ fun SpørsmålOgSvaralternativer.tilSpørsmålsoversiktDto(spørreundersøkelse:
         temanummer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.indexOfFirst { it.temaId == tema.temaId } + 1,
         antallTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.size,
         spørsmålnummer = tema.indeksFraSpørsmålId(spørsmålId = id) + 1,
-        antallSpørsmål = tema.spørsmålOgSvaralternativer.size
+        antallSpørsmål = tema.spørsmålOgSvaralternativer.size,
+        flervalg = flervalg
     )
 }
 

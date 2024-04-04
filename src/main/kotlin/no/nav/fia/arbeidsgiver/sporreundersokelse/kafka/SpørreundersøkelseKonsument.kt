@@ -127,6 +127,7 @@ private fun SpørsmålOgSvaralternativerDto.tilDomene() = SpørsmålOgSvaraltern
     id = UUID.fromString(id),
     spørsmål = spørsmål,
     svaralternativer = svaralternativer.map { it.tilDomene() },
+    flervalg = flervalg
 )
 
 private fun SvaralternativDto.tilDomene() = Svaralternativ(

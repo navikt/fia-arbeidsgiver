@@ -88,6 +88,7 @@ class TestContainerHelper {
             claims = claims,
             issuerId = "tokenx"
         )
+
         internal fun azureAccessToken(
             subject: String = "123",
             audience: String = "azure:fia-arbeidsgiver",
@@ -131,7 +132,7 @@ internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit = {
 }
 
 internal fun HttpRequestBuilder.medAzureToken(
-    token: String = TestContainerHelper.azureAccessToken().serialize()
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     header(HttpHeaders.Authorization, "Bearer $token")
 }
@@ -170,13 +171,13 @@ internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
 
 internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
-    svarId: String,
+    svarIder: List<String>,
     bliMedDTO: BliMedDTO,
     block: () -> Unit = {},
 ) {
     val response = performPost(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/svar",
-        body = SvarRequest(svarId = svarId)
+        body = SvarRequest(svarIder = svarIder)
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
@@ -219,7 +220,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     spørreundersøkelse: SpørreundersøkelseDto,
-    token: String = TestContainerHelper.azureAccessToken().serialize()
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/antall-svar",

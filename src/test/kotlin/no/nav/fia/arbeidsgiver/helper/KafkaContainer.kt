@@ -143,6 +143,7 @@ class KafkaContainer(network: Network) {
         vertId: UUID = UUID.randomUUID(),
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
         temaer: List<Temanavn> = Temanavn.entries,
+        flervalg: Boolean = false,
     ) = SpørreundersøkelseDto(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
         vertId = vertId.toString(),
@@ -157,6 +158,7 @@ class KafkaContainer(network: Network) {
                     SpørsmålOgSvaralternativerDto(
                         id = UUID.randomUUID().toString(),
                         spørsmål = "Hva gjør dere med IA?",
+                        flervalg = flervalg,
                         svaralternativer = listOf(
                             SvaralternativDto(
                                 svarId = UUID.randomUUID().toString(),
@@ -171,6 +173,7 @@ class KafkaContainer(network: Network) {
                     SpørsmålOgSvaralternativerDto(
                         id = UUID.randomUUID().toString(),
                         spørsmål = "Hva gjør dere IKKE med IA?",
+                        flervalg = flervalg,
                         svaralternativer = listOf(
                             SvaralternativDto(
                                 svarId = UUID.randomUUID().toString(),
@@ -186,7 +189,7 @@ class KafkaContainer(network: Network) {
             )
         },
         status = spørreundersøkelseStatus,
-        avslutningsdato = LocalDate.now().toKotlinLocalDate()
+        avslutningsdato = LocalDate.now().toKotlinLocalDate(),
     )
 
     private fun sendOgVent(

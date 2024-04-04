@@ -7,4 +7,5 @@ data class SpørsmålOgSvaralternativerDto(
     val id: String,
     val spørsmål: String,
     val svaralternativer: List<SvaralternativDto>,
+    val flervalg: Boolean,
 )

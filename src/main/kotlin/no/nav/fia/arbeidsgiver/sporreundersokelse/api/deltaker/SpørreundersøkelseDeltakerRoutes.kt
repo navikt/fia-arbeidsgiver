@@ -73,22 +73,29 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
     }
 
     post("$DELTAKER_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/svar") {
-        val svarId = call.receive(SvarRequest::class).svarId.tilUUID("svarId")
+        val svarIder = call.receive(SvarRequest::class).svarIder.map { it.tilUUID("svarId") }
 
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørsmålId = call.spørsmålId
         val sesjonId = call.sesjonId
+        val spørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId)
 
-        if (spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId).svaralternativer.none { it.svarId == svarId })
-            throw Feil(feilmelding = "Ukjent svar ($svarId)", feilkode = HttpStatusCode.Forbidden)
+        if (spørsmål.svaralternativer.none { svarIder.contains(it.svarId) })
+            throw Feil(
+                feilmelding = "Ukjent svar for spørsmålId: (${spørsmålId})", feilkode = HttpStatusCode.Forbidden
+            )
+
+        if (svarIder.size > 1 && !spørsmål.flervalg) {
+            throw Feil(feilmelding = "Spørsmål er ikke flervalg, id: $spørsmålId", feilkode = HttpStatusCode.BadRequest)
+        }
 
         spørreundersøkelseService.sendSvar(
             spørreundersøkelseId = spørreundersøkelseId,
             sesjonsId = sesjonId,
             spørsmålId = spørsmålId,
-            svarId = svarId,
+            svarIder = svarIder,
         )
 
         call.respond(

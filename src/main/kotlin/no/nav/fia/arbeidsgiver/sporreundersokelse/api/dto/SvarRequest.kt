@@ -5,5 +5,5 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SvarRequest(
-    val svarId: String,
+    val svarIder: List<String>,
 )

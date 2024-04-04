@@ -32,6 +32,7 @@ import org.junit.Before
 import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertNotNull
+import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 
 class SpørreundersøkelseDeltakerTest {
     private val spørreundersøkelseSvarKonsument =
@@ -105,7 +106,7 @@ class SpørreundersøkelseDeltakerTest {
                 val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
-                    svarId = spørsmål.svaralternativer.first().svarId,
+                    svarIder = listOf(spørsmål.svaralternativer.first().svarId),
                     bliMedDTO = bliMedDTO
                 )
             }
@@ -265,7 +266,7 @@ class SpørreundersøkelseDeltakerTest {
             val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
             fiaArbeidsgiverApi.svarPåSpørsmål(
                 spørsmål = startDto,
-                svarId = spørsmål.svaralternativer.first().svarId,
+                svarIder = listOf(spørsmål.svaralternativer.first().svarId),
                 bliMedDTO = bliMedDTO
             )
 
@@ -298,7 +299,7 @@ class SpørreundersøkelseDeltakerTest {
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
-                    svarId = spørreundersøkelseDto.hentSpørsmålITema(startDto).svaralternativer.first().svarId,
+                    svarIder = listOf(spørreundersøkelseDto.hentSpørsmålITema(startDto).svaralternativer.first().svarId),
                     bliMedDTO = bliMedDTO.copy(spørreundersøkelseId = UUID.randomUUID().toString())
                 )
             }
@@ -319,11 +320,102 @@ class SpørreundersøkelseDeltakerTest {
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
-                    svarId = svarId,
+                    svarIder = listOf(svarId),
                     bliMedDTO = bliMedDTO
                 )
             }
-            fiaArbeidsgiverApi shouldContainLog "Ukjent svar \\($svarId\\)".toRegex()
+            fiaArbeidsgiverApi shouldContainLog "Ukjent svar for spørsmålId: \\(${startDto.spørsmålId}\\)".toRegex()
+        }
+    }
+
+    @Test
+    fun `Skal ikke kunne sende flere svar på enkeltvalg spørsmål`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
+
+            val spørsmålsoversiktVert = fiaArbeidsgiverApi.hentSpørsmålSomVert(
+                spørsmål = startDto,
+                spørreundersøkelse = spørreundersøkelseDto
+            )
+            val spørsmålsoversiktDeltaker =
+                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+
+            spørsmål.flervalg shouldBe false
+            spørsmålsoversiktVert.flervalg shouldBe false
+            spørsmålsoversiktDeltaker?.flervalg shouldBe false
+            shouldFail {
+                fiaArbeidsgiverApi.svarPåSpørsmål(
+                    spørsmål = startDto,
+                    svarIder = listOf(
+                        spørsmål.svaralternativer.first().svarId,
+                        spørsmål.svaralternativer.last().svarId
+                    ),
+                    bliMedDTO = bliMedDTO
+                )
+            }
+            fiaArbeidsgiverApi shouldContainLog "Spørsmål er ikke flervalg, id: ${spørsmål.id}".toRegex()
+        }
+    }
+
+    @Test
+    fun `Skal kunne sende flere svar til kafka for på flervalg spørsmål`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+
+        val standardSpørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, flervalg = true)
+
+        val spørreundersøkelseDto = kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelsesStreng = Json.encodeToString<SpørreundersøkelseDto>(
+                standardSpørreundersøkelse
+            )
+        )
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
+
+            val spørsmålsoversiktVert = fiaArbeidsgiverApi.hentSpørsmålSomVert(
+                spørsmål = startDto,
+                spørreundersøkelse = spørreundersøkelseDto
+            )
+            val spørsmålsoversiktDeltaker =
+                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+
+            spørsmål.flervalg shouldBe true
+            spørsmålsoversiktVert.flervalg shouldBe true
+            spørsmålsoversiktDeltaker?.flervalg shouldBe true
+
+            fiaArbeidsgiverApi.svarPåSpørsmål(
+                spørsmål = startDto,
+                svarIder = listOf(spørsmål.svaralternativer.first().svarId, spørsmål.svaralternativer.last().svarId),
+                bliMedDTO = bliMedDTO
+            )
+
+            kafka.ventOgKonsumerKafkaMeldinger(
+                key = "${bliMedDTO.sesjonsId}_${spørsmål.id}",
+                konsument = spørreundersøkelseSvarKonsument
+            ) { meldinger ->
+                val deserialiserteSvar = meldinger.map {
+                    Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
+                }
+                deserialiserteSvar shouldHaveAtLeastSize 1
+                deserialiserteSvar.forAtLeastOne { svar ->
+                    svar.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
+                    svar.sesjonId shouldBe bliMedDTO.sesjonsId
+                    svar.spørsmålId shouldBe spørsmål.id
+                    svar.svarId shouldBe spørsmål.svaralternativer.first().svarId
+                    svar.svarIder shouldBe listOf(
+                        spørsmål.svaralternativer.first().svarId,
+                        spørsmål.svaralternativer.last().svarId
+                    )
+                }
+            }
         }
     }
 }

@@ -50,10 +50,12 @@ class SpørreundersøkelseVertTest {
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
                 header(HEADER_VERT_ID, spørreundersøkelseDto.vertId)
-                header(HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
-                    issuerId = "azure",
-                    audience = "azure:fia-arbeidsgiver-frontend"
-                ).serialize())
+                header(
+                    HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
+                        issuerId = "azure",
+                        audience = "azure:fia-arbeidsgiver-frontend"
+                    ).serialize()
+                )
             }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
@@ -119,7 +121,7 @@ class SpørreundersøkelseVertTest {
                     temanavn = it.temanavn,
                     beskrivelse = it.beskrivelse,
                     introtekst = it.introtekst,
-                    status = if(it.temaId == spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
+                    status = if (it.temaId == spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }
@@ -152,7 +154,7 @@ class SpørreundersøkelseVertTest {
                     temanavn = it.temanavn,
                     beskrivelse = it.beskrivelse,
                     introtekst = it.introtekst,
-                    status = if(it.temaId == førsteTema.temaId) TemaStatus.ALLE_SPØRSMÅL_ÅPNET else TemaStatus.ÅPNET,
+                    status = if (it.temaId == førsteTema.temaId) TemaStatus.ALLE_SPØRSMÅL_ÅPNET else TemaStatus.ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id
                 )
             }
@@ -280,7 +282,7 @@ class SpørreundersøkelseVertTest {
                 val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = førsteSpørsmål,
-                    svarId = spørreundersøkelseDto.hentSpørsmålITema(førsteSpørsmål).svaralternativer.first().svarId,
+                    svarIder = listOf(spørreundersøkelseDto.hentSpørsmålITema(førsteSpørsmål).svaralternativer.first().svarId),
                     bliMedDTO = bliMedDTO,
                 ) {
                     TestContainerHelper.kafka.sendAntallSvar(
