@@ -13,6 +13,11 @@ spec:
   azure:
     application:
       enabled: true
+      allowAllUsers: false
+      claims:
+        groups:
+          - id: 02b25498-1a81-45b5-84cb-876a8899c809
+          - id: e00f4248-2d26-4645-bf94-22d47623a51e
   tokenx:
     enabled: true
   accessPolicy:
