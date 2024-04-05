@@ -60,7 +60,7 @@ dependencies {
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.5.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.2")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.3")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
