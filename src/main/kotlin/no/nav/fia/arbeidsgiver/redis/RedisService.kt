@@ -55,5 +55,6 @@ enum class Type {
     SESJON,
     ANTALL_DELTAKERE,
     ANTALL_SVAR_FOR_SPØRSMÅL,
-    ER_SPØRSMÅL_ÅPENT,
+    TEMA_STATUS,
+    ER_SPØRSMÅL_ÅPENT;
 }

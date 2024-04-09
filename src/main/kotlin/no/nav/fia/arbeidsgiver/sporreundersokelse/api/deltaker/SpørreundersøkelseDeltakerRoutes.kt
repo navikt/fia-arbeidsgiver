@@ -17,6 +17,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
@@ -81,6 +82,13 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørsmålId = call.spørsmålId
         val sesjonId = call.sesjonId
         val spørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId)
+        val temaId = call.temaId
+
+        if (TemaStatus.STENGT == spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, temaId)) {
+            throw Feil(
+                feilmelding = "Tema $temaId er stengt", feilkode = HttpStatusCode.BadRequest
+            )
+        }
 
         if (spørsmål.svaralternativer.none { svarIder.contains(it.svarId) })
             throw Feil(

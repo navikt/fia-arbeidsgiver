@@ -5,6 +5,7 @@ import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
@@ -62,6 +63,20 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             temaMedSpørsmålOgSvaralternativerIndexedValue.value
                 .tilTemaOversiktDto(temaStatus, temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
         )
+    }
+
+    post("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/avslutt") {
+        val spørreundersøkelseId = call.spørreundersøkelseId
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+
+        spørreundersøkelseService.lukkTema(
+            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+            temaId = call.temaId
+        )
+
+        call.respond(HttpStatusCode.OK)
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {

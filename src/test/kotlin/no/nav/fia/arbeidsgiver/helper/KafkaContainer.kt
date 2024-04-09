@@ -208,7 +208,8 @@ class KafkaContainer(network: Network) {
             listOf(
                 NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
                 NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort())
+                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
+                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort())
             )
         )
     }

@@ -33,6 +33,7 @@ import java.util.*
 import kotlin.test.Test
 import kotlin.test.assertNotNull
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
+import no.nav.fia.arbeidsgiver.helper.stengTema
 
 class SpørreundersøkelseDeltakerTest {
     private val spørreundersøkelseSvarKonsument =
@@ -415,6 +416,24 @@ class SpørreundersøkelseDeltakerTest {
                         spørsmål.svaralternativer.last().svarId
                     )
                 }
+            }
+        }
+    }
+
+    @Test
+    fun `deltaker skal ikke kunne svare på spørsmål i stengte temaer`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val spørsmål = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+            fiaArbeidsgiverApi.stengTema(temaId = startDto.temaId, spørreundersøkelse = spørreundersøkelseDto)
+
+            shouldFail {
+                fiaArbeidsgiverApi.svarPåSpørsmål(startDto, listOf(spørsmål.svaralternativer.first().svarId), bliMedDTO)
             }
         }
     }

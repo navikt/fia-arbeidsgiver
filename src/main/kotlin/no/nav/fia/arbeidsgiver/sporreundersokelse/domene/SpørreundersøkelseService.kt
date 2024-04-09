@@ -8,6 +8,8 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
@@ -20,6 +22,9 @@ class SpørreundersøkelseService(
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val spørreundersøkelseSvarProdusent by lazy {
         SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
+    }
+    private val spørreundersøkelseHendelseProdusent by lazy {
+        SpørreundersøkelseHendelseProdusent(kafkaConfig = KafkaConfig())
     }
 
     fun lagre(spørreundersøkelse: Spørreundersøkelse) {
@@ -118,4 +123,17 @@ class SpørreundersøkelseService(
                 svarIder = svarIder.map { it.toString() },
             )
         )
+
+    fun lukkTema(spørreundersøkelseId: UUID, temaId: Int) {
+        spørreundersøkelseHendelseProdusent.sendHendelse(
+            hendelse = StengTema(spørreundersøkelseId = spørreundersøkelseId.toString(), temaId = temaId)
+        )
+        redisService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
+    }
+
+    fun hentTemaStatus(spørreundersøkelseId: UUID, temaId: Int): TemaStatus? {
+        return redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
+            Json.decodeFromString(it)
+        }
+    }
 }

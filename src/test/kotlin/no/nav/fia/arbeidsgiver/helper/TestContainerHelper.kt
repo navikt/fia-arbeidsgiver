@@ -258,6 +258,21 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     return response.body()
 }
 
+internal suspend fun GenericContainer<*>.stengTema(
+    temaId: Int,
+    spørreundersøkelse: SpørreundersøkelseDto,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
+) {
+    val response = performPost(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/avslutt",
+        body = Unit
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
+    }
+
+    response.status shouldBe HttpStatusCode.OK
+}
 
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: String,
