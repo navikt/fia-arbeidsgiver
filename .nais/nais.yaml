@@ -24,8 +24,6 @@ spec:
     inbound:
       rules:
         - application: min-ia
-          namespace: teamia
-        - application: min-ia
           namespace: pia
         - application: fia-arbeidsgiver-frontend
           namespace: pia
@@ -33,7 +31,6 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
-        - application: fia-arbeidsgiver-frontend
   redis:
     - instance: fia-samarbeidsstatus
       access: readwrite
