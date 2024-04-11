@@ -119,7 +119,6 @@ class SpørreundersøkelseService(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
                 sesjonId = sesjonsId.toString(),
                 spørsmålId = spørsmålId.toString(),
-                svarId = svarIder.first().toString(),
                 svarIder = svarIder.map { it.toString() },
             )
         )

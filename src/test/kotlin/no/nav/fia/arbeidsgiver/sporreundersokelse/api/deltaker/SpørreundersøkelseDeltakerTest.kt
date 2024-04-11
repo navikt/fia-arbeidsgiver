@@ -283,7 +283,6 @@ class SpørreundersøkelseDeltakerTest {
                     svar.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
                     svar.sesjonId shouldBe bliMedDTO.sesjonsId
                     svar.spørsmålId shouldBe spørsmål.id
-                    svar.svarId shouldBe spørsmål.svaralternativer.first().svarId
                 }
             }
         }
@@ -410,7 +409,6 @@ class SpørreundersøkelseDeltakerTest {
                     svar.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
                     svar.sesjonId shouldBe bliMedDTO.sesjonsId
                     svar.spørsmålId shouldBe spørsmål.id
-                    svar.svarId shouldBe spørsmål.svaralternativer.first().svarId
                     svar.svarIder shouldBe listOf(
                         spørsmål.svaralternativer.first().svarId,
                         spørsmål.svaralternativer.last().svarId
