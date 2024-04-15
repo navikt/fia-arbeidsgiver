@@ -39,7 +39,7 @@ dependencies {
     implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
 
     // altinn-klient
-    implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:3.1.0")
+    implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:4.0.0")
 
     // altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet
     implementation("commons-codec:commons-codec:1.16.1")
