@@ -7,44 +7,45 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.Spørreundersøkelse
 
 class StengTema(
 	spørreundersøkelseId: String,
-	temaId: Int
-): SpørreundersøkelseHendelse<Int>(
-	spørreundersøkelseId = spørreundersøkelseId,
-	hendelsesType = HendelsType.STENG_TEMA,
-	data = temaId
+	temaId: Int,
+) : SpørreundersøkelseHendelse<Int>(
+    spørreundersøkelseId = spørreundersøkelseId,
+    hendelsesType = HendelsType.STENG_TEMA,
+    data = temaId
 )
 
 class SvarPåSpørsmål(
 	spørreundersøkelseId: String,
-	svarPåSpørsmål: SpørreundersøkelseSvarDTO
-): SpørreundersøkelseHendelse<SpørreundersøkelseSvarDTO>(
-	spørreundersøkelseId = spørreundersøkelseId,
-	hendelsesType = HendelsType.SVAR_PÅ_SPØRSMÅL,
-	data = svarPåSpørsmål
+	svarPåSpørsmål: SpørreundersøkelseSvarDTO,
+) : SpørreundersøkelseHendelse<SpørreundersøkelseSvarDTO>(
+    spørreundersøkelseId = spørreundersøkelseId,
+    hendelsesType = HendelsType.SVAR_PÅ_SPØRSMÅL,
+    data = svarPåSpørsmål
 )
 
 @Serializable
 sealed class SpørreundersøkelseHendelse<T>(
 	val spørreundersøkelseId: String,
 	val hendelsesType: HendelsType,
-	val data: T
+	val data: T,
 ) {
-	fun tilNøkkel() =
-		Json.encodeToString(KafkaNøkkel(spørreundersøkelseId ,hendelsesType))
-	fun tilMelding() =
-		when(this) {
-			is StengTema -> Json.encodeToString(data)
-			is SvarPåSpørsmål -> Json.encodeToString(data)
-		}
+    fun tilNøkkel() =
+        Json.encodeToString(SpørreundersøkelseHendelseNøkkel(spørreundersøkelseId, hendelsesType))
+
+    fun tilMelding() =
+        when (this) {
+            is StengTema -> Json.encodeToString(data)
+            is SvarPåSpørsmål -> Json.encodeToString(data)
+        }
 }
 
 @Serializable
-data class KafkaNøkkel(
+data class SpørreundersøkelseHendelseNøkkel(
 	val spørreundersøkelseId: String,
-	val hendelsesType: HendelsType
+	val hendelsesType: HendelsType,
 )
 
 enum class HendelsType {
-	STENG_TEMA,
-	SVAR_PÅ_SPØRSMÅL
+    STENG_TEMA,
+    SVAR_PÅ_SPØRSMÅL
 }

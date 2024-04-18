@@ -51,6 +51,7 @@ class RedisService(
 
 enum class Type {
     SAMARBEIDSSTATUS,
+    SPØRREUNDERSØKELSE_RESULTAT,
     SPØRREUNDERSØKELSE,
     SESJON,
     ANTALL_DELTAKERE,

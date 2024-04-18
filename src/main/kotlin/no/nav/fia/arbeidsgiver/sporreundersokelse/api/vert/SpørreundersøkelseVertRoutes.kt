@@ -41,6 +41,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}") {
+        // TODO hvorfor er det /tema/temaId i dette endepunktet og ikke andre, fjern?
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
@@ -66,6 +67,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
     }
 
     post("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/avslutt") {
+        // TODO hvorfor er det /tema/temaId i dette endepunktet og ikke andre, fjern?
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
@@ -108,6 +110,15 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
                 spørreundersøkelseId = call.spørreundersøkelseId,
                 spørsmålId = call.spørsmålId
+            )
+        )
+    }
+
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/resultater") {
+        call.respond(
+            HttpStatusCode.OK, spørreundersøkelseService.hentResultater(
+                spørreundersøkelseId = call.spørreundersøkelseId,
+                temaId = call.temaId
             )
         )
     }

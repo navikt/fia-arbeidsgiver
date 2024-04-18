@@ -13,6 +13,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHend
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -40,6 +41,14 @@ class SpørreundersøkelseService(
             type = Type.ANTALL_SVAR_FOR_SPØRSMÅL,
             nøkkel = "${spørreundersøkelseAntallSvarDto.spørreundersøkelseId}-${spørreundersøkelseAntallSvarDto.spørsmålId}",
             verdi = spørreundersøkelseAntallSvarDto.antallSvar.toString()
+        )
+    }
+
+    fun lagre(spørreundersøkelseId: String, spørreundersøkelseResultat: TemaMedSpørsmålOgSvar) {
+        redisService.lagre(
+            type = Type.SPØRREUNDERSØKELSE_RESULTAT,
+            nøkkel = "${spørreundersøkelseId}-${spørreundersøkelseResultat.temaId}",
+            verdi = Json.encodeToString(spørreundersøkelseResultat)
         )
     }
 
@@ -98,6 +107,18 @@ class SpørreundersøkelseService(
 
     fun hentAntallSvar(spørreundersøkelseId: UUID, spørsmålId: UUID): Int {
         return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
+    }
+
+    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaMedSpørsmålOgSvar {
+        val resultater =
+            redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "${spørreundersøkelseId}-${temaId}")?.let {
+                Json.decodeFromString<TemaMedSpørsmålOgSvar>(it)
+            } ?: throw Feil(
+                feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
+                feilkode = HttpStatusCode.Forbidden
+            )
+        logger.info("Hentet resultater for tema med id '$temaId med id '$spørreundersøkelseId'")
+        return resultater
     }
 
     fun åpneSpørsmål(spørreundersøkelseId: UUID, spørsmålId: UUID) {

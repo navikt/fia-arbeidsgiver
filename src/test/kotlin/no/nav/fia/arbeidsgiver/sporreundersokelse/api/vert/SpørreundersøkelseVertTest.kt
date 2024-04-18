@@ -7,13 +7,27 @@ import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.ktor.client.call.body
 import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import java.util.*
+import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.*
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
+import no.nav.fia.arbeidsgiver.helper.bliMed
+import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForSpørsmål
+import no.nav.fia.arbeidsgiver.helper.hentResultater
+import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
+import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
+import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
+import no.nav.fia.arbeidsgiver.helper.performGet
+import no.nav.fia.arbeidsgiver.helper.stengTema
+import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
+import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
@@ -21,10 +35,9 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import org.junit.After
 import org.junit.Before
-import java.util.*
-import kotlin.test.Test
 
 class SpørreundersøkelseVertTest {
     private val spørreundersøkelseHendelseKonsument =
@@ -334,6 +347,50 @@ class SpørreundersøkelseVertTest {
             { meldinger ->
                 meldinger.forAll {
                     it.toInt() shouldBe temaId
+                }
+            }
+        }
+    }
+
+    @Test
+    fun `vert skal ikke kunne hente temaresultat før det er publisert i kafka`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val temaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId
+
+        runBlocking {
+            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+                temaId = temaId,
+                spørreundersøkelse = spørreundersøkelseDto
+            )
+            resultatRespons.status shouldBe HttpStatusCode.Forbidden
+            fiaArbeidsgiverApi shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente temaresultat`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val svarPerSpørsmål = 2
+
+        kafka.sendResultatPåTema(
+            spørreundersøkelseId = spørreundersøkelseId,
+            antallSvarPerSpørsmål = svarPerSpørsmål,
+            temaMedSpørsmålOgSvaralternativerDto = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+        )
+
+        runBlocking {
+            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+                temaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId,
+                spørreundersøkelse = spørreundersøkelseDto
+            ).body<TemaMedSpørsmålOgSvar>()
+
+            resultatRespons.spørsmålMedSvar.map { spørsmål ->
+                spørsmål.svarListe.forEach {
+                    it.antallSvar shouldBe svarPerSpørsmål
                 }
             }
         }

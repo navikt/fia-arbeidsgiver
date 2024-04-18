@@ -30,11 +30,12 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -256,6 +257,17 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
         medAzureToken(token = token)
     }
     return response.body()
+}
+
+internal suspend fun GenericContainer<*>.hentResultater(
+    spørreundersøkelse: SpørreundersøkelseDto,
+    temaId: Int,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
+) = performGet(
+    url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${temaId}/resultater",
+) {
+    header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    medAzureToken(token = token)
 }
 
 internal suspend fun GenericContainer<*>.stengTema(

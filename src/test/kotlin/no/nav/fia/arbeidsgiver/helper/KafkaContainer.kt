@@ -1,5 +1,9 @@
 package no.nav.fia.arbeidsgiver.helper
 
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -14,10 +18,16 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.ANTALL_SVAR
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.RESULTATER_FOR_TEMA
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseOppdateringNøkkel
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålMedSvar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.Svar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvaralternativerDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
@@ -35,10 +45,6 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 
 class KafkaContainer(network: Network) {
     private val kafkaNetworkAlias = "kafkaContainer"
@@ -120,11 +126,55 @@ class KafkaContainer(network: Network) {
     ): SpørreundersøkelseAntallSvarDto {
         val antallSvarDto = SpørreundersøkelseAntallSvarDto(spørreundersøkelseId, spørsmålId, antallSvar)
         sendOgVent(
-            nøkkel = "$spørreundersøkelseId-$spørsmålId",
+            nøkkel = Json.encodeToString(SpørreundersøkelseOppdateringNøkkel(spørreundersøkelseId, ANTALL_SVAR)),
             melding = json.encodeToString(antallSvarDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_ANTALL_SVAR
+            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
         )
         return antallSvarDto
+    }
+
+    private fun SvaralternativDto.tilKafkaResultatMelding(antallSvar: Int) = Svar(
+        svarId = svarId,
+        tekst = svartekst,
+        antallSvar = antallSvar,
+    )
+
+    private fun SpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar: Int) = SpørsmålMedSvar(
+        spørsmålId = id,
+        tekst = spørsmål,
+        svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
+        flervalg = flervalg
+    )
+
+    private fun TemaMedSpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar: Int) = TemaMedSpørsmålOgSvar(
+        temaId = temaId,
+        tema = temanavn.name,
+        beskrivelse = beskrivelse,
+        spørsmålMedSvar = spørsmålOgSvaralternativer.map {
+            it.tilKafkaResultatMelding(antallSvar = antallSvar)
+        }
+    )
+
+    fun sendResultatPåTema(
+        spørreundersøkelseId: UUID,
+        antallSvarPerSpørsmål: Int,
+        temaMedSpørsmålOgSvaralternativerDto: TemaMedSpørsmålOgSvaralternativerDto,
+    ): TemaMedSpørsmålOgSvar {
+        val nøkkel = Json.encodeToString(
+            SpørreundersøkelseOppdateringNøkkel(
+                spørreundersøkelseId.toString(),
+                RESULTATER_FOR_TEMA
+            )
+        )
+        val temaMedSpørsmålOgSvarDto =
+            temaMedSpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
+
+        sendOgVent(
+            nøkkel = nøkkel,
+            melding = json.encodeToString(temaMedSpørsmålOgSvarDto),
+            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
+        )
+        return temaMedSpørsmålOgSvarDto
     }
 
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =

@@ -1,5 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
+import java.time.Duration
+import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -11,20 +13,23 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.ANTALL_SVAR
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.RESULTATER_FOR_TEMA
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseOppdateringNøkkel
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import java.time.Duration
-import kotlin.coroutines.CoroutineContext
 
-class SpørreundersøkelseAntallSvarKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
+class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: SpørreundersøkelseService) :
+    CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
-    private val topic = KafkaTopics.SPØRREUNDERSØKELSE_ANTALL_SVAR
+    private val topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
@@ -55,9 +60,23 @@ class SpørreundersøkelseAntallSvarKonsument(val spørreundersøkelseService: S
 
                         records.forEach { record ->
                             try {
-                                val antallSvar = json.decodeFromString<SpørreundersøkelseAntallSvarDto>(record.value())
-                                logger.info("Lagrer antall svar for spørsmål: ${antallSvar.spørsmålId} i spørreundersøkelse: ${antallSvar.spørreundersøkelseId}")
-                                spørreundersøkelseService.lagre(antallSvar)
+                                val nøkkel = json.decodeFromString<SpørreundersøkelseOppdateringNøkkel>(record.key())
+                                when (nøkkel.oppdateringsType) {
+                                    RESULTATER_FOR_TEMA -> {
+                                        val resultat =
+                                            json.decodeFromString<TemaMedSpørsmålOgSvar>(record.value())
+                                        logger.info("Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${resultat.temaId}")
+                                        spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, resultat)
+                                    }
+
+                                    ANTALL_SVAR -> {
+                                        val antallSvar =
+                                            json.decodeFromString<SpørreundersøkelseAntallSvarDto>(record.value())
+                                        logger.info("Lagrer antall svar for spørsmål: ${antallSvar.spørsmålId} i spørreundersøkelse: ${antallSvar.spørreundersøkelseId}")
+                                        spørreundersøkelseService.lagre(antallSvar)
+                                    }
+                                }
+
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }

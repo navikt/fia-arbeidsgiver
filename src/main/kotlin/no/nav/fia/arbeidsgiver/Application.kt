@@ -13,13 +13,13 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureSecurity
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureStatusPages
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseAntallSvarKonsument
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument
 
 fun main() {
     val redisService = RedisService()
     FiaStatusKonsument(SamarbeidsstatusService(redisService)).run()
     SpørreundersøkelseKonsument(SpørreundersøkelseService(redisService)).run()
-    SpørreundersøkelseAntallSvarKonsument(SpørreundersøkelseService(redisService)).run()
+    SpørreundersøkelseOppdateringKonsument(SpørreundersøkelseService(redisService)).run()
     embeddedServer(Netty, port = 8080, host = "0.0.0.0", module = Application::fiaArbeidsgiver).start(wait = true)
 }
 
