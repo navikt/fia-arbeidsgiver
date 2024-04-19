@@ -54,13 +54,10 @@ class SpørreundersøkelseService(
 
     fun slett(spørreundersøkelse: Spørreundersøkelse) {
         logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
-        // -- slett enkle nøkler basert på spørreundersøkelsens id
         listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
             logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
             redisService.slett(it, spørreundersøkelse.spørreundersøkelseId.toString())
         }
-
-        // -- TODO: slett sesjoner knyttet til spørreundersøkelsen
     }
 
     fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {
@@ -70,7 +67,6 @@ class SpørreundersøkelseService(
     fun lagreAntallDeltakere(spørreundersøkelseId: UUID, antallDeltakere: Int) {
         redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
-
 
     fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = redisService.hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
