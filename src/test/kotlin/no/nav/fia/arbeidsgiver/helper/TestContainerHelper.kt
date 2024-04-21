@@ -35,7 +35,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -177,7 +176,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     block: () -> Unit = {},
 ) {
     val response = performPost(
-        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/svar",
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/svar",
         body = SvarRequest(svarIder = svarIder)
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
@@ -192,7 +191,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
     bliMedDTO: BliMedDTO,
 ): SpørsmålsoversiktDto? {
     val response = performGet(
-        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}",
+        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
@@ -210,7 +209,7 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): SpørsmålsoversiktDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
         medAzureToken(token = token)
@@ -224,7 +223,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${spørsmål.temaId}/${spørsmål.spørsmålId}/antall-svar",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
         medAzureToken(token = token)
@@ -251,7 +250,7 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): TemaOversiktDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${temaId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId",
     ) {
         header(HEADER_VERT_ID, spørreundersøkelse.vertId)
         medAzureToken(token = token)
@@ -264,7 +263,7 @@ internal suspend fun GenericContainer<*>.hentResultater(
     temaId: Int,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) = performGet(
-    url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/${temaId}/resultater",
+    url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/resultater",
 ) {
     header(HEADER_VERT_ID, spørreundersøkelse.vertId)
     medAzureToken(token = token)

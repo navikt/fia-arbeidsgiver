@@ -18,7 +18,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 
 
-const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert/v2"
+const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
 
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
     get("$VERT_BASEPATH/{spørreundersøkelseId}") {
@@ -41,7 +41,6 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}") {
-        // TODO hvorfor er det /tema/temaId i dette endepunktet og ikke andre, fjern?
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
@@ -67,7 +66,6 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
     }
 
     post("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/avslutt") {
-        // TODO hvorfor er det /tema/temaId i dette endepunktet og ikke andre, fjern?
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
@@ -88,7 +86,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
@@ -105,7 +103,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/antall-svar") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}/antall-svar") {
         call.respond(
             HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
                 spørreundersøkelseId = call.spørreundersøkelseId,
@@ -114,7 +112,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/{temaId}/resultater") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/resultater") {
         call.respond(
             HttpStatusCode.OK, spørreundersøkelseService.hentResultater(
                 spørreundersøkelseId = call.spørreundersøkelseId,

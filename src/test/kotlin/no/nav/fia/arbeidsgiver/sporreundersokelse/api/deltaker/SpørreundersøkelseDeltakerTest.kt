@@ -138,7 +138,7 @@ class SpørreundersøkelseDeltakerTest {
 
             val randomSpørsmålId = UUID.randomUUID()
             fiaArbeidsgiverApi.performGet(
-                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/${temaId}/${randomSpørsmålId}"
+                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$randomSpørsmålId"
             ) {
                 header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
             }.status shouldBe HttpStatusCode.NotFound
@@ -154,9 +154,13 @@ class SpørreundersøkelseDeltakerTest {
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val spørsmålId =
+                spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id
+
+            val temaId = -1
 
             fiaArbeidsgiverApi.performGet(
-                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/${-1}/${spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().spørsmålOgSvaralternativer.first().id}"
+                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$spørsmålId"
             ) {
                 header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
             }.status shouldBe HttpStatusCode.NotFound
@@ -427,7 +431,8 @@ class SpørreundersøkelseDeltakerTest {
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-            val spørsmål = spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+            val spørsmål =
+                spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
             fiaArbeidsgiverApi.stengTema(temaId = startDto.temaId, spørreundersøkelse = spørreundersøkelseDto)
 
             shouldFail {

@@ -41,7 +41,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         )
     }
 
-    get("$DELTAKER_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}") {
+    get("$DELTAKER_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
@@ -73,7 +73,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         )
     }
 
-    post("$DELTAKER_BASEPATH/{spørreundersøkelseId}/{temaId}/{spørsmålId}/svar") {
+    post("$DELTAKER_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}/svar") {
         val svarIder = call.receive(SvarRequest::class).svarIder.map { it.tilUUID("svarId") }
 
         val spørreundersøkelseId = call.spørreundersøkelseId
