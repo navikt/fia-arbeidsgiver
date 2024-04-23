@@ -10,6 +10,8 @@ import java.util.*
 data class SpørreundersøkelseDto (
     val spørreundersøkelseId: String,
     val vertId: String,
+    val orgnummer: String,
+    val virksomhetsNavn: String,
     val status: SpørreundersøkelseStatus,
     val type: String,
     val temaMedSpørsmålOgSvaralternativer: List<TemaMedSpørsmålOgSvaralternativerDto>,
@@ -19,6 +21,8 @@ data class SpørreundersøkelseDto (
 fun SpørreundersøkelseDto.tilDomene() = Spørreundersøkelse(
     spørreundersøkelseId = UUID.fromString(spørreundersøkelseId),
     vertId = UUID.fromString(vertId),
+    orgnummer = orgnummer,
+    virksomhetsNavn = virksomhetsNavn,
     temaMedSpørsmålOgSvaralternativer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
     status = status,
     type = type,

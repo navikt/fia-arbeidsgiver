@@ -1,10 +1,10 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import java.util.UUID
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
+import java.util.*
 
 @Serializable
 data class Spørreundersøkelse(
@@ -12,6 +12,8 @@ data class Spørreundersøkelse(
     val spørreundersøkelseId: UUID,
     @Serializable(with = UUIDSerializer::class)
     val vertId: UUID,
+    val orgnummer: String,
+    val virksomhetsNavn: String,
     val temaMedSpørsmålOgSvaralternativer: List<TemaMedSpørsmålOgSvaralternativer>,
     val status: SpørreundersøkelseStatus,
     val type: String,

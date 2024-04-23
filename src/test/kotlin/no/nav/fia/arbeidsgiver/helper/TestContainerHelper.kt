@@ -53,6 +53,8 @@ class TestContainerHelper {
         val redis = RedisContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
+        const val VERT_NAV_IDENT = "Z12345"
+
         val fiaArbeidsgiverApi =
             GenericContainer(
                 ImageFromDockerfile().withDockerfile(Path("./Dockerfile"))
@@ -93,7 +95,7 @@ class TestContainerHelper {
             subject: String = "123",
             audience: String = "azure:fia-arbeidsgiver",
             claims: Map<String, String> = mapOf(
-                "NAVident" to "Z12345",
+                "NAVident" to VERT_NAV_IDENT,
             ),
         ) = authServer.issueToken(
             subject = subject,

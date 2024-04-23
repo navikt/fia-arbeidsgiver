@@ -1,9 +1,5 @@
 package no.nav.fia.arbeidsgiver.helper
 
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -45,6 +41,10 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 
 class KafkaContainer(network: Network) {
     private val kafkaNetworkAlias = "kafkaContainer"
@@ -191,12 +191,16 @@ class KafkaContainer(network: Network) {
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
         vertId: UUID = UUID.randomUUID(),
+        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
         temaer: List<Temanavn> = Temanavn.entries,
         flervalg: Boolean = false,
     ) = SpørreundersøkelseDto(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
         vertId = vertId.toString(),
+        orgnummer = orgnummer,
+        virksomhetsNavn = virksomhetsNavn,
         type = "kartlegging",
         temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
             TemaMedSpørsmålOgSvaralternativerDto(

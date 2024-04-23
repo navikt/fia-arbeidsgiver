@@ -75,14 +75,9 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
             temaId = call.temaId
         )
-
-        call.respond(HttpStatusCode.OK)
-    }
-
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {
         call.respond(
-            HttpStatusCode.OK,
-            spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId = call.spørreundersøkelseId)
+            status= HttpStatusCode.OK,
+            message = Unit
         )
     }
 
@@ -103,6 +98,19 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/resultater") {
+        call.respond(
+            HttpStatusCode.OK, spørreundersøkelseService.hentResultater(
+                spørreundersøkelseId = call.spørreundersøkelseId,
+                temaId = call.temaId
+            )
+        )
+    }
+}
+
+fun Route.spørreundersøkelseVertStatus(
+    spørreundersøkelseService: SpørreundersøkelseService
+) {
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}/antall-svar") {
         call.respond(
             HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
@@ -112,12 +120,10 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/resultater") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {
         call.respond(
-            HttpStatusCode.OK, spørreundersøkelseService.hentResultater(
-                spørreundersøkelseId = call.spørreundersøkelseId,
-                temaId = call.temaId
-            )
+            HttpStatusCode.OK,
+            spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId = call.spørreundersøkelseId)
         )
     }
 }

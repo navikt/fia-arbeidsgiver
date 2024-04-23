@@ -2,16 +2,22 @@ package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import VerifisertSesjonId
 import VerifisertVertId
-import io.ktor.server.routing.*
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
+import io.ktor.server.application.Application
+import io.ktor.server.application.install
+import io.ktor.server.auth.authenticate
+import io.ktor.server.routing.Route
+import io.ktor.server.routing.RouteSelector
+import io.ktor.server.routing.RouteSelectorEvaluation
+import io.ktor.server.routing.RoutingResolveContext
+import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.redis.RedisService
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.spørreundersøkelseDeltaker
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.spørreundersøkelseVert
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 fun Application.configureRouting(redisService: RedisService) {
@@ -26,12 +32,15 @@ fun Application.configureRouting(redisService: RedisService) {
 
         authenticate("azure") {
             medVerifisertVertsId(spørreundersøkelseService = spørreundersøkelseService) {
-                spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
+                auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
+                    spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
+                }
+                spørreundersøkelseVertStatus(spørreundersøkelseService = spørreundersøkelseService)
             }
         }
 
         authenticate("tokenx") {
-            auditLogged {
+            auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
                 medVerifisertAltinnTilgang {
                     samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(redisService = redisService))
                 }
@@ -40,8 +49,11 @@ fun Application.configureRouting(redisService: RedisService) {
     }
 }
 
-fun Route.auditLogged(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {
-    install(AuditLogged)
+fun Route.auditLogged(
+    spørreundersøkelseService: SpørreundersøkelseService,
+    authorizedRoutes: Route.() -> Unit
+) = createChild(selector).apply {
+    install(AuditLogged(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()
 }
 
