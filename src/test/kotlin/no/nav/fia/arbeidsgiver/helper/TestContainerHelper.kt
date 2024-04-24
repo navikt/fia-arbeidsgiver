@@ -234,6 +234,20 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
     return response.body()
 }
 
+internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
+    temaId: Int,
+    spørreundersøkelse: SpørreundersøkelseDto,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
+): Int {
+    val response = performGet(
+        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/antall-svar",
+    ) {
+        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        medAzureToken(token = token)
+    }
+    return response.body()
+}
+
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     spørreundersøkelse: SpørreundersøkelseDto,

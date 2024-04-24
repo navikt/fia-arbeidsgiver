@@ -20,6 +20,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForSpørsmål
+import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForTema
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentResultater
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
@@ -421,6 +422,44 @@ class SpørreundersøkelseVertTest {
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål
             )?.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(førsteSpørsmål).spørsmål
+        }
+    }
+
+    @Test
+    fun `vert skal kunne se hvor mange som har fullført alle spørsmål i ett tema`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val tema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first()
+            fiaArbeidsgiverApi.åpneTema(spørreundersøkelse = spørreundersøkelseDto, temaId = tema.temaId)
+
+            kafka.sendAntallSvar(
+                spørreundersøkelseId = spørreundersøkelseId.toString(),
+                spørsmålId = tema.spørsmålOgSvaralternativer.first().id,
+                antallSvar = 5
+            )
+
+            var antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+                temaId = tema.temaId,
+                spørreundersøkelse = spørreundersøkelseDto
+            )
+            antallDeltakereSomHarFullførtTema shouldBe 0
+
+            tema.spørsmålOgSvaralternativer.forEachIndexed { index, spørsmålOgSvaralternativerDto ->
+                kafka.sendAntallSvar(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    spørsmålId = spørsmålOgSvaralternativerDto.id,
+                    antallSvar = if (index == 1) 5 else 1
+                )
+            }
+
+            antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+                temaId = tema.temaId,
+                spørreundersøkelse = spørreundersøkelseDto
+            )
+            antallDeltakereSomHarFullførtTema shouldBe 1
         }
     }
 }

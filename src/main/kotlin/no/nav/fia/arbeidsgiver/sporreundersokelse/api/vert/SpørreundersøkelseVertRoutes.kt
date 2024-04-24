@@ -6,6 +6,7 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
+import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
@@ -131,6 +132,24 @@ fun Route.spørreundersøkelseVertStatus(
                 spørsmålId = call.spørsmålId
             )
         )
+    }
+
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/antall-svar") {
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
+        val tema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.firstOrNull {
+            it.temaId == call.temaId
+        } ?: throw Feil(feilmelding = "Fant ikke tema ${call.temaId}", feilkode = HttpStatusCode.NotFound)
+
+        val antallSvarPerSpørsmål = tema.spørsmålOgSvaralternativer.map { spørsmål ->
+            spørreundersøkelseService.hentAntallSvar(
+                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+                spørsmålId = spørsmål.id
+            )
+        }
+
+        val antallSvarPåSpørsmålMedFærrestBesvarelser = antallSvarPerSpørsmål.min()
+
+        call.respond(message = antallSvarPåSpørsmålMedFærrestBesvarelser, status = HttpStatusCode.OK)
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {
