@@ -1,8 +1,10 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto
 
 import kotlinx.serialization.Serializable
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.tilDto
 
 @Serializable
 data class TemaOversiktDto(
@@ -14,6 +16,7 @@ data class TemaOversiktDto(
     val introtekst: String,
     val status: TemaStatus,
     val førsteSpørsmålId: String,
+    val spørsmålOgSvaralternativer: List<SpørsmålOgSvaralternativerDto>,
 )
 
 
@@ -36,7 +39,8 @@ fun TemaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto(temaStatus: List<Tema
         beskrivelse = beskrivelse,
         introtekst = introtekst,
         status = status,
-        førsteSpørsmålId = spørsmålOgSvaralternativer.first().id.toString()
+        førsteSpørsmålId = spørsmålOgSvaralternativer.first().id.toString(),
+        spørsmålOgSvaralternativer = spørsmålOgSvaralternativer.map { it.tilDto() }
     )
 }
 

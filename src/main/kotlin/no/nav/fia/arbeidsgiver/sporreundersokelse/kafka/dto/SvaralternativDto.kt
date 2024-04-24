@@ -14,3 +14,8 @@ fun SvaralternativDto.tilDomene() = Svaralternativ(
     svarId = UUID.fromString(svarId),
     svartekst = svartekst,
 )
+
+fun Svaralternativ.tilDto() = SvaralternativDto(
+    svarId = svarId.toString(),
+    svartekst = svartekst
+)

@@ -18,3 +18,10 @@ fun SpørsmålOgSvaralternativerDto.tilDomene() = SpørsmålOgSvaralternativer(
     svaralternativer = svaralternativer.map { it.tilDomene() },
     flervalg = flervalg
 )
+
+fun SpørsmålOgSvaralternativer.tilDto() = SpørsmålOgSvaralternativerDto(
+    id = id.toString(),
+    spørsmål = spørsmål,
+    svaralternativer = svaralternativer.map { it.tilDto() },
+    flervalg = flervalg
+)
