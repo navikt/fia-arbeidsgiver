@@ -30,7 +30,11 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             TemaSvarStatus(
                 temaId = tema.temaId,
                 harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
-                    spørreundersøkelseService.erSpørsmålÅpent(spørreundersøkelseId, spørsmål.id)
+                    spørreundersøkelseService.erSpørsmålÅpent(
+                        spørreundersøkelseId = spørreundersøkelseId,
+                        temaId = tema.temaId,
+                        spørsmålId = spørsmål.id
+                    )
                 }
             )
         }
@@ -53,7 +57,11 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             TemaSvarStatus(
                 temaId = tema.temaId,
                 harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
-                    spørreundersøkelseService.erSpørsmålÅpent(spørreundersøkelseId, spørsmål.id)
+                    spørreundersøkelseService.erSpørsmålÅpent(
+                        spørreundersøkelseId = spørreundersøkelseId,
+                        temaId = tema.temaId,
+                        spørsmålId = spørsmål.id
+                    )
                 }
             )
         }
@@ -63,6 +71,11 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             temaMedSpørsmålOgSvaralternativerIndexedValue.value
                 .tilTemaOversiktDto(temaStatus, temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
         )
+    }
+
+    post("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/start") {
+        spørreundersøkelseService.åpneTema(spørreundersøkelseId = call.spørreundersøkelseId, temaId = call.temaId)
+        call.respond(status = HttpStatusCode.OK, message = Unit)
     }
 
     post("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/avslutt") {

@@ -20,7 +20,9 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForSpørsmål
+import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentResultater
+import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
@@ -28,6 +30,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
+import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
@@ -396,6 +399,28 @@ class SpørreundersøkelseVertTest {
                     it.antallSvar shouldBe svarPerSpørsmål
                 }
             }
+        }
+    }
+
+    @Test
+    fun `vert skal kunne åpne ett tema`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val førsteSpørsmål = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO)
+            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+                bliMedDTO = bliMedDTO,
+                spørsmål = førsteSpørsmål
+            ) shouldBe null
+
+            fiaArbeidsgiverApi.åpneTema(spørreundersøkelse = spørreundersøkelseDto, temaId = førsteSpørsmål.temaId)
+            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+                bliMedDTO = bliMedDTO,
+                spørsmål = førsteSpørsmål
+            )?.spørsmålTekst shouldBe spørreundersøkelseDto.hentSpørsmålITema(førsteSpørsmål).spørsmål
         }
     }
 }

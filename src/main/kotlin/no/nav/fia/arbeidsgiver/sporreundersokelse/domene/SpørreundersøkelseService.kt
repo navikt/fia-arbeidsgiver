@@ -117,12 +117,20 @@ class SpørreundersøkelseService(
         return resultater
     }
 
+    fun åpneTema(spørreundersøkelseId: UUID, temaId: Int) {
+        redisService.lagre(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId", "ja")
+    }
+
     fun åpneSpørsmål(spørreundersøkelseId: UUID, spørsmålId: UUID) {
         redisService.lagre(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId", "ja")
     }
 
-    fun erSpørsmålÅpent(spørreundersøkelseId: UUID, spørsmålId: UUID): Boolean {
-        return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null
+    fun erTemaÅpent(spørreundersøkelseId: UUID, temaId: Int)
+        = redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
+
+    fun erSpørsmålÅpent(spørreundersøkelseId: UUID, temaId: Int, spørsmålId: UUID): Boolean {
+        return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
+                erTemaÅpent(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId)
     }
 
     fun sendSvar(

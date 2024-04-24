@@ -61,6 +61,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,
+                temaId = temaId,
                 spørsmålId = spørsmålMedSvarAlternativer.id
             )
         ) {
