@@ -159,7 +159,8 @@ class SpørreundersøkelseVertTest {
                     introtekst = it.introtekst,
                     status = if (it.temaId == spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id,
-                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer
+                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer,
+                    nesteTemaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.getOrNull(index + 1)?.temaId
                 )
             }
         }
@@ -193,7 +194,8 @@ class SpørreundersøkelseVertTest {
                     introtekst = it.introtekst,
                     status = if (it.temaId == førsteTema.temaId) TemaStatus.ALLE_SPØRSMÅL_ÅPNET else TemaStatus.ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id,
-                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer
+                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer,
+                    nesteTemaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.getOrNull(index + 1)?.temaId
                 )
             }
         }
@@ -229,7 +231,8 @@ class SpørreundersøkelseVertTest {
                     introtekst = it.introtekst,
                     status = TemaStatus.ALLE_SPØRSMÅL_ÅPNET,
                     førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id,
-                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer
+                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer,
+                    nesteTemaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.getOrNull(index + 1)?.temaId
                 )
             }
         }

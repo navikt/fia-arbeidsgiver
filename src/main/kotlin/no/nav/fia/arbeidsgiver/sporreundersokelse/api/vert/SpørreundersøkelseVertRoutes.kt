@@ -14,8 +14,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaSvarStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDtoer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 
 
@@ -41,7 +41,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         }
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.tilTemaOversiktDto(temaStatus)
+            spørreundersøkelse.tilTemaOversiktDtoer(temaStatus)
         )
     }
 
@@ -50,9 +50,6 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
         )
-
-        val temaMedSpørsmålOgSvaralternativerIndexedValue: IndexedValue<TemaMedSpørsmålOgSvaralternativer> =
-            spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.withIndex().first { it.value.temaId == call.temaId }
 
         val temaStatus = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map { tema ->
             TemaSvarStatus(
@@ -69,8 +66,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            temaMedSpørsmålOgSvaralternativerIndexedValue.value
-                .tilTemaOversiktDto(temaStatus, temaMedSpørsmålOgSvaralternativerIndexedValue.index + 1)
+            spørreundersøkelse.tilTemaOversiktDto(temaId = call.temaId, temaStatus)
         )
     }
 
@@ -90,7 +86,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             temaId = call.temaId
         )
         call.respond(
-            status= HttpStatusCode.OK,
+            status = HttpStatusCode.OK,
             message = Unit
         )
     }
@@ -123,7 +119,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 }
 
 fun Route.spørreundersøkelseVertStatus(
-    spørreundersøkelseService: SpørreundersøkelseService
+    spørreundersøkelseService: SpørreundersøkelseService,
 ) {
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}/antall-svar") {
         call.respond(
@@ -135,7 +131,8 @@ fun Route.spørreundersøkelseVertStatus(
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/antall-svar") {
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
+        val spørreundersøkelse =
+            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
         val tema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.firstOrNull {
             it.temaId == call.temaId
         } ?: throw Feil(feilmelding = "Fant ikke tema ${call.temaId}", feilkode = HttpStatusCode.NotFound)
