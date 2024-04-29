@@ -23,8 +23,8 @@ class RedisService(
         val connection = redisClient.connect()
         sync = connection.sync()
 
-        val TO_MÅNEDER = 2 * 30 * 24 * 60 * 60L
-        defaultTimeToLiveSeconds = TO_MÅNEDER
+        val ETT_DØGN = 1 * 24 * 60 * 60L
+        defaultTimeToLiveSeconds = ETT_DØGN
     }
 
     fun slett(
