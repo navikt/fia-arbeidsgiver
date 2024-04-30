@@ -85,7 +85,7 @@ class SpørreundersøkelseService(
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
             undersøkelse
         } else throw Feil(
-            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId'/'${undersøkelse.spørreundersøkelseId}' har feil status '${undersøkelse.status}'",
+            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
             feilkode = HttpStatusCode.Forbidden
         )
     }
@@ -125,8 +125,8 @@ class SpørreundersøkelseService(
         redisService.lagre(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId", "ja")
     }
 
-    fun erTemaÅpent(spørreundersøkelseId: UUID, temaId: Int)
-        = redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
+    fun erTemaÅpent(spørreundersøkelseId: UUID, temaId: Int) =
+        redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
 
     fun erSpørsmålÅpent(spørreundersøkelseId: UUID, temaId: Int, spørsmålId: UUID): Boolean {
         return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
@@ -157,7 +157,13 @@ class SpørreundersøkelseService(
 
     fun hentTemaStatus(spørreundersøkelseId: UUID, temaId: Int): TemaStatus? {
         return redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
-            Json.decodeFromString(it)
+            TemaStatus.valueOf(it)
+        }
+    }
+
+    fun erAlleTemaerErStengt(spørreundersøkelse: Spørreundersøkelse): Boolean {
+        return spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.all {
+            TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.spørreundersøkelseId, it.temaId)
         }
     }
 }

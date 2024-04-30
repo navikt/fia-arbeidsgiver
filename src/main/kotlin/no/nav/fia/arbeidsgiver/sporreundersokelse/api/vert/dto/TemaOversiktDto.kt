@@ -1,10 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.tilDto

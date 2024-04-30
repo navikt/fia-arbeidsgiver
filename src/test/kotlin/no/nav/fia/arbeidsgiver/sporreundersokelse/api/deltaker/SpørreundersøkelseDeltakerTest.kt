@@ -111,6 +111,7 @@ class SpørreundersøkelseDeltakerTest {
                     bliMedDTO = bliMedDTO
                 )
             }
+            fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${SpørreundersøkelseStatus.AVSLUTTET}'".toRegex()
         }
     }
 
@@ -433,11 +434,70 @@ class SpørreundersøkelseDeltakerTest {
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
             val spørsmål =
                 spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+
             fiaArbeidsgiverApi.stengTema(temaId = startDto.temaId, spørreundersøkelse = spørreundersøkelseDto)
+            fiaArbeidsgiverApi.svarPåSpørsmål(startDto, listOf(spørsmål.svaralternativer.first().svarId), bliMedDTO)
+            fiaArbeidsgiverApi shouldContainLog "Tema '${startDto.temaId}' er stengt, hent nytt spørsmål".toRegex()
+        }
+    }
+
+    @Test
+    fun `deltaker skal ikke kunne svare på spørsmål om alle temaer er stengt`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDtoFørsteSpørsmål = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+
+            val spørsmål =
+                spørreundersøkelseDto.åpneSpørsmålOgHentSomDeltaker(
+                    spørsmål = startDtoFørsteSpørsmål,
+                    bliMedDTO = bliMedDTO
+                )
+
+            spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.forEach {
+                fiaArbeidsgiverApi.stengTema(temaId = it.temaId, spørreundersøkelse = spørreundersøkelseDto)
+            }
 
             shouldFail {
-                fiaArbeidsgiverApi.svarPåSpørsmål(startDto, listOf(spørsmål.svaralternativer.first().svarId), bliMedDTO)
+                fiaArbeidsgiverApi.svarPåSpørsmål(
+                    startDtoFørsteSpørsmål,
+                    listOf(spørsmål.svaralternativer.first().svarId),
+                    bliMedDTO
+                )
             }
+
+            fiaArbeidsgiverApi shouldContainLog "Alle temaer er stengt for spørreundersøkelse '$spørreundersøkelseId'".toRegex()
+        }
+    }
+
+    @Test
+    fun `deltaker skal kunne hente første spørsmål på andre tema om første er stengt`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        val førsteTema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer[0]
+        val andreTema = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer[1]
+        val førsteSpørsmålFørsteTema =
+            førsteTema.spørsmålOgSvaralternativer.first()
+        val førsteSpørsmålAndreTema =
+            andreTema.spørsmålOgSvaralternativer.first()
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+
+            startDto.spørsmålId shouldBe førsteSpørsmålFørsteTema.id
+            startDto.temaId shouldBe førsteTema.temaId
+
+            fiaArbeidsgiverApi.stengTema(temaId = startDto.temaId, spørreundersøkelse = spørreundersøkelseDto)
+            val nyStartDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+
+            nyStartDto.spørsmålId shouldBe førsteSpørsmålAndreTema.id
+            nyStartDto.temaId shouldBe andreTema.temaId
         }
     }
 }

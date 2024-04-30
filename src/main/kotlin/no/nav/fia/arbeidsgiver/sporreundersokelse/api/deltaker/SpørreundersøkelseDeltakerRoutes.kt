@@ -1,6 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import io.ktor.http.HttpStatusCode
+import io.ktor.server.application.application
 import io.ktor.server.application.call
 import io.ktor.server.application.log
 import io.ktor.server.request.receive
@@ -32,11 +33,14 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        val førsteTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first()
+        val førsteÅpneTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first {
+            TemaStatus.STENGT != spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, it.temaId)
+        }
+
         call.respond(
             HttpStatusCode.OK, IdentifiserbartSpørsmål(
-                temaId = førsteTema.temaId,
-                spørsmålId = førsteTema.spørsmålOgSvaralternativer.first().id.toString()
+                temaId = førsteÅpneTema.temaId,
+                spørsmålId = førsteÅpneTema.spørsmålOgSvaralternativer.first().id.toString()
             )
         )
     }
@@ -78,16 +82,29 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val svarIder = call.receive(SvarRequest::class).svarIder.map { it.tilUUID("svarId") }
 
         val spørreundersøkelseId = call.spørreundersøkelseId
-        val spørreundersøkelse =
+
+        val spørreundersøkelse = try {
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        } catch (feil: Feil) {
+            throw feil
+        }
         val spørsmålId = call.spørsmålId
         val sesjonId = call.sesjonId
         val spørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId)
         val temaId = call.temaId
 
-        if (TemaStatus.STENGT == spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, temaId)) {
+        if (spørreundersøkelseService.erAlleTemaerErStengt(spørreundersøkelse)) {
             throw Feil(
-                feilmelding = "Tema $temaId er stengt", feilkode = HttpStatusCode.BadRequest
+                feilmelding = "Alle temaer er stengt for spørreundersøkelse '$spørreundersøkelseId'",
+                feilkode = HttpStatusCode.BadRequest
+            )
+        }
+
+        if (TemaStatus.STENGT == spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, temaId)) {
+            application.log.info("Tema '$temaId' er stengt, hent nytt spørsmål")
+            call.respond(
+                message = "Tema '$temaId' er stengt, hent nytt spørsmål",
+                status = HttpStatusCode.SeeOther
             )
         }
 

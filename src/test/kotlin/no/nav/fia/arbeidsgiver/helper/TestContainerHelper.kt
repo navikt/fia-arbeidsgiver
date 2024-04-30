@@ -184,7 +184,11 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
 
-    response.status shouldBe HttpStatusCode.OK
+    when (response.status) {
+        HttpStatusCode.OK, HttpStatusCode.SeeOther -> Unit
+        else -> fail("Fikk feil status tilbake (${response.status})")
+    }
+
     block()
 }
 
