@@ -121,6 +121,21 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 fun Route.spørreundersøkelseVertStatus(
     spørreundersøkelseService: SpørreundersøkelseService,
 ) {
+
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-fullfort") {
+        val spørreundersøkelse =
+            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
+
+        val antallFullført = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.minOf { tema ->
+            spørreundersøkelseService.antallSvarPåSpørsmålMedFærrestBesvarelser(tema, spørreundersøkelse)
+        }
+
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = antallFullført
+        )
+    }
+
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}/antall-svar") {
         call.respond(
             HttpStatusCode.OK, spørreundersøkelseService.hentAntallSvar(
@@ -137,16 +152,10 @@ fun Route.spørreundersøkelseVertStatus(
             it.temaId == call.temaId
         } ?: throw Feil(feilmelding = "Fant ikke tema ${call.temaId}", feilkode = HttpStatusCode.NotFound)
 
-        val antallSvarPerSpørsmål = tema.spørsmålOgSvaralternativer.map { spørsmål ->
-            spørreundersøkelseService.hentAntallSvar(
-                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
-                spørsmålId = spørsmål.id
-            )
-        }
+        val antallFullførtForTema =
+            spørreundersøkelseService.antallSvarPåSpørsmålMedFærrestBesvarelser(tema, spørreundersøkelse)
 
-        val antallSvarPåSpørsmålMedFærrestBesvarelser = antallSvarPerSpørsmål.min()
-
-        call.respond(message = antallSvarPåSpørsmålMedFærrestBesvarelser, status = HttpStatusCode.OK)
+        call.respond(message = antallFullførtForTema, status = HttpStatusCode.OK)
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-deltakere") {

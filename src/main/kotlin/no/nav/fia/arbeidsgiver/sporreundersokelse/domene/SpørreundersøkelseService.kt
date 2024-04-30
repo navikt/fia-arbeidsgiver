@@ -166,4 +166,19 @@ class SpørreundersøkelseService(
             TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.spørreundersøkelseId, it.temaId)
         }
     }
+
+    fun antallSvarPåSpørsmålMedFærrestBesvarelser(
+        tema: TemaMedSpørsmålOgSvaralternativer,
+        spørreundersøkelse: Spørreundersøkelse
+    ): Int {
+        val antallSvarPerSpørsmål = tema.spørsmålOgSvaralternativer.map { spørsmål ->
+            hentAntallSvar(
+                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+                spørsmålId = spørsmål.id
+            )
+        }
+
+        val antallSvarPåSpørsmålMedFærrestBesvarelser = antallSvarPerSpørsmål.min()
+        return antallSvarPåSpørsmålMedFærrestBesvarelser
+    }
 }
