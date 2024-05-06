@@ -32,6 +32,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
+import no.nav.fia.arbeidsgiver.helper.vertHenterVirksomhetsnavn
 import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.hentSpørsmålITema
@@ -115,6 +116,20 @@ class SpørreundersøkelseVertTest {
                     spørreundersøkelseId = spørreundersøkelseDto.spørreundersøkelseId
                 )
             }
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente virksomhetsnavn`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            fiaArbeidsgiverApi.vertHenterVirksomhetsnavn(
+                vertId = spørreundersøkelseDto.vertId,
+                spørreundersøkelseId = spørreundersøkelseDto.spørreundersøkelseId
+            ) shouldBe spørreundersøkelseDto.virksomhetsNavn
         }
     }
 

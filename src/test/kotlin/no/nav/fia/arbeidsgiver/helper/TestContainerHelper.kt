@@ -333,6 +333,22 @@ internal suspend fun GenericContainer<*>.stengTema(
     response.status shouldBe HttpStatusCode.OK
 }
 
+internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
+    spørreundersøkelseId: String,
+    vertId: String,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
+): String {
+    val response = performGet(
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/virksomhetsnavn",
+    ) {
+        header(HEADER_VERT_ID, vertId)
+        medAzureToken(token = token)
+    }
+    response.status shouldBe HttpStatusCode.OK
+
+    return response.body()
+}
+
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: String,
     vertId: String,

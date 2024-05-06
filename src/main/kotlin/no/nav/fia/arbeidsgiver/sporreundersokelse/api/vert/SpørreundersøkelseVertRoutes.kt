@@ -45,6 +45,17 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
     }
 
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/virksomhetsnavn") {
+        val spørreundersøkelseId = call.spørreundersøkelseId
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId
+        )
+        call.respond(
+            HttpStatusCode.OK,
+            spørreundersøkelse.virksomhetsNavn
+        )
+    }
+
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
