@@ -488,9 +488,18 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1
                 )
             }
-            val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
+            val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer[1]
             fiaArbeidsgiverApi.åpneTema(spørreundersøkelse = spørreundersøkelseDto, temaId = tema2.temaId)
             tema2.spørsmålOgSvaralternativer.forEachIndexed { index, spørsmålOgSvaralternativerDto ->
+                kafka.sendAntallSvar(
+                    spørreundersøkelseId = spørreundersøkelseId.toString(),
+                    spørsmålId = spørsmålOgSvaralternativerDto.id,
+                    antallSvar = if (index == 1) 5 else 1
+                )
+            }
+            val tema3 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
+            fiaArbeidsgiverApi.åpneTema(spørreundersøkelse = spørreundersøkelseDto, temaId = tema3.temaId)
+            tema3.spørsmålOgSvaralternativer.forEachIndexed { index, spørsmålOgSvaralternativerDto ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     spørsmålId = spørsmålOgSvaralternativerDto.id,
