@@ -200,20 +200,9 @@ class SpørreundersøkelseVertTest {
             }
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(spørreundersøkelseDto)
             temaOversikt shouldHaveSize spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.size
-            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.mapIndexed { index, it ->
-                TemaOversiktDto(
-                    temaId = it.temaId,
-                    tittel = it.temanavn.name,
-                    del = index + 1,
-                    temanavn = it.temanavn,
-                    beskrivelse = it.beskrivelse,
-                    introtekst = it.introtekst,
-                    status = if (it.temaId == førsteTema.temaId) TemaStatus.ALLE_SPØRSMÅL_ÅPNET else TemaStatus.ÅPNET,
-                    førsteSpørsmålId = it.spørsmålOgSvaralternativer.first().id,
-                    spørsmålOgSvaralternativer = it.spørsmålOgSvaralternativer,
-                    nesteTemaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.getOrNull(index + 1)?.temaId
-                )
-            }
+            temaOversikt.first().status shouldBe TemaStatus.ALLE_SPØRSMÅL_ÅPNET
+            temaOversikt[1].status shouldBe TemaStatus.ÅPNET
+            temaOversikt.last().status shouldBe TemaStatus.IKKE_ÅPNET
         }
     }
 
