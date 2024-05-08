@@ -94,8 +94,9 @@ class TestContainerHelper {
         internal fun azureAccessToken(
             subject: String = "123",
             audience: String = "azure:fia-arbeidsgiver",
-            claims: Map<String, String> = mapOf(
+            claims: Map<String, Any> = mapOf(
                 "NAVident" to VERT_NAV_IDENT,
+                "groups" to listOf(AuthContainer.saksbehandlerGroupId)
             ),
         ) = authServer.issueToken(
             subject = subject,

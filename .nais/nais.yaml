@@ -16,8 +16,8 @@ spec:
       allowAllUsers: false
       claims:
         groups:
-          - id: 02b25498-1a81-45b5-84cb-876a8899c809
-          - id: e00f4248-2d26-4645-bf94-22d47623a51e
+          - id: {{fiaSuperbrukerGroup}}
+          - id: {{fiaSaksbehandlerGroup}}
   tokenx:
     enabled: true
   accessPolicy:
@@ -48,3 +48,7 @@ spec:
       value: "5"
     - name: GENERELL_LIMIT
       value: "20"
+    - name: FIA_SUPERBRUKER_GROUP_ID
+      value: {{fiaSuperbrukerGroup}}
+    - name: FIA_SAKSBEHANDLER_GROUP_ID
+      value: {{fiaSaksbehandlerGroup}}

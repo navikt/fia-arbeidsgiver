@@ -22,6 +22,11 @@ internal object Miljø {
     // val azurePrivateJwk: String = System.getenv("AZURE_APP_JWK")
     // val azureTokenEndpoint: String = System.getenv("AZURE_OPENID_CONFIG_TOKEN_ENDPOINT")
     // --
+
+    // -- AD roller
+    val saksbehandlerGruppe: String = System.getenv("FIA_SAKSBEHANDLER_GROUP_ID")
+    val superbrukerGruppe: String = System.getenv("FIA_SUPERBRUKER_GROUP_ID")
+
     val altinnProxyUrl: String = System.getenv("ALTINN_RETTIGHETER_PROXY_URL")
     val altinnRettigheterProxyClientId: String = System.getenv("ALTINN_RETTIGHETER_PROXY_CLIENT_ID")
 }

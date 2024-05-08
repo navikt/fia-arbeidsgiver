@@ -78,6 +78,33 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
+    fun `skal ikke kunne laste vertssider uten riktig ad-gruppe`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelseDto =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        runBlocking {
+            fiaArbeidsgiverApi.performGet(
+                url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
+            ) {
+                header(HEADER_VERT_ID, spørreundersøkelseDto.vertId)
+                header(
+                    HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
+                        audience = "azure:fia-arbeidsgiver",
+                        issuerId = "azure",
+                        claims = mapOf(
+                            "NAVident" to "Z12345",
+                            "groups" to listOf(
+                                "ikke-riktig-gruppe"
+                            )
+                        )
+                    ).serialize()
+                )
+            }.status shouldBe HttpStatusCode.Unauthorized
+        }
+    }
+
+    @Test
     fun `skal ikke kunne laste vertssider uten gyldig scopet azure-token`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelseDto =

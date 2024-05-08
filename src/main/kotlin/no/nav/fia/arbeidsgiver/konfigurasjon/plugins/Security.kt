@@ -3,9 +3,10 @@ package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 import com.auth0.jwk.JwkProviderBuilder
 import com.auth0.jwt.interfaces.Claim
 import com.auth0.jwt.interfaces.DecodedJWT
-import io.ktor.server.application.*
-import io.ktor.server.auth.*
-import io.ktor.server.auth.jwt.*
+import io.ktor.server.application.Application
+import io.ktor.server.auth.authentication
+import io.ktor.server.auth.jwt.JWTPrincipal
+import io.ktor.server.auth.jwt.jwt
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø
 import java.net.URI
 import java.util.concurrent.TimeUnit
@@ -43,7 +44,10 @@ fun Application.configureSecurity() {
                 acceptLeeway(tokenFortsattGyldigFørUtløpISekunder)
                 withAudience(Miljø.azureClientId)
                 withClaimPresence("NAVident")
-                // -- TODO: sjekk gruppetilhørighet (rolle)
+                withClaim("groups") { claim: Claim, _: DecodedJWT ->
+                    claim.asList(String::class.java).contains(Miljø.saksbehandlerGruppe) ||
+                    claim.asList(String::class.java).contains(Miljø.superbrukerGruppe)
+                }
             }
             validate { token ->
                 JWTPrincipal(token.payload)

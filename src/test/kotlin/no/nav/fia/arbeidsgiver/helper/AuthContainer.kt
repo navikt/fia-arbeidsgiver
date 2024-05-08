@@ -25,6 +25,11 @@ class AuthContainer(network: Network) {
     private val baseEndpointUrl = "http://$networkalias:$port"
     private val oAuth2Config = OAuth2Config()
 
+    companion object {
+        val superbrukerGroupId = "ensuperbrukerGroupId"
+        val saksbehandlerGroupId = "ensaksbehandlerGroupId"
+    }
+
     val container = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.2"))
         .withNetwork(network)
         .withNetworkAliases(networkalias)
@@ -86,5 +91,7 @@ class AuthContainer(network: Network) {
         "AZURE_APP_CLIENT_ID" to "azure:fia-arbeidsgiver",
         "AZURE_OPENID_CONFIG_ISSUER" to "http://$networkalias:$port/azure",
         "AZURE_OPENID_CONFIG_JWKS_URI" to "http://$networkalias:$port/azure/jwks",
+        "FIA_SUPERBRUKER_GROUP_ID" to superbrukerGroupId,
+        "FIA_SAKSBEHANDLER_GROUP_ID" to saksbehandlerGroupId,
     )
 }
