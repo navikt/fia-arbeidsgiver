@@ -1,5 +1,5 @@
 val ktorVersion = "2.3.11"
-val kotlinVersion = "1.9.23"
+val kotlinVersion = "2.0.0"
 val logbackVersion = "1.5.6"
 val prometheusVersion = "1.13.1"
 
@@ -45,12 +45,12 @@ dependencies {
     implementation("commons-codec:commons-codec:1.17.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.39.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:9.40")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
 
-    val kotestVersion = "5.9.0"
+    val kotestVersion = "5.9.1"
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
@@ -60,7 +60,7 @@ dependencies {
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.6.0")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.5")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.6")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
@@ -70,13 +70,13 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.110.Final")
+                require("4.1.111.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
         testImplementation("org.apache.commons:commons-compress") {
             version {
-                require("1.26.1")
+                require("1.26.2")
             }
             because("testcontainers har sårbar versjon")
         }
