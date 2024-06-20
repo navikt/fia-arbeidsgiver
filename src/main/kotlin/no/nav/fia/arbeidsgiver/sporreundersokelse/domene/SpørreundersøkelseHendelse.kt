@@ -34,8 +34,8 @@ sealed class SpørreundersøkelseHendelse<T>(
 
     fun tilMelding() =
         when (this) {
-            is StengTema -> Json.encodeToString(data)
-            is SvarPåSpørsmål -> Json.encodeToString(data)
+            is StengTema -> Json.encodeToString<Int>(data)
+            is SvarPåSpørsmål -> Json.encodeToString<SpørreundersøkelseSvarDTO>(data)
         }
 }
 
