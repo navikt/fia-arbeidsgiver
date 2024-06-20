@@ -1,7 +1,7 @@
 val ktorVersion = "2.3.11"
 val kotlinVersion = "1.9.23"
 val logbackVersion = "1.5.6"
-val prometheusVersion = "1.12.4"
+val prometheusVersion = "1.13.1"
 
 plugins {
     kotlin("jvm") version "2.0.0"
