@@ -2,6 +2,7 @@ val ktorVersion = "2.3.11"
 val kotlinVersion = "2.0.0"
 val logbackVersion = "1.5.6"
 val prometheusVersion = "1.13.1"
+val iaFellesVersion = "1.2.0-RC"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -13,9 +14,14 @@ group = "no.nav"
 
 repositories {
     mavenCentral()
+    maven("https://jitpack.io")
 }
 
 dependencies {
+    val iaFellesVersion = "1.2.0-RC2"
+    // Felles definisjoner for IA-domenet
+    implementation("com.github.navikt:ia-felles:$iaFellesVersion")
+
     implementation("io.ktor:ktor-server-core-jvm:$ktorVersion")
     implementation("io.ktor:ktor-server-metrics-micrometer-jvm:$ktorVersion")
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
@@ -46,6 +52,10 @@ dependencies {
 
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.40")
+
+
+    // Felles definisjoner for IA-domenet
+    implementation("com.github.navikt:ia-felles:$iaFellesVersion")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")

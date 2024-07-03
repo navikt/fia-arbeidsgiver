@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import io.ktor.http.HttpStatusCode
 import java.util.*
 import kotlinx.serialization.encodeToString
@@ -169,7 +170,7 @@ class SpørreundersøkelseService(
 
     fun antallSvarPåSpørsmålMedFærrestBesvarelser(
         tema: TemaMedSpørsmålOgSvaralternativer,
-        spørreundersøkelse: Spørreundersøkelse
+        spørreundersøkelse: Spørreundersøkelse,
     ): Int {
         val antallSvarPerSpørsmål = tema.spørsmålOgSvaralternativer.map { spørsmål ->
             hentAntallSvar(

@@ -1,6 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import HEADER_SESJON_ID
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldContainInOrder
@@ -9,6 +10,9 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.header
 import io.ktor.http.HttpStatusCode
+import java.util.*
+import kotlin.test.Test
+import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -18,22 +22,18 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContai
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
+import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 import no.nav.fia.arbeidsgiver.helper.performGet
+import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.åpneSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
 import org.junit.After
 import org.junit.Before
-import java.util.*
-import kotlin.test.Test
-import kotlin.test.assertNotNull
-import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
-import no.nav.fia.arbeidsgiver.helper.stengTema
 
 class SpørreundersøkelseDeltakerTest {
     private val spørreundersøkelseSvarKonsument =

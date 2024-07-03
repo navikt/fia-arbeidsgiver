@@ -1,8 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto
 
+import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaMedSpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 
 @Serializable
 data class TemaMedSpørsmålOgSvaralternativerDto(

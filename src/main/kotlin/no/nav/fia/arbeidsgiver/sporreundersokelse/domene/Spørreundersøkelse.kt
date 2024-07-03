@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
