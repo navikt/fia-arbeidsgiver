@@ -1,8 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto
 
+import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.tilDto
 

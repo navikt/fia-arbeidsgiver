@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
+import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import io.ktor.http.HttpStatusCode
 import java.util.*
 import kotlinx.serialization.Serializable

@@ -1,5 +1,11 @@
 package no.nav.fia.arbeidsgiver.helper
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.Temanavn
+import java.time.Duration
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -12,8 +18,6 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Temanavn
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.ANTALL_SVAR
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.RESULTATER_FOR_TEMA
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
@@ -41,10 +45,6 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
-import java.time.Duration
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.util.*
 
 class KafkaContainer(network: Network) {
     private val kafkaNetworkAlias = "kafkaContainer"

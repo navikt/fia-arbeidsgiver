@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
@@ -17,7 +18,6 @@ import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import org.junit.After
 import org.junit.Before
