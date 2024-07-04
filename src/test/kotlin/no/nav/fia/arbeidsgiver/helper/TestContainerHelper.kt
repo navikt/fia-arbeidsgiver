@@ -26,15 +26,14 @@ import java.util.*
 import kotlin.io.path.Path
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.DELTAKER_BASEPATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaOversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
@@ -159,7 +158,7 @@ internal suspend inline fun <reified T> GenericContainer<*>.performPost(
     }
 
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
-    bliMedDTO: BliMedDTO,
+    bliMedDTO: BliMedDto,
 ): IdentifiserbartSpørsmål {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
@@ -175,7 +174,7 @@ internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
 internal suspend fun GenericContainer<*>.svarPåSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
     svarIder: List<String>,
-    bliMedDTO: BliMedDTO,
+    bliMedDTO: BliMedDto,
     block: () -> Unit = {},
 ) {
     val response = performPost(
@@ -195,7 +194,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
 
 internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
     spørsmål: IdentifiserbartSpørsmål,
-    bliMedDTO: BliMedDTO,
+    bliMedDTO: BliMedDto,
 ): SpørsmålsoversiktDto? {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
@@ -212,14 +211,15 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
 
 internal suspend fun GenericContainer<*>.åpneTema(
     temaId: Int,
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${temaId}/start",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${temaId}/start",
         body = Unit
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     response.status shouldBe HttpStatusCode.OK
@@ -227,13 +227,14 @@ internal suspend fun GenericContainer<*>.åpneTema(
 
 internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
     spørsmål: IdentifiserbartSpørsmål,
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): SpørsmålsoversiktDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -241,26 +242,28 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
 
 internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
     temaId: Int,
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/antall-svar",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/antall-svar",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
 }
 
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/antall-fullfort",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/antall-fullfort",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -268,66 +271,71 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
 
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmål,
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
 }
 
 internal suspend fun GenericContainer<*>.hentTemaoversikt(
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
-): List<TemaOversiktDto> {
+): List<TemaDto> {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
 }
 
 internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
-    spørreundersøkelse: SpørreundersøkelseDto,
     temaId: Int,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
-): TemaOversiktDto {
+): TemaDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId",
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
 }
 
 internal suspend fun GenericContainer<*>.hentResultater(
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     temaId: Int,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) = performGet(
-    url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/resultater",
+    url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId/resultater",
 ) {
-    header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+    header(HEADER_VERT_ID, vertId.toString())
     medAzureToken(token = token)
 }
 
 internal suspend fun GenericContainer<*>.stengTema(
     temaId: Int,
-    spørreundersøkelse: SpørreundersøkelseDto,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
-        url = "$VERT_BASEPATH/${spørreundersøkelse.spørreundersøkelseId}/tema/$temaId/avslutt",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/avslutt",
         body = Unit
     ) {
-        header(HEADER_VERT_ID, spørreundersøkelse.vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
 
@@ -335,14 +343,14 @@ internal suspend fun GenericContainer<*>.stengTema(
 }
 
 internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
-    spørreundersøkelseId: String,
-    vertId: String,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): String {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/virksomhetsnavn",
     ) {
-        header(HEADER_VERT_ID, vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     response.status shouldBe HttpStatusCode.OK
@@ -351,14 +359,14 @@ internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
 }
 
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
-    spørreundersøkelseId: String,
-    vertId: String,
+    spørreundersøkelseId: UUID,
+    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
     ) {
-        header(HEADER_VERT_ID, vertId)
+        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
 
@@ -369,12 +377,12 @@ internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
 
 internal suspend fun GenericContainer<*>.bliMed(
     spørreundersøkelseId: UUID,
-): BliMedDTO {
+): BliMedDto {
     val response = performPost(
         url = BLI_MED_PATH,
         body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
     )
     response.status shouldBe HttpStatusCode.OK
     val body = response.bodyAsText()
-    return Json.decodeFromString<BliMedDTO>(body)
+    return Json.decodeFromString<BliMedDto>(body)
 }

@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.application
@@ -10,15 +10,10 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
@@ -33,14 +28,14 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        val førsteÅpneTema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first {
-            TemaStatus.STENGT != spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, it.temaId)
+        val førsteÅpneTema = spørreundersøkelse.temaer.first {
+            TemaStatus.STENGT != spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, it.id)
         }
 
         call.respond(
             HttpStatusCode.OK, IdentifiserbartSpørsmål(
-                temaId = førsteÅpneTema.temaId,
-                spørsmålId = førsteÅpneTema.spørsmålOgSvaralternativer.first().id.toString()
+                temaId = førsteÅpneTema.id,
+                spørsmålId = førsteÅpneTema.spørsmål.first().id.toString()
             )
         )
     }
@@ -53,11 +48,10 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val temaId = call.temaId
 
 
-        val spørsmålMedSvarAlternativer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
-            .spørsmålFraId(spørsmålId = spørsmålId)
 
-        if (spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
-                .temaFraSpørsmålId(spørsmålId = spørsmålId).temaId != temaId
+
+        if (spørreundersøkelse.temaer
+                .temaFraSpørsmålId(spørsmålId = spørsmålId).id != temaId
         ) {
             call.application.log.warn("TemaId ikke funnet i spørreundersøkelse $temaId")
             return@get call.respond(HttpStatusCode.NotFound)
@@ -66,7 +60,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,
                 temaId = temaId,
-                spørsmålId = spørsmålMedSvarAlternativer.id
+                spørsmålId = spørsmålId
             )
         ) {
             return@get call.respond(HttpStatusCode.Accepted)
@@ -74,7 +68,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(spørreundersøkelse = spørreundersøkelse)
+            spørreundersøkelse.tilSpørsmålsoversiktDto(spørsmålId = spørsmålId)
         )
     }
 
@@ -90,7 +84,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         }
         val spørsmålId = call.spørsmålId
         val sesjonId = call.sesjonId
-        val spørsmål = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.spørsmålFraId(spørsmålId)
+        val spørsmål = spørreundersøkelse.temaer.spørsmålFraId(spørsmålId)
         val temaId = call.temaId
 
         if (spørreundersøkelseService.erAlleTemaerErStengt(spørreundersøkelse)) {
@@ -108,7 +102,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
             )
         }
 
-        if (spørsmål.svaralternativer.none { svarIder.contains(it.svarId) })
+        if (spørsmål.svaralternativer.none { svarIder.contains(it.id) })
             throw Feil(
                 feilmelding = "Ukjent svar for spørsmålId: (${spørsmålId})", feilkode = HttpStatusCode.Forbidden
             )

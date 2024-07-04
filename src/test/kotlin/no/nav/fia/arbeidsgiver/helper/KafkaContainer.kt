@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
-import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -18,17 +17,20 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.ANTALL_SVAR
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.OppdateringsType.RESULTATER_FOR_TEMA
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseOppdateringNøkkel
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålMedSvar
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørsmålOgSvaralternativerDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.Svar
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SvaralternativDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvaralternativerDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSvaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableTema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.Besvarelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.OppdateringsType.ANTALL_SVAR
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.OppdateringsType.RESULTATER_FOR_TEMA
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.ResultaterSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseOppdateringNøkkel
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -107,16 +109,23 @@ class KafkaContainer(network: Network) {
 
     fun sendSpørreundersøkelse(
         spørreundersøkelseId: UUID,
-        spørreundersøkelsesStreng: String = json.encodeToString<SpørreundersøkelseDto>(
-            enStandardSpørreundersøkelse(spørreundersøkelseId)
-        ),
-    ): SpørreundersøkelseDto {
+        spørreundersøkelse: SerializableSpørreundersøkelse = enStandardSpørreundersøkelse(spørreundersøkelseId),
+        medEkstraFelt: Boolean = false,
+    ): SerializableSpørreundersøkelse {
+        val spørreundersøkelsesStreng =
+            if (!medEkstraFelt) {
+                json.encodeToString<SerializableSpørreundersøkelse>(spørreundersøkelse)
+            } else {
+                json.encodeToString<SerializableSpørreundersøkelse>(spørreundersøkelse)
+                    .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
+            }
+
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
             topic = KafkaTopics.SPØRREUNDERSØKELSE
         )
-        return json.decodeFromString<SpørreundersøkelseDto>(spørreundersøkelsesStreng)
+        return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
 
     fun sendAntallSvar(
@@ -124,33 +133,44 @@ class KafkaContainer(network: Network) {
         spørsmålId: String,
         antallSvar: Int,
     ): SpørreundersøkelseAntallSvarDto {
-        val antallSvarDto = SpørreundersøkelseAntallSvarDto(spørreundersøkelseId, spørsmålId, antallSvar)
+        val antallSvarDto = SpørreundersøkelseAntallSvarDto(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørsmålId = spørsmålId,
+            antallSvar = antallSvar
+        )
         sendOgVent(
-            nøkkel = Json.encodeToString(SpørreundersøkelseOppdateringNøkkel(spørreundersøkelseId, ANTALL_SVAR)),
+            nøkkel = Json.encodeToString(
+                SpørreundersøkelseOppdateringNøkkel(
+                    spørreundersøkelseId,
+                    ANTALL_SVAR
+                )
+            ),
             melding = json.encodeToString(antallSvarDto),
             topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
         )
         return antallSvarDto
     }
 
-    private fun SvaralternativDto.tilKafkaResultatMelding(antallSvar: Int) = Svar(
-        svarId = svarId,
-        tekst = svartekst,
-        antallSvar = antallSvar,
-    )
+    private fun Svaralternativ.tilKafkaResultatMelding(antallSvar: Int) =
+        Besvarelse(
+            svarId = id.toString(),
+            tekst = svartekst,
+            antallSvar = antallSvar,
+        )
 
-    private fun SpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar: Int) = SpørsmålMedSvar(
-        spørsmålId = id,
-        tekst = spørsmål,
-        svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
-        flervalg = flervalg
-    )
+    private fun Spørsmål.tilKafkaResultatMelding(antallSvar: Int) =
+        ResultaterSpørsmål(
+            spørsmålId = id.toString(),
+            tekst = tekst,
+            svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
+            flervalg = flervalg
+        )
 
-    private fun TemaMedSpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar: Int) = TemaMedSpørsmålOgSvar(
-        temaId = temaId,
-        tema = temanavn.name,
+    private fun Tema.tilKafkaResultatMelding(antallSvar: Int) = TemaResultater(
+        temaId = id,
+        tema = navn ?: beskrivelse!!,
         beskrivelse = beskrivelse,
-        spørsmålMedSvar = spørsmålOgSvaralternativer.map {
+        spørsmålMedSvar = spørsmål.map {
             it.tilKafkaResultatMelding(antallSvar = antallSvar)
         }
     )
@@ -158,12 +178,12 @@ class KafkaContainer(network: Network) {
     fun sendResultatPåTema(
         spørreundersøkelseId: UUID,
         antallSvarPerSpørsmål: Int,
-        temaMedSpørsmålOgSvaralternativerDto: TemaMedSpørsmålOgSvaralternativerDto,
-    ): TemaMedSpørsmålOgSvar {
+        temaMedSpørsmålOgSvaralternativerDto: Tema,
+    ): TemaResultater {
         val nøkkel = Json.encodeToString(
             SpørreundersøkelseOppdateringNøkkel(
-                spørreundersøkelseId.toString(),
-                RESULTATER_FOR_TEMA
+                spørreundersøkelseId = spørreundersøkelseId.toString(),
+                oppdateringsType = RESULTATER_FOR_TEMA
             )
         )
         val temaMedSpørsmålOgSvarDto =
@@ -180,13 +200,12 @@ class KafkaContainer(network: Network) {
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = json.encodeToString<SpørreundersøkelseDto>(
-                enStandardSpørreundersøkelse(
-                    spørreundersøkelseId = spørreundersøkelseId,
-                    spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
-                )
+            spørreundersøkelse = enStandardSpørreundersøkelse(
+                spørreundersøkelseId = spørreundersøkelseId,
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
             )
         )
+
 
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
@@ -194,46 +213,47 @@ class KafkaContainer(network: Network) {
         orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
         virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
-        temaer: List<Temanavn> = Temanavn.entries,
+        temanavn: List<String> = listOf("Partssamarbeid", "IA", "Sykefravær"),
         flervalg: Boolean = false,
-    ) = SpørreundersøkelseDto(
+    ) = SerializableSpørreundersøkelse(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
         vertId = vertId.toString(),
         orgnummer = orgnummer,
         virksomhetsNavn = virksomhetsNavn,
         type = "kartlegging",
-        temaMedSpørsmålOgSvaralternativer = temaer.map { tema ->
-            TemaMedSpørsmålOgSvaralternativerDto(
-                temaId = tema.ordinal,
-                temanavn = tema,
-                introtekst = "Dette er et bra tema",
-                beskrivelse = "Beskrivelse for dette temaet",
+        temaMedSpørsmålOgSvaralternativer = temanavn.mapIndexed { index, navn ->
+            SerializableTema(
+                temaId = index,
+                navn = navn,
+                temanavn = null,
+                introtekst = null,
+                beskrivelse = null,
                 spørsmålOgSvaralternativer = listOf(
-                    SpørsmålOgSvaralternativerDto(
+                    SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
                         spørsmål = "Hva gjør dere med IA?",
                         flervalg = flervalg,
                         svaralternativer = listOf(
-                            SvaralternativDto(
+                            SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
                                 "ingenting"
                             ),
-                            SvaralternativDto(
+                            SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
                                 "alt"
                             ),
                         )
                     ),
-                    SpørsmålOgSvaralternativerDto(
+                    SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
                         spørsmål = "Hva gjør dere IKKE med IA?",
                         flervalg = flervalg,
                         svaralternativer = listOf(
-                            SvaralternativDto(
+                            SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
                                 "noen ting"
                             ),
-                            SvaralternativDto(
+                            SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
                                 "alt"
                             ),

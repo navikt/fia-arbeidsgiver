@@ -1,5 +1,7 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto
+package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
+
+// TODO: Flytt status inn i domene?
 enum class TemaStatus {
     IKKE_ÅPNET,
     ÅPNET,

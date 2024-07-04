@@ -7,9 +7,9 @@ import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.post
-import java.util.*
+import java.util.UUID
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDTO
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
@@ -23,17 +23,18 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse =
+            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val sesjonsId = UUID.randomUUID()
-        spørreundersøkelseService.lagreSesjon(sesjonsId, spørreundersøkelse.spørreundersøkelseId)
+        spørreundersøkelseService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
 
-        val antallDeltakere = spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelse.spørreundersøkelseId)
-        spørreundersøkelseService.lagreAntallDeltakere(spørreundersøkelse.spørreundersøkelseId, (antallDeltakere + 1))
+        val antallDeltakere = spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelse.id)
+        spørreundersøkelseService.lagreAntallDeltakere(spørreundersøkelse.id, (antallDeltakere + 1))
 
         call.respond(
-            HttpStatusCode.OK, BliMedDTO(
-                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId.toString(),
+            HttpStatusCode.OK, BliMedDto(
+                spørreundersøkelseId = spørreundersøkelse.id.toString(),
                 sesjonsId = sesjonsId.toString()
             )
         )

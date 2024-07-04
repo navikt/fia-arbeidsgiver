@@ -11,7 +11,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.SAMARBEIDSSTATUS_PATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.VERT_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import java.util.*
 import kotlin.test.Test
 
@@ -50,16 +50,19 @@ class AuditLogTest {
     @Test
     fun `skal auditlogge stenging av tema og uthenting av resultater`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelseDto =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-        val temaId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.first().temaId
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val temaId = spørreundersøkelse.temaer.first().id
         runBlocking {
-            fiaArbeidsgiverApi.stengTema(temaId = temaId, spørreundersøkelse = spørreundersøkelseDto)
+            fiaArbeidsgiverApi.stengTema(
+                temaId = temaId,
+                spørreundersøkelseId = spørreundersøkelse.id,
+                vertId = spørreundersøkelse.vertId!!
+            )
             fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = TestContainerHelper.VERT_NAV_IDENT,
                 orgnummer = ALTINN_ORGNR_1,
                 tillat = "Permit",
-                uri = "$VERT_BASEPATH/${spørreundersøkelseDto.spørreundersøkelseId}/tema/$temaId/avslutt",
+                uri = "$VERT_BASEPATH/${spørreundersøkelse.id}/tema/$temaId/avslutt",
                 method = "POST",
             )
         }
@@ -70,17 +73,19 @@ class AuditLogTest {
         orgnummer: String,
         tillat: String,
         uri: String,
-        method: String = "GET"
+        method: String = "GET",
     ) =
         ("CEF:0|fia-arbeidsgiver|auditLog|1.0|audit:access|fia-arbeidsgiver|INFO|end=[0-9]+ " +
                 "suid=$fnr " +
-                "duid=$orgnummer "+
+                "duid=$orgnummer " +
                 "sproc=.{36} " +
                 "requestMethod=$method " +
-                "request=${uri.substring(
-                    0,
-                    uri.length.coerceAtMost(70)
-                )} " +
+                "request=${
+                    uri.substring(
+                        0,
+                        uri.length.coerceAtMost(70)
+                    )
+                } " +
                 "flexString1Label=Decision " +
                 "flexString1=$tillat"
                 ).replace("|", "\\|").replace("?", "\\?").toRegex()

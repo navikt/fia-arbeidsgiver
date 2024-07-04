@@ -1,8 +1,7 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
-import java.util.*
 
 @Serializable
 data class SvaralternativDto(
@@ -10,12 +9,7 @@ data class SvaralternativDto(
     val svartekst: String,
 )
 
-fun SvaralternativDto.tilDomene() = Svaralternativ(
-    svarId = UUID.fromString(svarId),
-    svartekst = svartekst,
-)
-
 fun Svaralternativ.tilDto() = SvaralternativDto(
-    svarId = svarId.toString(),
+    svarId = id.toString(),
     svartekst = svartekst
 )

@@ -9,12 +9,13 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.redis.Type
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseAntallSvarDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseAntallSvarDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseSvarDTO
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.TemaMedSpørsmålOgSvar
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -29,10 +30,10 @@ class SpørreundersøkelseService(
         SpørreundersøkelseHendelseProdusent(kafkaConfig = KafkaConfig())
     }
 
-    fun lagre(spørreundersøkelse: Spørreundersøkelse) {
+    fun lagre(spørreundersøkelse: SerializableSpørreundersøkelse) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE,
-            nøkkel = spørreundersøkelse.spørreundersøkelseId.toString(),
+            nøkkel = spørreundersøkelse.spørreundersøkelseId,
             verdi = Json.encodeToString(spørreundersøkelse)
         )
     }
@@ -45,7 +46,7 @@ class SpørreundersøkelseService(
         )
     }
 
-    fun lagre(spørreundersøkelseId: String, spørreundersøkelseResultat: TemaMedSpørsmålOgSvar) {
+    fun lagre(spørreundersøkelseId: String, spørreundersøkelseResultat: TemaResultater) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE_RESULTAT,
             nøkkel = "${spørreundersøkelseId}-${spørreundersøkelseResultat.temaId}",
@@ -53,11 +54,11 @@ class SpørreundersøkelseService(
         )
     }
 
-    fun slett(spørreundersøkelse: Spørreundersøkelse) {
+    fun slett(spørreundersøkelse: SerializableSpørreundersøkelse) {
         logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
         listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
             logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
-            redisService.slett(it, spørreundersøkelse.spørreundersøkelseId.toString())
+            redisService.slett(it, spørreundersøkelse.spørreundersøkelseId)
         }
     }
 
@@ -69,9 +70,9 @@ class SpørreundersøkelseService(
         redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
 
-    fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
+    fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): SerializableSpørreundersøkelse {
         val undersøkelse = redisService.hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
-            Json.decodeFromString<Spørreundersøkelse>(it)
+            Json.decodeFromString<SerializableSpørreundersøkelse>(it)
         } ?: throw Feil(
             feilmelding = "Ukjent spørreundersøkelse '$spørreundersøkelseId'",
             feilkode = HttpStatusCode.Forbidden
@@ -84,7 +85,7 @@ class SpørreundersøkelseService(
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
-            undersøkelse
+            undersøkelse.tilDomene()
         } else throw Feil(
             feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
             feilkode = HttpStatusCode.Forbidden
@@ -106,10 +107,10 @@ class SpørreundersøkelseService(
         return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
     }
 
-    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaMedSpørsmålOgSvar {
+    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaResultater {
         val resultater =
             redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "${spørreundersøkelseId}-${temaId}")?.let {
-                Json.decodeFromString<TemaMedSpørsmålOgSvar>(it)
+                Json.decodeFromString<TemaResultater>(it)
             } ?: throw Feil(
                 feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
                 feilkode = HttpStatusCode.Forbidden
@@ -151,7 +152,10 @@ class SpørreundersøkelseService(
 
     fun lukkTema(spørreundersøkelseId: UUID, temaId: Int) {
         spørreundersøkelseHendelseProdusent.sendHendelse(
-            hendelse = StengTema(spørreundersøkelseId = spørreundersøkelseId.toString(), temaId = temaId)
+            hendelse = StengTema(
+                spørreundersøkelseId = spørreundersøkelseId.toString(),
+                temaId = temaId
+            )
         )
         redisService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
     }
@@ -163,18 +167,18 @@ class SpørreundersøkelseService(
     }
 
     fun erAlleTemaerErStengt(spørreundersøkelse: Spørreundersøkelse): Boolean {
-        return spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.all {
-            TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.spørreundersøkelseId, it.temaId)
+        return spørreundersøkelse.temaer.all {
+            TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.id, it.id)
         }
     }
 
     fun antallSvarPåSpørsmålMedFærrestBesvarelser(
-        tema: TemaMedSpørsmålOgSvaralternativer,
+        tema: Tema,
         spørreundersøkelse: Spørreundersøkelse,
     ): Int {
-        val antallSvarPerSpørsmål = tema.spørsmålOgSvaralternativer.map { spørsmål ->
+        val antallSvarPerSpørsmål = tema.spørsmål.map { spørsmål ->
             hentAntallSvar(
-                spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+                spørreundersøkelseId = spørreundersøkelse.id,
                 spørsmålId = spørsmål.id
             )
         }

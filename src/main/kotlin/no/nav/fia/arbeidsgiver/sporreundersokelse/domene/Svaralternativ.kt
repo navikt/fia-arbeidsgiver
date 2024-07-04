@@ -1,12 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import kotlinx.serialization.Serializable
-import no.nav.fia.arbeidsgiver.sporreundersokelse.util.UUIDSerializer
-import java.util.*
+import java.util.UUID
 
-@Serializable
-data class Svaralternativ (
-	@Serializable(with = UUIDSerializer::class)
-    val svarId: UUID,
-	val svartekst: String
+data class Svaralternativ(
+    val id: UUID,
+    val svartekst: String,
 )
