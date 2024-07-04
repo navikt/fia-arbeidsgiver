@@ -1,6 +1,11 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseMelding
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.SpørsmålMelding
+import ia.felles.integrasjoner.kafkameldinger.SvaralternativMelding
+import ia.felles.integrasjoner.kafkameldinger.TemaMelding
+import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -12,8 +17,6 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.tilDomene
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -21,7 +24,14 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
+import java.util.*
 import kotlin.coroutines.CoroutineContext
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
 class SpørreundersøkelseKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
@@ -57,17 +67,16 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
 
                         records.forEach { record ->
                             try {
-                                val spørreundersøkelseDto = json.decodeFromString<SpørreundersøkelseDto>(record.value())
-
-                                val spørreundersøkelse = spørreundersøkelseDto.tilDomene()
-
-                                val spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId
+                                val spørreundersøkelse =
+                                    json.decodeFromString<SerializableSpørreundersøkelse>(
+                                        record.value()
+                                    )
 
                                 if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
-                                    logger.info("Sletter spørreundersøkelse med id: $spørreundersøkelseId")
+                                    logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
                                     spørreundersøkelseService.slett(spørreundersøkelse)
                                 } else {
-                                    logger.info("Lagrer spørreundersøkelse med id: $spørreundersøkelseId")
+                                    logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
                                     spørreundersøkelseService.lagre(spørreundersøkelse)
                                 }
                             } catch (e: IllegalArgumentException) {
@@ -88,6 +97,74 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                 }
             }
         }
+    }
+
+    @Serializable
+    data class SerializableSpørreundersøkelse(
+        override val spørreundersøkelseId: String,
+        override val vertId: String?,
+        override val orgnummer: String,
+        override val virksomhetsNavn: String,
+        override val status: SpørreundersøkelseStatus,
+        override val type: String,
+        override val avslutningsdato: LocalDate,
+        override val temaMedSpørsmålOgSvaralternativer: List<SerializableTema>,
+    ) : SpørreundersøkelseMelding {
+        fun tilDomene() = Spørreundersøkelse(
+            id = UUID.fromString(spørreundersøkelseId),
+            vertId = vertId?.let { UUID.fromString(it) },
+            orgnummer = orgnummer,
+            virksomhetsNavn = virksomhetsNavn,
+            status = status,
+            type = type,
+            avslutningsdato = avslutningsdato,
+            temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
+        )
+    }
+
+    @Serializable
+    data class SerializableTema(
+        override val temaId: Int,
+        override val navn: String?,
+        override val temanavn: Temanavn?,
+        override val beskrivelse: String?,
+        override val introtekst: String?,
+        override val spørsmålOgSvaralternativer: List<SerializableSpørsmål>,
+    ) : TemaMelding {
+        fun tilDomene() = Tema(
+            id = temaId,
+            navn = navn ?: beskrivelse!!,
+            temanavn = temanavn,
+            beskrivelse = beskrivelse,
+            introtekst = introtekst,
+            spørsmål = spørsmålOgSvaralternativer.map { it.tilDomene() },
+        )
+    }
+
+    @Serializable
+    data class SerializableSpørsmål(
+        override val id: String,
+        override val spørsmål: String,
+        override val flervalg: Boolean,
+        override val svaralternativer: List<SerializableSvaralternativ>,
+    ) : SpørsmålMelding {
+        fun tilDomene() = Spørsmål(
+            id = UUID.fromString(id),
+            tekst = spørsmål,
+            svaralternativer = svaralternativer.map { it.tilDomene() },
+            flervalg = flervalg,
+        )
+    }
+
+    @Serializable
+    data class SerializableSvaralternativ(
+        override val svarId: String,
+        override val svartekst: String,
+    ) : SvaralternativMelding {
+        fun tilDomene() = Svaralternativ(
+            id = UUID.fromString(svarId),
+            svartekst = svartekst,
+        )
     }
 
 

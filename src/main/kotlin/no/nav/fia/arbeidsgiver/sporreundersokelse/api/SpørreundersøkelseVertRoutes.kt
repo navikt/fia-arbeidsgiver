@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
+package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.call
@@ -7,16 +7,11 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.SPØRREUNDERSØKELSE_PATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaSvarStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.hentTemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørsmålId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.temaId
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.TemaSvarStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.dto.tilTemaOversiktDtoer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaOversiktDtoer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 
 
 const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
@@ -27,13 +22,13 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
         )
-        val temaStatus = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map { tema ->
+        val temaStatus = spørreundersøkelse.temaer.map { tema ->
             TemaSvarStatus(
-                temaId = tema.temaId,
-                harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
+                temaId = tema.id,
+                harÅpnetAlleSpørsmål = tema.spørsmål.all { spørsmål ->
                     spørreundersøkelseService.erSpørsmålÅpent(
                         spørreundersøkelseId = spørreundersøkelseId,
-                        temaId = tema.temaId,
+                        temaId = tema.id,
                         spørsmålId = spørsmål.id
                     )
                 }
@@ -62,13 +57,13 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             spørreundersøkelseId = spørreundersøkelseId
         )
 
-        val temaStatus = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.map { tema ->
+        val temaStatus = spørreundersøkelse.temaer.map { tema ->
             TemaSvarStatus(
-                temaId = tema.temaId,
-                harÅpnetAlleSpørsmål = tema.spørsmålOgSvaralternativer.all { spørsmål ->
+                temaId = tema.id,
+                harÅpnetAlleSpørsmål = tema.spørsmål.all { spørsmål ->
                     spørreundersøkelseService.erSpørsmålÅpent(
                         spørreundersøkelseId = spørreundersøkelseId,
-                        temaId = tema.temaId,
+                        temaId = tema.id,
                         spørsmålId = spørsmål.id
                     )
                 }
@@ -77,7 +72,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.tilTemaOversiktDto(temaId = call.temaId, temaStatus)
+            spørreundersøkelse.hentTemaDto(temaId = call.temaId, temaStatus)
         )
     }
 
@@ -93,7 +88,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         )
 
         spørreundersøkelseService.lukkTema(
-            spørreundersøkelseId = spørreundersøkelse.spørreundersøkelseId,
+            spørreundersøkelseId = spørreundersøkelse.id,
             temaId = call.temaId
         )
         call.respond(
@@ -103,19 +98,18 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
     }
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}") {
+        //TODO: Deprecated???
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
         )
         val spørsmålId = call.spørsmålId
-        val spørsmålMedSvarAlternativer = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer
-            .spørsmålFraId(spørsmålId = spørsmålId)
 
         spørreundersøkelseService.åpneSpørsmål(spørreundersøkelseId = spørreundersøkelseId, spørsmålId = spørsmålId)
 
         call.respond(
             HttpStatusCode.OK,
-            spørsmålMedSvarAlternativer.tilSpørsmålsoversiktDto(spørreundersøkelse = spørreundersøkelse)
+            spørreundersøkelse.tilSpørsmålsoversiktDto(spørsmålId = spørsmålId)
         )
     }
 
@@ -137,7 +131,7 @@ fun Route.spørreundersøkelseVertStatus(
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
 
-        val antallFullført = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.minOf { tema ->
+        val antallFullført = spørreundersøkelse.temaer.minOf { tema ->
             spørreundersøkelseService.antallSvarPåSpørsmålMedFærrestBesvarelser(tema, spørreundersøkelse)
         }
 
@@ -159,8 +153,8 @@ fun Route.spørreundersøkelseVertStatus(
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/antall-svar") {
         val spørreundersøkelse =
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
-        val tema = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.firstOrNull {
-            it.temaId == call.temaId
+        val tema = spørreundersøkelse.temaer.firstOrNull {
+            it.id == call.temaId
         } ?: throw Feil(feilmelding = "Fant ikke tema ${call.temaId}", feilkode = HttpStatusCode.NotFound)
 
         val antallFullførtForTema =

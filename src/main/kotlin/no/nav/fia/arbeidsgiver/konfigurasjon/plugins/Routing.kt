@@ -14,10 +14,10 @@ import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker.spørreundersøkelseDeltaker
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltaker
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.spørreundersøkelseVert
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.spørreundersøkelseVertStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 fun Application.configureRouting(redisService: RedisService) {
@@ -51,7 +51,7 @@ fun Application.configureRouting(redisService: RedisService) {
 
 fun Route.auditLogged(
     spørreundersøkelseService: SpørreundersøkelseService,
-    authorizedRoutes: Route.() -> Unit
+    authorizedRoutes: Route.() -> Unit,
 ) = createChild(selector).apply {
     install(AuditLogged(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()

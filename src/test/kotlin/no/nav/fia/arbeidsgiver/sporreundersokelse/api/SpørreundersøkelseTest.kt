@@ -9,8 +9,6 @@ import java.util.*
 import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
@@ -18,7 +16,6 @@ import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
 import org.junit.After
 import org.junit.Before
 
@@ -92,10 +89,10 @@ class SpørreundersøkelseTest {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
-            ).toJson()
+            )
         )
 
         runBlocking {
@@ -113,10 +110,10 @@ class SpørreundersøkelseTest {
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelsesStreng = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
+            spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
-            ).toJson()
+            )
         )
 
         runBlocking {
@@ -129,5 +126,4 @@ class SpørreundersøkelseTest {
         }
     }
 
-    private fun SpørreundersøkelseDto.toJson() = Json.encodeToString(this)
 }

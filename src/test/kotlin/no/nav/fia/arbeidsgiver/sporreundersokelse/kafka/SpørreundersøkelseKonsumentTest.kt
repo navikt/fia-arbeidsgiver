@@ -7,36 +7,33 @@ import io.kotest.matchers.shouldNotBe
 import java.util.*
 import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørsmålOgSvaralternativer
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.dto.SpørreundersøkelseDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
 
 class SpørreundersøkelseKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger og lagre dem i Redis`() {
-        val id = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-            result.temaMedSpørsmålOgSvaralternativer.forEach {
-                it.introtekst shouldNotBe null
-                it.beskrivelse shouldNotBe null
-                it.spørsmålOgSvaralternativer shouldNotBe emptyList<SpørsmålOgSvaralternativer>()
+            val result =
+                TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            result.id shouldBe spørreundersøkelseId
+            result.temaer.forEach {
+                it.navn shouldNotBe null
+                it.spørsmål shouldNotBe emptyList<Spørsmål>()
             }
         }
 
         runBlocking {
-            val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
-            result.temaMedSpørsmålOgSvaralternativer.forEach {
-                it.introtekst shouldNotBe null
-                it.beskrivelse shouldNotBe null
-                it.spørsmålOgSvaralternativer shouldNotBe emptyList<SpørsmålOgSvaralternativer>()
+            val result =
+                TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            result.id shouldBe spørreundersøkelseId
+            result.temaer.forEach {
+                it.navn shouldNotBe null
+                it.spørsmål shouldNotBe emptyList<Spørsmål>()
             }
         }
     }
@@ -44,38 +41,31 @@ class SpørreundersøkelseKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger med ukjente felt`() {
         val id = UUID.randomUUID()
-        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(id).toJson()
-        val spørreundersøkelseMedEkstraFelt =
-            spørreundersøkelse.replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
-
-        spørreundersøkelseMedEkstraFelt shouldNotBeEqual spørreundersøkelse
+        val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(id)
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(
-            spørreundersøkelseId = id,
-            spørreundersøkelsesStreng = spørreundersøkelseMedEkstraFelt
-        )
+            spørreundersøkelseId = id, medEkstraFelt = true
+        ) shouldNotBeEqual spørreundersøkelse
 
         runBlocking {
             val result = TestContainerHelper.redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
-            result.spørreundersøkelseId shouldBe id
+            result.id shouldBe id
         }
     }
 
     @Test
     fun `skal håndtere slettede kartlegginger`() {
-        val id = UUID.randomUUID()
-        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
+        val spørreundersøkelseId = UUID.randomUUID()
+        TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
-        val spørreundersøkelse = TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
-        spørreundersøkelse.spørreundersøkelseId shouldBe id
+        val spørreundersøkelse =
+            TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId)
+        spørreundersøkelse.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
 
-        TestContainerHelper.kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
+        TestContainerHelper.kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         shouldThrow<Feil> {
-            TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
+            TestContainerHelper.redis.spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId)
         }
-        TestContainerHelper.redis.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
-        // -- TODO: sjekk at sesjoner blir borte
+        TestContainerHelper.redis.spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId) shouldBe 0
     }
-
-    private fun SpørreundersøkelseDto.toJson() = Json.encodeToString(this)
 }
