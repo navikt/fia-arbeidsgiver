@@ -9,7 +9,6 @@ import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaSvarStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.hentTemaDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaOversiktDtoer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
@@ -94,22 +93,6 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         call.respond(
             status = HttpStatusCode.OK,
             message = Unit
-        )
-    }
-
-    get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/sporsmal/{spørsmålId}") {
-        //TODO: Deprecated???
-        val spørreundersøkelseId = call.spørreundersøkelseId
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
-            spørreundersøkelseId = spørreundersøkelseId
-        )
-        val spørsmålId = call.spørsmålId
-
-        spørreundersøkelseService.åpneSpørsmål(spørreundersøkelseId = spørreundersøkelseId, spørsmålId = spørsmålId)
-
-        call.respond(
-            HttpStatusCode.OK,
-            spørreundersøkelse.tilSpørsmålsoversiktDto(spørsmålId = spørsmålId)
         )
     }
 
