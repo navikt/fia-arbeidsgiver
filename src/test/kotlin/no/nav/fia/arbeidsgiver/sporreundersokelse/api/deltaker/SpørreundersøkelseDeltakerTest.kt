@@ -20,15 +20,14 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContai
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
-import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
+import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert.åpneSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.junit.After
@@ -249,10 +248,10 @@ class SpørreundersøkelseDeltakerTest {
                 bliMedDTO = bliMedDto
             )
             spørsmålsoversiktDto.spørsmål.tekst shouldBe førsteSpørsmål.tekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svarId shouldBe førsteSpørsmål.svaralternativer.first().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svarId shouldBe førsteSpørsmål.svaralternativer.last().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svartekst shouldBe førsteSpørsmål.svaralternativer.first().svartekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svartekst shouldBe førsteSpørsmål.svaralternativer.last().svartekst
+            spørsmålsoversiktDto.spørsmål.svaralternativer.first().id shouldBe førsteSpørsmål.svaralternativer.first().id.toString()
+            spørsmålsoversiktDto.spørsmål.svaralternativer.last().id shouldBe førsteSpørsmål.svaralternativer.last().id.toString()
+            spørsmålsoversiktDto.spørsmål.svaralternativer.first().tekst shouldBe førsteSpørsmål.svaralternativer.first().svartekst
+            spørsmålsoversiktDto.spørsmål.svaralternativer.last().tekst shouldBe førsteSpørsmål.svaralternativer.last().svartekst
             spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe førsteTema.spørsmål[1].id.toString()
             spørsmålsoversiktDto.nesteSpørsmål?.temaId shouldBe førsteTema.id
             spørsmålsoversiktDto.temanummer shouldBe 1
@@ -349,16 +348,15 @@ class SpørreundersøkelseDeltakerTest {
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
             val spørsmål = spørreundersøkelseDto.hentSpørsmålITema(startDto)
 
-            val spørsmålsoversiktVert = fiaArbeidsgiverApi.hentSpørsmålSomVert(
-                spørsmål = startDto,
-                spørreundersøkelseId = spørreundersøkelseDto.id,
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = startDto.temaId,
+                spørreundersøkelseId = spørreundersøkelseId,
                 vertId = spørreundersøkelseDto.vertId!!
             )
             val spørsmålsoversiktDeltaker =
                 fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
 
             spørsmål?.flervalg shouldBe false
-            spørsmålsoversiktVert.spørsmål.flervalg shouldBe false
             spørsmålsoversiktDeltaker?.spørsmål?.flervalg shouldBe false
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
@@ -388,16 +386,15 @@ class SpørreundersøkelseDeltakerTest {
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
             val spørsmål = spørreundersøkelse.hentSpørsmålITema(startDto)
 
-            val spørsmålsoversiktVert = fiaArbeidsgiverApi.hentSpørsmålSomVert(
-                spørsmål = startDto,
-                spørreundersøkelseId = spørreundersøkelse.id,
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = startDto.temaId,
+                spørreundersøkelseId = spørreundersøkelseId,
                 vertId = spørreundersøkelse.vertId!!
             )
             val spørsmålsoversiktDeltaker =
                 fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
 
             spørsmål?.flervalg shouldBe true
-            spørsmålsoversiktVert.spørsmål.flervalg shouldBe true
             spørsmålsoversiktDeltaker?.spørsmål?.flervalg shouldBe true
 
             fiaArbeidsgiverApi.svarPåSpørsmål(
@@ -449,7 +446,7 @@ class SpørreundersøkelseDeltakerTest {
             )
             fiaArbeidsgiverApi.svarPåSpørsmål(
                 startDto,
-                listOf(spørsmål.spørsmål.svaralternativer.first().svarId),
+                listOf(spørsmål.spørsmål.svaralternativer.first().id),
                 bliMedDTO
             )
             fiaArbeidsgiverApi shouldContainLog "Tema '${startDto.temaId}' er stengt, hent nytt spørsmål".toRegex()
@@ -482,7 +479,7 @@ class SpørreundersøkelseDeltakerTest {
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     startDtoFørsteSpørsmål,
-                    listOf(spørsmål.spørsmål.svaralternativer.first().svarId),
+                    listOf(spørsmål.spørsmål.svaralternativer.first().id),
                     bliMedDTO
                 )
             }
@@ -524,7 +521,11 @@ class SpørreundersøkelseDeltakerTest {
 private suspend fun Spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
     spørsmål: IdentifiserbartSpørsmål,
     bliMedDTO: BliMedDto,
-) = åpneSpørsmål(spørsmål).let {
+) = fiaArbeidsgiverApi.åpneTema(
+    spørsmål.temaId,
+    spørreundersøkelseId = id,
+    vertId = vertId!!
+).let {
     val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = spørsmål, bliMedDTO = bliMedDTO)
     assertNotNull(spørsmålsoversiktDto)
     spørsmålsoversiktDto

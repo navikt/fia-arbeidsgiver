@@ -123,10 +123,6 @@ class SpørreundersøkelseService(
         redisService.lagre(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId", "ja")
     }
 
-    fun åpneSpørsmål(spørreundersøkelseId: UUID, spørsmålId: UUID) {
-        redisService.lagre(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId", "ja")
-    }
-
     fun erTemaÅpent(spørreundersøkelseId: UUID, temaId: Int) =
         redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
 

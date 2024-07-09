@@ -225,21 +225,6 @@ internal suspend fun GenericContainer<*>.åpneTema(
     response.status shouldBe HttpStatusCode.OK
 }
 
-internal suspend fun GenericContainer<*>.hentSpørsmålSomVert(
-    spørsmål: IdentifiserbartSpørsmål,
-    spørreundersøkelseId: UUID,
-    vertId: UUID,
-    token: String = TestContainerHelper.azureAccessToken().serialize(),
-): SpørsmålsoversiktDto {
-    val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
-    ) {
-        header(HEADER_VERT_ID, vertId.toString())
-        medAzureToken(token = token)
-    }
-    return response.body()
-}
-
 internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
     temaId: Int,
     spørreundersøkelseId: UUID,
