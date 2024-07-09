@@ -5,11 +5,11 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 
 @Serializable
 data class SvaralternativDto(
-    val svarId: String,
-    val svartekst: String,
+    val id: String,
+    val tekst: String,
 )
 
 fun Svaralternativ.tilDto() = SvaralternativDto(
-    svarId = id.toString(),
-    svartekst = svartekst
+    id = id.toString(),
+    tekst = svartekst
 )

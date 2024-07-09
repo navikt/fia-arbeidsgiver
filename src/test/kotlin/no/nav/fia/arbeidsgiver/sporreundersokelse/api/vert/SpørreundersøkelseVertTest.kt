@@ -25,7 +25,6 @@ import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForTema
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentResultater
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
-import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomVert
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
 import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
 import no.nav.fia.arbeidsgiver.helper.performGet
@@ -40,7 +39,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsm
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.*
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
 import org.junit.After
@@ -198,39 +196,33 @@ class SpørreundersøkelseVertTest {
             temaOversikt shouldHaveSize spørreundersøkelseDto.temaer.size
             temaOversikt shouldContainInOrder spørreundersøkelseDto.temaer.mapIndexed { index, it ->
                 TemaDto(
-                    temaId = it.id,
+                    id = it.id,
                     navn = it.navn ?: it.beskrivelse!!,
                     del = index + 1,
                     status = if (it.id == spørreundersøkelseDto.temaer.first().id) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
                     spørsmålOgSvaralternativer = it.spørsmål.map { it.tilDto() },
-                    nesteTemaId = spørreundersøkelseDto.temaer.getOrNull(index + 1)?.id
                 )
             }
         }
     }
 
     @Test
-    fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål i tema 1 men ikke noen i tema 2`() {
+    fun `vert skal kunne hente riktig temastatus når man har åpnet tema 1 men ikke tema 2`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelseDto =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val førsteTema = spørreundersøkelseDto.temaer.first()
-            førsteTema.spørsmål.forEach {
-                spørreundersøkelseDto.åpneSpørsmål(
-                    spørsmål = IdentifiserbartSpørsmål(
-                        temaId = førsteTema.id,
-                        spørsmålId = it.id.toString()
-                    ),
-                )
-            }
-            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
-                spørreundersøkelseId = spørreundersøkelseDto.id,
-                vertId = spørreundersøkelseDto.vertId!!
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = spørreundersøkelse.temaer.first().id,
+                spørreundersøkelseId = spørreundersøkelse.id,
+                vertId = spørreundersøkelse.vertId!!
             )
-            temaOversikt shouldHaveSize spørreundersøkelseDto.temaer.size
+            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
+                spørreundersøkelseId = spørreundersøkelse.id,
+                vertId = spørreundersøkelse.vertId!!
+            )
+            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
             temaOversikt.first().status shouldBe TemaStatus.ALLE_SPØRSMÅL_ÅPNET
             temaOversikt[1].status shouldBe TemaStatus.ÅPNET
             temaOversikt.last().status shouldBe TemaStatus.IKKE_ÅPNET
@@ -240,35 +232,31 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål alle temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelseDto =
+        val spørreundersøkelse =
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            spørreundersøkelseDto.temaer.forEach { tema ->
-                tema.spørsmål.forEach {
-                    spørreundersøkelseDto.åpneSpørsmål(
-                        spørsmål = IdentifiserbartSpørsmål(
-                            temaId = tema.id,
-                            spørsmålId = it.id.toString()
-                        ),
-                    )
-                }
+            spørreundersøkelse.temaer.forEach { tema ->
+                fiaArbeidsgiverApi.åpneTema(
+                    temaId = tema.id,
+                    spørreundersøkelseId = spørreundersøkelse.id,
+                    vertId = spørreundersøkelse.vertId!!
+                )
             }
 
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
-                spørreundersøkelseId = spørreundersøkelseDto.id,
-                vertId = spørreundersøkelseDto.vertId!!
+                spørreundersøkelseId = spørreundersøkelse.id,
+                vertId = spørreundersøkelse.vertId!!
             )
-            temaOversikt shouldHaveSize spørreundersøkelseDto.temaer.size
-            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaer.mapIndexed { index, it ->
+            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
+            temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
-                    temaId = it.id,
+                    id = it.id,
                     del = index + 1,
                     navn = it.navn ?: it.beskrivelse!!,
                     status = TemaStatus.ALLE_SPØRSMÅL_ÅPNET,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
                     spørsmålOgSvaralternativer = it.spørsmål.map { it.tilDto() },
-                    nesteTemaId = spørreundersøkelseDto.temaer.getOrNull(index + 1)?.id
                 )
             }
         }
@@ -297,53 +285,6 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
-    fun `vert skal kunne hente spørsmålsoversikt`() {
-        val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
-
-        runBlocking {
-            val tema = spørreundersøkelse.temaer.first()
-            val spørsmål = tema.spørsmål.first()
-            val spørsmålsoversiktDto = spørreundersøkelse.åpneSpørsmål(
-                spørsmål = IdentifiserbartSpørsmål(
-                    temaId = tema.id,
-                    spørsmålId = spørsmål.id.toString()
-                )
-            )
-            spørsmålsoversiktDto.spørsmål.tekst shouldBe spørsmål.tekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svarId shouldBe spørsmål.svaralternativer.first().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svarId shouldBe spørsmål.svaralternativer.last().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svartekst shouldBe spørsmål.svaralternativer.first().svartekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svartekst shouldBe spørsmål.svaralternativer.last().svartekst
-            spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe tema.spørsmål[1].id.toString()
-            spørsmålsoversiktDto.nesteSpørsmål?.temaId shouldBe tema.id
-            spørsmålsoversiktDto.temanummer shouldBe 1
-            spørsmålsoversiktDto.antallTema shouldBe spørreundersøkelse.temaer.size
-            spørsmålsoversiktDto.spørsmålnummer shouldBe 1
-            spørsmålsoversiktDto.antallSpørsmål shouldBe tema.spørsmål.size
-        }
-
-        // på siste spørsmål
-        runBlocking {
-            val tema = spørreundersøkelse.temaer.last()
-            val spørsmål = tema.spørsmål.last()
-            val spørsmålsoversiktDto = spørreundersøkelse.åpneSpørsmål(
-                spørsmål = IdentifiserbartSpørsmål(
-                    temaId = tema.id,
-                    spørsmålId = spørsmål.id.toString()
-                )
-            )
-            spørsmålsoversiktDto.spørsmål.tekst shouldBe spørsmål.tekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svarId shouldBe spørsmål.svaralternativer.first().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().svartekst shouldBe spørsmål.svaralternativer.first().svartekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svarId shouldBe spørsmål.svaralternativer.last().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().svartekst shouldBe spørsmål.svaralternativer.last().svartekst
-            spørsmålsoversiktDto.nesteSpørsmål shouldBe null
-        }
-    }
-
-    @Test
     fun `vert skal kunne vite hvor mange som har svart på ett spørsmål`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelseDto =
@@ -355,7 +296,12 @@ class SpørreundersøkelseVertTest {
                 spørsmålId = spørreundersøkelseDto.temaer.first().spørsmål.first().id.toString()
             )
 
-            spørreundersøkelseDto.åpneSpørsmål(spørsmål = førsteSpørsmål)
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = førsteSpørsmål.temaId,
+                spørreundersøkelseId = spørreundersøkelseDto.id,
+                vertId = spørreundersøkelseDto.vertId!!
+            )
+
             fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
                 spørsmål = førsteSpørsmål,
                 spørreundersøkelseId = spørreundersøkelseDto.id,
@@ -579,11 +525,3 @@ class SpørreundersøkelseVertTest {
         }
     }
 }
-
-suspend fun Spørreundersøkelse.åpneSpørsmål(
-    spørsmål: IdentifiserbartSpørsmål,
-) = fiaArbeidsgiverApi.hentSpørsmålSomVert(
-    spørsmål = spørsmål,
-    spørreundersøkelseId = this.id,
-    vertId = this.vertId!!
-)

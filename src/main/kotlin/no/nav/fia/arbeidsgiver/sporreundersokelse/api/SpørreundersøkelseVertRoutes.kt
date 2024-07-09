@@ -8,8 +8,8 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaSvarStatus
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.hentTemaDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaOversiktDtoer
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaDtoer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
 
@@ -35,7 +35,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
         }
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.tilTemaOversiktDtoer(temaStatus)
+            spørreundersøkelse.tilTemaDtoer(temaStatus)
         )
     }
 
@@ -71,7 +71,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.hentTemaDto(temaId = call.temaId, temaStatus)
+            spørreundersøkelse.tilTemaDto(temaId = call.temaId, temaStatus)
         )
     }
 
