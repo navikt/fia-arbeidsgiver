@@ -27,7 +27,7 @@ import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.junit.After
@@ -179,13 +179,13 @@ class SpørreundersøkelseDeltakerTest {
             val spørsmålITema1 = tema1.spørsmålOgSvaralternativer.first().id
 
             spørreundersøkelseDto.tilDomene().åpneSpørsmålOgHentSomDeltaker(
-                spørsmål = IdentifiserbartSpørsmål(temaId = tema1.temaId, spørsmålId = spørsmålITema1),
+                spørsmål = IdentifiserbartSpørsmålDto(temaId = tema1.temaId, spørsmålId = spørsmålITema1),
                 bliMedDTO = bliMedDTO
             ) shouldNotBe null
             val tema2 = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer.last()
             val spørsmålITema2 = tema2.spørsmålOgSvaralternativer.first().id
             spørreundersøkelseDto.tilDomene().åpneSpørsmålOgHentSomDeltaker(
-                spørsmål = IdentifiserbartSpørsmål(temaId = tema2.temaId, spørsmålId = spørsmålITema2),
+                spørsmål = IdentifiserbartSpørsmålDto(temaId = tema2.temaId, spørsmålId = spørsmålITema2),
                 bliMedDTO = bliMedDTO
             ) shouldNotBe null
         }
@@ -212,7 +212,7 @@ class SpørreundersøkelseDeltakerTest {
 
             // -- Test at "nesteSpørsmål" for siste spørsmål i ett tema peker på første spørsmål i neste tema
             val sisteSpørsmålITema = spørreundersøkelseDto.tilDomene().åpneSpørsmålOgHentSomDeltaker(
-                spørsmål = IdentifiserbartSpørsmål(
+                spørsmål = IdentifiserbartSpørsmålDto(
                     temaId = startDto.temaId,
                     spørsmålId = spørreundersøkelseDto.temaMedSpørsmålOgSvaralternativer
                         .first().spørsmålOgSvaralternativer.last().id
@@ -519,7 +519,7 @@ class SpørreundersøkelseDeltakerTest {
 }
 
 private suspend fun Spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
-    spørsmål: IdentifiserbartSpørsmål,
+    spørsmål: IdentifiserbartSpørsmålDto,
     bliMedDTO: BliMedDto,
 ) = fiaArbeidsgiverApi.åpneTema(
     spørsmål.temaId,

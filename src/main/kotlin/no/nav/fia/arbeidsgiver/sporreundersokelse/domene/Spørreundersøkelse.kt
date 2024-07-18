@@ -3,7 +3,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import java.util.UUID
 import kotlinx.datetime.LocalDate
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 
 data class Spørreundersøkelse(
     val id: UUID,
@@ -15,18 +15,18 @@ data class Spørreundersøkelse(
     val avslutningsdato: LocalDate,
     val temaer: List<Tema>,
 ) {
-    fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+    fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {
         val gjeldendeTema = temaer.temaFraSpørsmålId(nåværendeSpørmålId)
         val gjeldeneTemaIdx = temaer.indexOfFirst { it.id == gjeldendeTema.id }
         val nesteSpørsmålIgjeldeneTema = gjeldendeTema.hentNesteSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (nesteSpørsmålIgjeldeneTema != null) {
-            IdentifiserbartSpørsmål(
+            IdentifiserbartSpørsmålDto(
                 temaId = gjeldendeTema.id,
                 spørsmålId = nesteSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
             temaer.elementAtOrNull(gjeldeneTemaIdx + 1)?.let {
-                IdentifiserbartSpørsmål(
+                IdentifiserbartSpørsmålDto(
                     temaId = it.id,
                     spørsmålId = it.spørsmål.first().id.toString()
                 )
@@ -34,18 +34,18 @@ data class Spørreundersøkelse(
         }
     }
 
-    fun hentForrigeSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmål? {
+    fun hentForrigeSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {
         val gjeldendeTema = temaer.temaFraSpørsmålId(nåværendeSpørmålId)
         val gjeldeneTemaIdx = temaer.indexOfFirst { it.id == gjeldendeTema.id }
         val forrigeSpørsmålIgjeldeneTema = gjeldendeTema.hentForrigeSpørsmål(spørsmålId = nåværendeSpørmålId)
         return if (forrigeSpørsmålIgjeldeneTema != null) {
-            IdentifiserbartSpørsmål(
+            IdentifiserbartSpørsmålDto(
                 temaId = gjeldendeTema.id,
                 spørsmålId = forrigeSpørsmålIgjeldeneTema.id.toString(),
             )
         } else {
             temaer.elementAtOrNull(gjeldeneTemaIdx - 1)?.let {
-                IdentifiserbartSpørsmål(
+                IdentifiserbartSpørsmålDto(
                     temaId = it.id,
                     spørsmålId = it.spørsmål.last().id.toString()
                 )
@@ -53,7 +53,7 @@ data class Spørreundersøkelse(
         }
     }
 
-    fun hentSpørsmålITema(spørsmål: IdentifiserbartSpørsmål) =
+    fun hentSpørsmålITema(spørsmål: IdentifiserbartSpørsmålDto) =
         temaer.firstOrNull { it.id == spørsmål.temaId }?.let { tema ->
             val spørsmålIdx = tema.spørsmål.indexOfFirst { it.id == UUID.fromString(spørsmål.spørsmålId) }
             tema.spørsmål.elementAtOrNull(spørsmålIdx)

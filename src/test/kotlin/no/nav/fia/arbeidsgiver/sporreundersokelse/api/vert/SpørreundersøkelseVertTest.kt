@@ -35,12 +35,12 @@ import no.nav.fia.arbeidsgiver.helper.vertHenterVirksomhetsnavn
 import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.*
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
 import org.junit.After
 import org.junit.Before
 
@@ -185,23 +185,24 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne få ut oversikt over alle temaer i en spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelseDto =
+        val spørreundersøkelse =
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
-                vertId = spørreundersøkelseDto.vertId!!,
-                spørreundersøkelseId = spørreundersøkelseDto.id
+                vertId = spørreundersøkelse.vertId!!,
+                spørreundersøkelseId = spørreundersøkelse.id
             )
-            temaOversikt shouldHaveSize spørreundersøkelseDto.temaer.size
-            temaOversikt shouldContainInOrder spørreundersøkelseDto.temaer.mapIndexed { index, it ->
+            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
+            temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
                     id = it.id,
                     navn = it.navn ?: it.beskrivelse!!,
                     del = index + 1,
-                    status = if (it.id == spørreundersøkelseDto.temaer.first().id) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
+                    status = if (it.id == spørreundersøkelse.temaer.first().id) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
-                    spørsmålOgSvaralternativer = it.spørsmål.map { it.tilDto() },
+                    nesteTemaId = spørreundersøkelse.temaer.elementAtOrNull(index + 1)?.id,
+                    spørsmål = it.spørsmål.map { it.tilDto() },
                 )
             }
         }
@@ -255,8 +256,9 @@ class SpørreundersøkelseVertTest {
                     del = index + 1,
                     navn = it.navn ?: it.beskrivelse!!,
                     status = TemaStatus.ALLE_SPØRSMÅL_ÅPNET,
+                    nesteTemaId = spørreundersøkelse.temaer.elementAtOrNull(index + 1)?.id,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
-                    spørsmålOgSvaralternativer = it.spørsmål.map { it.tilDto() },
+                    spørsmål = it.spørsmål.map { it.tilDto() },
                 )
             }
         }
@@ -291,7 +293,7 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val førsteSpørsmål = IdentifiserbartSpørsmål(
+            val førsteSpørsmål = IdentifiserbartSpørsmålDto(
                 temaId = spørreundersøkelseDto.temaer.first().id,
                 spørsmålId = spørreundersøkelseDto.temaer.first().spørsmål.first().id.toString()
             )
@@ -384,7 +386,7 @@ class SpørreundersøkelseVertTest {
         kafka.sendResultatPåTema(
             spørreundersøkelseId = spørreundersøkelseId,
             antallSvarPerSpørsmål = svarPerSpørsmål,
-            temaMedSpørsmålOgSvaralternativerDto = spørreundersøkelse.temaer.first()
+            tema = spørreundersøkelse.temaer.first()
         )
 
         runBlocking {
@@ -393,7 +395,7 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
                 vertId = spørreundersøkelse.vertId!!
 
-            ).body<TemaResultater>()
+            ).body<TemaResultatDto>()
 
             resultatRespons.spørsmålMedSvar.map { spørsmål ->
                 spørsmål.svarListe.forEach {

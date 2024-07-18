@@ -13,7 +13,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHend
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseAntallSvarDto
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.slf4j.Logger
@@ -46,11 +46,11 @@ class SpørreundersøkelseService(
         )
     }
 
-    fun lagre(spørreundersøkelseId: String, spørreundersøkelseResultat: TemaResultater) {
+    fun lagre(spørreundersøkelseId: String, temaresultat: TemaResultatDto) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE_RESULTAT,
-            nøkkel = "${spørreundersøkelseId}-${spørreundersøkelseResultat.temaId}",
-            verdi = Json.encodeToString(spørreundersøkelseResultat)
+            nøkkel = "${spørreundersøkelseId}-${temaresultat.temaId}",
+            verdi = Json.encodeToString(temaresultat)
         )
     }
 
@@ -107,10 +107,10 @@ class SpørreundersøkelseService(
         return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
     }
 
-    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaResultater {
+    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaResultatDto {
         val resultater =
             redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "${spørreundersøkelseId}-${temaId}")?.let {
-                Json.decodeFromString<TemaResultater>(it)
+                Json.decodeFromString<TemaResultatDto>(it)
             } ?: throw Feil(
                 feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
                 feilkode = HttpStatusCode.Forbidden
