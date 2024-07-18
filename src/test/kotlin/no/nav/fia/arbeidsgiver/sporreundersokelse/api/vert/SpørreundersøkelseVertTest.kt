@@ -424,37 +424,38 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val tema1 = spørreundersøkelse.temaer.first()
+            val førsteTema = spørreundersøkelse.temaer[0]
+            val andreTema = spørreundersøkelse.temaer[1]
+            val tredjeTema = spørreundersøkelse.temaer[2]
+
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                temaId = tema1.id
+                temaId = førsteTema.id
             )
 
-            tema1.spørsmål.forEachIndexed { index, spørsmål ->
+            førsteTema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     spørsmålId = spørsmål.id.toString(),
                     antallSvar = if (index == 1) 5 else 1
                 )
             }
-            val tema2 = spørreundersøkelse.temaer[1]
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                temaId = tema2.id
+                temaId = andreTema.id
             )
-            tema2.spørsmål.forEachIndexed { index, spørsmål ->
+            andreTema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     spørsmålId = spørsmål.id.toString(),
                     antallSvar = if (index == 1) 5 else 1
                 )
             }
-            val tema3 = spørreundersøkelse.temaer.last()
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                temaId = tema3.id
+                temaId = tredjeTema.id
             )
-            tema3.spørsmål.forEachIndexed { index, spørsmål ->
+            tredjeTema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
                     spørsmålId = spørsmål.id.toString(),
