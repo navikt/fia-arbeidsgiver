@@ -163,8 +163,8 @@ class SpørreundersøkelseService(
     }
 
     fun erAlleTemaerErStengt(spørreundersøkelse: Spørreundersøkelse): Boolean {
-        return spørreundersøkelse.temaer.all {
-            TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.id, it.id)
+        return spørreundersøkelse.temaer.all { tema ->
+            TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.id, tema.id)
         }
     }
 
