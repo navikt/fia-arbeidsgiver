@@ -169,9 +169,9 @@ class KafkaContainer(network: Network) {
     private fun Tema.tilKafkaResultatMelding(antallSvar: Int) =
         TemaResultatDto(
             temaId = id,
-            tema = navn ?: beskrivelse!!,
-            beskrivelse = beskrivelse,
-            navn = navn ?: beskrivelse!!,
+            tema = navn.uppercase(),
+            beskrivelse = navn,
+            navn = navn,
             spørsmålMedSvar = spørsmål.map {
                 it.tilKafkaResultatMelding(antallSvar = antallSvar)
             }

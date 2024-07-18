@@ -34,7 +34,7 @@ fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus
     return TemaDto(
         id = gjeldendeTema.id,
         del = indeksGjeldendeTema + 1,
-        navn = gjeldendeTema.navn ?: gjeldendeTema.beskrivelse!!,
+        navn = gjeldendeTema.navn,
         status = status,
         førsteSpørsmålId = gjeldendeTema.spørsmål.first().id.toString(),
         nesteTemaId = nesteTemaId,

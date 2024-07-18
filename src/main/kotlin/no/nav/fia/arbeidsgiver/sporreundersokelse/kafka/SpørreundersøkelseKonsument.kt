@@ -133,9 +133,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
         fun tilDomene() = Tema(
             id = temaId,
             navn = navn ?: beskrivelse!!,
-            temanavn = temanavn,
-            beskrivelse = beskrivelse,
-            introtekst = introtekst,
             spørsmål = spørsmålOgSvaralternativer.map { it.tilDomene() },
         )
     }

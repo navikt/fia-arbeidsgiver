@@ -1,16 +1,12 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.Temanavn
 import io.ktor.http.HttpStatusCode
 import java.util.UUID
 import no.nav.fia.arbeidsgiver.http.Feil
 
 data class Tema(
     val id: Int,
-    val navn: String?,
-    val temanavn: Temanavn?,
-    val beskrivelse: String?,
-    val introtekst: String?,
+    val navn: String,
     val spørsmål: List<Spørsmål>,
 ) {
     fun indeksFraSpørsmålId(spørsmålId: UUID): Int {

@@ -21,7 +21,7 @@ data class DeltakerSpørsmålDto(
 fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpørsmålDto {
     val tema = temaer.temaFraSpørsmålId(spørsmålId)
     return DeltakerSpørsmålDto(
-        temanavn = tema.beskrivelse ?: tema.navn!!,
+        temanavn = tema.navn,
         nesteSpørsmål = hentNesteSpørsmålOgTema(spørsmålId),
         forrigeSpørsmål = hentForrigeSpørsmålOgTema(spørsmålId),
         temanummer = temaer.indexOfFirst { it.id == tema.id } + 1,

@@ -160,7 +160,7 @@ class SpørreundersøkelseVertTest {
             temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
                     id = it.id,
-                    navn = it.navn ?: it.beskrivelse!!,
+                    navn = it.navn,
                     del = index + 1,
                     status = if (it.id == spørreundersøkelse.temaer.first().id) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
@@ -213,7 +213,7 @@ class SpørreundersøkelseVertTest {
                 TemaDto(
                     id = it.id,
                     del = index + 1,
-                    navn = it.navn ?: it.beskrivelse!!,
+                    navn = it.navn,
                     status = TemaStatus.ALLE_SPØRSMÅL_ÅPNET,
                     nesteTemaId = spørreundersøkelse.temaer.elementAtOrNull(index + 1)?.id,
                     førsteSpørsmålId = it.spørsmål.first().id.toString(),
