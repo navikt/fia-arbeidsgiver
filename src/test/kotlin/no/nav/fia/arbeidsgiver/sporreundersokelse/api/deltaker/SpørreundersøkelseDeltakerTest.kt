@@ -51,7 +51,6 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `skal verifisere sesjonsid for deltakere`() {
         val spørreundersøkelseId = UUID.randomUUID()
-
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
@@ -69,7 +68,6 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `skal ikke kunne bli med i en spørreundersøkelse som ikke er påbegynt`() {
         val spørreundersøkelseId = UUID.randomUUID()
-
         kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = kafka.enStandardSpørreundersøkelse(
@@ -88,8 +86,7 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `skal ikke kunne svare på spørsmål etter at en undersøkelse er avsluttet`() {
         val spørreundersøkelseId = UUID.randomUUID()
-
-        val serializableSpørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val spørreundersøkelseFraKafka = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -97,12 +94,12 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.sendSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelse = serializableSpørreundersøkelse.copy(status = SpørreundersøkelseStatus.AVSLUTTET)
+                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = SpørreundersøkelseStatus.AVSLUTTET)
             )
 
 
             shouldFail {
-                val spørsmål = serializableSpørreundersøkelse.tilDomene().hentSpørsmålITema(startDto)
+                val spørsmål = spørreundersøkelseFraKafka.tilDomene().hentSpørsmålITema(startDto)
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
                     svarIder = listOf(spørsmål?.svaralternativer?.first()?.id.toString()),
@@ -129,8 +126,8 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `deltaker får NOT_FOUND dersom spørsmål ikke er funnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørsmålsoversiktDto = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-        val temaId = spørsmålsoversiktDto.temaMedSpørsmålOgSvaralternativer.first().temaId
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val temaId = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().temaId
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -174,7 +171,6 @@ class SpørreundersøkelseDeltakerTest {
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-
             val førsteTema = spørreundersøkelse.temaer.first()
             val sisteTema = spørreundersøkelse.temaer.last()
             val spørsmålIdFørsteTema = førsteTema.spørsmål.first().id.toString()
@@ -184,7 +180,6 @@ class SpørreundersøkelseDeltakerTest {
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = førsteTema.id, spørsmålId = spørsmålIdFørsteTema),
                 bliMedDTO = bliMedDTO
             ) shouldNotBe null
-
 
             spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = sisteTema.id, spørsmålId = spørsmålIdSisteTema),
@@ -242,21 +237,21 @@ class SpørreundersøkelseDeltakerTest {
                 bliMedDTO = bliMedDto
             ) shouldBe null
 
-            val spørsmålsoversiktDto = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
+            val deltakerSpørsmålDto = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = startDto,
                 bliMedDTO = bliMedDto
             )
-            spørsmålsoversiktDto.spørsmål.tekst shouldBe førsteSpørsmål.tekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().id shouldBe førsteSpørsmål.svaralternativer.first().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().id shouldBe førsteSpørsmål.svaralternativer.last().id.toString()
-            spørsmålsoversiktDto.spørsmål.svaralternativer.first().tekst shouldBe førsteSpørsmål.svaralternativer.first().svartekst
-            spørsmålsoversiktDto.spørsmål.svaralternativer.last().tekst shouldBe førsteSpørsmål.svaralternativer.last().svartekst
-            spørsmålsoversiktDto.nesteSpørsmål?.spørsmålId shouldBe førsteTema.spørsmål[1].id.toString()
-            spørsmålsoversiktDto.nesteSpørsmål?.temaId shouldBe førsteTema.id
-            spørsmålsoversiktDto.temanummer shouldBe 1
-            spørsmålsoversiktDto.antallTema shouldBe spørreundersøkelse.temaer.size
-            spørsmålsoversiktDto.spørsmålnummer shouldBe 1
-            spørsmålsoversiktDto.antallSpørsmål shouldBe førsteTema.spørsmål.size
+            deltakerSpørsmålDto.spørsmål.tekst shouldBe førsteSpørsmål.tekst
+            deltakerSpørsmålDto.spørsmål.svaralternativer.first().id shouldBe førsteSpørsmål.svaralternativer.first().id.toString()
+            deltakerSpørsmålDto.spørsmål.svaralternativer.last().id shouldBe førsteSpørsmål.svaralternativer.last().id.toString()
+            deltakerSpørsmålDto.spørsmål.svaralternativer.first().tekst shouldBe førsteSpørsmål.svaralternativer.first().svartekst
+            deltakerSpørsmålDto.spørsmål.svaralternativer.last().tekst shouldBe førsteSpørsmål.svaralternativer.last().svartekst
+            deltakerSpørsmålDto.nesteSpørsmål?.spørsmålId shouldBe førsteTema.spørsmål[1].id.toString()
+            deltakerSpørsmålDto.nesteSpørsmål?.temaId shouldBe førsteTema.id
+            deltakerSpørsmålDto.temanummer shouldBe 1
+            deltakerSpørsmålDto.antallTema shouldBe spørreundersøkelse.temaer.size
+            deltakerSpørsmålDto.spørsmålnummer shouldBe 1
+            deltakerSpørsmålDto.antallSpørsmål shouldBe førsteTema.spørsmål.size
         }
     }
 
@@ -341,21 +336,21 @@ class SpørreundersøkelseDeltakerTest {
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-            val spørsmål = spørreundersøkelse.hentSpørsmålITema(startDto)
+            val identifiserbartSpørsmålDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val spørsmål = spørreundersøkelse.hentSpørsmålITema(identifiserbartSpørsmålDto)
 
             fiaArbeidsgiverApi.åpneTema(
-                temaId = startDto.temaId,
+                temaId = identifiserbartSpørsmålDto.temaId,
                 spørreundersøkelseId = spørreundersøkelseId,
             )
-            val spørsmålsoversiktDeltaker =
-                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+            val deltakerSpørsmålDto =
+                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = identifiserbartSpørsmålDto, bliMedDTO = bliMedDTO)
 
             spørsmål?.flervalg shouldBe false
-            spørsmålsoversiktDeltaker?.spørsmål?.flervalg shouldBe false
+            deltakerSpørsmålDto?.spørsmål?.flervalg shouldBe false
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
-                    spørsmål = startDto,
+                    spørsmål = identifiserbartSpørsmålDto,
                     svarIder = listOf(
                         spørsmål?.svaralternativer?.first()?.id.toString(),
                         spørsmål?.svaralternativer?.last()?.id.toString()
@@ -370,7 +365,6 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `Skal kunne sende flere svar til kafka for på flervalg spørsmål`() {
         val spørreundersøkelseId = UUID.randomUUID()
-
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, flervalg = true)
@@ -378,21 +372,21 @@ class SpørreundersøkelseDeltakerTest {
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-            val spørsmål = spørreundersøkelse.hentSpørsmålITema(startDto)
+            val identifiserbartSpørsmålDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
+            val spørsmål = spørreundersøkelse.hentSpørsmålITema(identifiserbartSpørsmålDto)
 
             fiaArbeidsgiverApi.åpneTema(
-                temaId = startDto.temaId,
+                temaId = identifiserbartSpørsmålDto.temaId,
                 spørreundersøkelseId = spørreundersøkelseId,
             )
-            val spørsmålsoversiktDeltaker =
-                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
+            val deltakerSpørsmålDto =
+                fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = identifiserbartSpørsmålDto, bliMedDTO = bliMedDTO)
 
             spørsmål?.flervalg shouldBe true
-            spørsmålsoversiktDeltaker?.spørsmål?.flervalg shouldBe true
+            deltakerSpørsmålDto?.spørsmål?.flervalg shouldBe true
 
             fiaArbeidsgiverApi.svarPåSpørsmål(
-                spørsmål = startDto,
+                spørsmål = identifiserbartSpørsmålDto,
                 svarIder = listOf(
                     spørsmål?.svaralternativer?.first()?.id.toString(),
                     spørsmål?.svaralternativer?.last()?.id.toString()
@@ -424,8 +418,7 @@ class SpørreundersøkelseDeltakerTest {
     @Test
     fun `deltaker skal ikke kunne svare på spørsmål i stengte temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
@@ -455,7 +448,7 @@ class SpørreundersøkelseDeltakerTest {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val startDtoFørsteSpørsmål = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
 
-            val spørsmål =
+            val deltakerSpørsmålDto =
                 spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                     spørsmål = startDtoFørsteSpørsmål,
                     bliMedDTO = bliMedDTO
@@ -471,7 +464,7 @@ class SpørreundersøkelseDeltakerTest {
             shouldFail {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     startDtoFørsteSpørsmål,
-                    listOf(spørsmål.spørsmål.svaralternativer.first().id),
+                    listOf(deltakerSpørsmålDto.spørsmål.svaralternativer.first().id),
                     bliMedDTO
                 )
             }
@@ -516,9 +509,9 @@ private suspend fun Spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
     spørsmål.temaId,
     spørreundersøkelseId = id,
 ).let {
-    val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = spørsmål, bliMedDTO = bliMedDTO)
-    assertNotNull(spørsmålsoversiktDto)
-    spørsmålsoversiktDto
+    val deltakerSpørsmålDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = spørsmål, bliMedDTO = bliMedDTO)
+    assertNotNull(deltakerSpørsmålDto)
+    deltakerSpørsmålDto
 }
 
 
