@@ -112,7 +112,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
     ) : SpørreundersøkelseMelding {
         fun tilDomene() = Spørreundersøkelse(
             id = UUID.fromString(spørreundersøkelseId),
-            vertId = vertId?.let { UUID.fromString(it) },
             orgnummer = orgnummer,
             virksomhetsNavn = virksomhetsNavn,
             status = status,

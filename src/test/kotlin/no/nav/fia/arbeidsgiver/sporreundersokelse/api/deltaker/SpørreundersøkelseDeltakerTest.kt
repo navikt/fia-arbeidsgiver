@@ -121,7 +121,7 @@ class SpørreundersøkelseDeltakerTest {
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
-            startDto.temaId shouldBe spørreundersøkelse.temaer.first().id.toString()
+            startDto.temaId shouldBe spørreundersøkelse.temaer.first().id
             startDto.spørsmålId shouldBe spørreundersøkelse.temaer.first().spørsmål.first().id.toString()
         }
     }
@@ -347,7 +347,6 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.åpneTema(
                 temaId = startDto.temaId,
                 spørreundersøkelseId = spørreundersøkelseId,
-                vertId = spørreundersøkelse.vertId!!
             )
             val spørsmålsoversiktDeltaker =
                 fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
@@ -385,7 +384,6 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.åpneTema(
                 temaId = startDto.temaId,
                 spørreundersøkelseId = spørreundersøkelseId,
-                vertId = spørreundersøkelse.vertId!!
             )
             val spørsmålsoversiktDeltaker =
                 fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = startDto, bliMedDTO = bliMedDTO)
@@ -438,7 +436,6 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.stengTema(
                 temaId = startDto.temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             fiaArbeidsgiverApi.svarPåSpørsmål(
                 startDto,
@@ -468,7 +465,6 @@ class SpørreundersøkelseDeltakerTest {
                 fiaArbeidsgiverApi.stengTema(
                     temaId = it.id,
                     spørreundersøkelseId = spørreundersøkelse.id,
-                    vertId = spørreundersøkelse.vertId!!
                 )
             }
 
@@ -504,7 +500,6 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.stengTema(
                 temaId = startDto.temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             val nyStartDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO = bliMedDTO)
 
@@ -520,7 +515,6 @@ private suspend fun Spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
 ) = fiaArbeidsgiverApi.åpneTema(
     spørsmål.temaId,
     spørreundersøkelseId = id,
-    vertId = vertId!!
 ).let {
     val spørsmålsoversiktDto = fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(spørsmål = spørsmål, bliMedDTO = bliMedDTO)
     assertNotNull(spørsmålsoversiktDto)

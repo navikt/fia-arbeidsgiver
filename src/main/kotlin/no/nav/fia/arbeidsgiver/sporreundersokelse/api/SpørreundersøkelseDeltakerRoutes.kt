@@ -47,12 +47,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         val spørsmålId = call.spørsmålId
         val temaId = call.temaId
 
-
-
-
-        if (spørreundersøkelse.temaer
-                .temaFraSpørsmålId(spørsmålId = spørsmålId).id != temaId
-        ) {
+        if (spørreundersøkelse.temaer.temaFraSpørsmålId(spørsmålId = spørsmålId).id != temaId) {
             call.application.log.warn("TemaId ikke funnet i spørreundersøkelse $temaId")
             return@get call.respond(HttpStatusCode.NotFound)
         }

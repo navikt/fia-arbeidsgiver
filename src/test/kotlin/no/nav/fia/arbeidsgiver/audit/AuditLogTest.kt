@@ -56,7 +56,6 @@ class AuditLogTest {
             fiaArbeidsgiverApi.stengTema(
                 temaId = temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             fiaArbeidsgiverApi shouldContainLog auditLog(
                 fnr = TestContainerHelper.VERT_NAV_IDENT,

@@ -23,8 +23,7 @@ fun Route.spørreundersøkelse(spørreundersøkelseService: Spørreundersøkelse
 
         val spørreundersøkelseId = bliMedRequest.spørreundersøkelseId.tilUUID("spørreundersøkelseId")
 
-        val spørreundersøkelse =
-            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
 
         val sesjonsId = UUID.randomUUID()
         spørreundersøkelseService.lagreSesjon(sesjonsId, spørreundersøkelse.id)
