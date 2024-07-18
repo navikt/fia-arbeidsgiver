@@ -1,7 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
-import HEADER_VERT_ID
-import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -64,14 +62,11 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `skal ikke kunne laste vertssider uten azure-token`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             fiaArbeidsgiverApi.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
-                header(HEADER_VERT_ID, spørreundersøkelse.vertId)
             }.status shouldBe HttpStatusCode.Unauthorized
         }
     }
@@ -79,14 +74,11 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `skal ikke kunne laste vertssider uten riktig ad-gruppe`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             fiaArbeidsgiverApi.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
-                header(HEADER_VERT_ID, spørreundersøkelse.vertId)
                 header(
                     HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
                         audience = "azure:fia-arbeidsgiver",
@@ -106,13 +98,11 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `skal ikke kunne laste vertssider uten gyldig scopet azure-token`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             fiaArbeidsgiverApi.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
-                header(HEADER_VERT_ID, spørreundersøkelse.vertId)
                 header(
                     HttpHeaders.Authorization, TestContainerHelper.authServer.issueToken(
                         issuerId = "azure",
@@ -124,34 +114,12 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
-    fun `vertssider skal ikke kunne hentes uten gyldig vertsId`() {
-        val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
-
-        runBlocking {
-            fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                vertId = spørreundersøkelse.vertId!!,
-                spørreundersøkelseId = spørreundersøkelse.id
-            ) shouldBe 0
-
-            shouldFail {
-                fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                    vertId = UUID.randomUUID(),
-                    spørreundersøkelseId = spørreundersøkelse.id
-                )
-            }
-        }
-    }
-
-    @Test
     fun `vert skal kunne hente virksomhetsnavn`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             fiaArbeidsgiverApi.vertHenterVirksomhetsnavn(
-                vertId = spørreundersøkelse.vertId!!,
                 spørreundersøkelseId = spørreundersøkelse.id
             ) shouldBe spørreundersøkelse.virksomhetsNavn
         }
@@ -165,7 +133,6 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                vertId = spørreundersøkelse.vertId!!,
                 spørreundersøkelseId = spørreundersøkelse.id
             ) shouldBe 0
 
@@ -174,7 +141,6 @@ class SpørreundersøkelseVertTest {
                 fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
 
             fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                vertId = spørreundersøkelse.vertId!!,
                 spørreundersøkelseId = spørreundersøkelse.id
             ) shouldBe antallDeltakere
         }
@@ -188,7 +154,6 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
-                vertId = spørreundersøkelse.vertId!!,
                 spørreundersøkelseId = spørreundersøkelse.id
             )
             temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
@@ -215,11 +180,9 @@ class SpørreundersøkelseVertTest {
             fiaArbeidsgiverApi.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
             temaOversikt.first().status shouldBe TemaStatus.ALLE_SPØRSMÅL_ÅPNET
@@ -239,13 +202,11 @@ class SpørreundersøkelseVertTest {
                 fiaArbeidsgiverApi.åpneTema(
                     temaId = tema.id,
                     spørreundersøkelseId = spørreundersøkelse.id,
-                    vertId = spørreundersøkelse.vertId!!
                 )
             }
 
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
             temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
@@ -274,7 +235,6 @@ class SpørreundersøkelseVertTest {
         runBlocking {
             val temaOversikt = fiaArbeidsgiverApi.hentTemaoversiktForEttTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!,
                 temaId = TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR
             )
             temaOversikt shouldNotBe null
@@ -298,13 +258,11 @@ class SpørreundersøkelseVertTest {
             fiaArbeidsgiverApi.åpneTema(
                 temaId = førsteSpørsmål.temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
 
             fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
                 spørsmål = førsteSpørsmål,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             ) shouldBe 0
 
             (1..5).forEach { antallSvar ->
@@ -324,7 +282,6 @@ class SpørreundersøkelseVertTest {
                 fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
                     spørsmål = førsteSpørsmål,
                     spørreundersøkelseId = spørreundersøkelse.id,
-                    vertId = spørreundersøkelse.vertId!!
 
                 ) shouldBe antallSvar
             }
@@ -340,7 +297,7 @@ class SpørreundersøkelseVertTest {
             val temaId = spørreundersøkelse.temaer.first().id
             fiaArbeidsgiverApi.stengTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = temaId
+                temaId = temaId
             )
 
             val stengTema = StengTema(spørreundersøkelseId.toString(), temaId)
@@ -364,8 +321,6 @@ class SpørreundersøkelseVertTest {
             val resultatRespons = fiaArbeidsgiverApi.hentResultater(
                 temaId = temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
-
             )
             resultatRespons.status shouldBe HttpStatusCode.Forbidden
             fiaArbeidsgiverApi shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
@@ -389,8 +344,6 @@ class SpørreundersøkelseVertTest {
             val resultatRespons = fiaArbeidsgiverApi.hentResultater(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
-
             ).body<TemaResultatDto>()
 
             resultatRespons.spørsmålMedSvar.map { spørsmål ->
@@ -416,7 +369,7 @@ class SpørreundersøkelseVertTest {
 
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = førsteSpørsmål.temaId
+                temaId = førsteSpørsmål.temaId
             )
             fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
                 bliMedDTO = bliMedDTO,
@@ -434,7 +387,7 @@ class SpørreundersøkelseVertTest {
             val tema = spørreundersøkelse.temaer.first()
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = tema.id
+                temaId = tema.id
             )
 
             kafka.sendAntallSvar(
@@ -446,8 +399,6 @@ class SpørreundersøkelseVertTest {
             var antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
-
             )
             antallDeltakereSomHarFullførtTema shouldBe 0
 
@@ -462,7 +413,6 @@ class SpørreundersøkelseVertTest {
             antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             antallDeltakereSomHarFullførtTema shouldBe 1
         }
@@ -477,7 +427,7 @@ class SpørreundersøkelseVertTest {
             val tema1 = spørreundersøkelse.temaer.first()
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = tema1.id
+                temaId = tema1.id
             )
 
             tema1.spørsmål.forEachIndexed { index, spørsmål ->
@@ -490,7 +440,7 @@ class SpørreundersøkelseVertTest {
             val tema2 = spørreundersøkelse.temaer[1]
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = tema2.id
+                temaId = tema2.id
             )
             tema2.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
@@ -502,7 +452,7 @@ class SpørreundersøkelseVertTest {
             val tema3 = spørreundersøkelse.temaer.last()
             fiaArbeidsgiverApi.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!, temaId = tema3.id
+                temaId = tema3.id
             )
             tema3.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
@@ -514,7 +464,6 @@ class SpørreundersøkelseVertTest {
 
             val antallDeltakereSomHarFullført = fiaArbeidsgiverApi.hentAntallSvarForSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                vertId = spørreundersøkelse.vertId!!
             )
             antallDeltakereSomHarFullført shouldBe 1
         }

@@ -1,13 +1,12 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
-import java.util.UUID
 import kotlinx.datetime.LocalDate
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
+import java.util.UUID
 
 data class Spørreundersøkelse(
     val id: UUID,
-    val vertId: UUID?,
     val orgnummer: String,
     val virksomhetsNavn: String,
     val status: SpørreundersøkelseStatus,

@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import VerifisertSesjonId
-import VerifisertVertId
 import io.ktor.server.application.Application
 import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
@@ -31,12 +30,10 @@ fun Application.configureRouting(redisService: RedisService) {
         }
 
         authenticate("azure") {
-            medVerifisertVertsId(spørreundersøkelseService = spørreundersøkelseService) {
-                auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
-                    spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
-                }
-                spørreundersøkelseVertStatus(spørreundersøkelseService = spørreundersøkelseService)
+            auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
+                spørreundersøkelseVert(spørreundersøkelseService = spørreundersøkelseService)
             }
+            spørreundersøkelseVertStatus(spørreundersøkelseService = spørreundersøkelseService)
         }
 
         authenticate("tokenx") {
@@ -59,14 +56,6 @@ fun Route.auditLogged(
 
 fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {
     install(AuthorizationPlugin)
-    authorizedRoutes()
-}
-
-fun Route.medVerifisertVertsId(
-    spørreundersøkelseService: SpørreundersøkelseService,
-    authorizedRoutes: Route.() -> Unit,
-) = createChild(CustomSelector()).apply {
-    install(VerifisertVertId(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()
 }
 

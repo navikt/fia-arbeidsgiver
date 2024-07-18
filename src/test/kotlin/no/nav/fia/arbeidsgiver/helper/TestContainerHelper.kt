@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import HEADER_SESJON_ID
-import HEADER_VERT_ID
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -212,14 +211,12 @@ internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
 internal suspend fun GenericContainer<*>.åpneTema(
     temaId: Int,
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${temaId}/start",
         body = Unit
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     response.status shouldBe HttpStatusCode.OK
@@ -228,13 +225,11 @@ internal suspend fun GenericContainer<*>.åpneTema(
 internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
     temaId: Int,
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/antall-svar",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -242,13 +237,11 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
 
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/antall-fullfort",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -257,13 +250,11 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     spørsmål: IdentifiserbartSpørsmålDto,
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -271,13 +262,11 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
 
 internal suspend fun GenericContainer<*>.hentTemaoversikt(
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): List<TemaDto> {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -286,13 +275,11 @@ internal suspend fun GenericContainer<*>.hentTemaoversikt(
 internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
     temaId: Int,
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): TemaDto {
     val response = performGet(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     return response.body()
@@ -300,27 +287,23 @@ internal suspend fun GenericContainer<*>.hentTemaoversiktForEttTema(
 
 internal suspend fun GenericContainer<*>.hentResultater(
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     temaId: Int,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) = performGet(
     url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId/resultater",
 ) {
-    header(HEADER_VERT_ID, vertId.toString())
     medAzureToken(token = token)
 }
 
 internal suspend fun GenericContainer<*>.stengTema(
     temaId: Int,
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
         url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/avslutt",
         body = Unit
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
 
@@ -329,13 +312,11 @@ internal suspend fun GenericContainer<*>.stengTema(
 
 internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): String {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/virksomhetsnavn",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
     response.status shouldBe HttpStatusCode.OK
@@ -345,13 +326,11 @@ internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
 
 internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     spørreundersøkelseId: UUID,
-    vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
     ) {
-        header(HEADER_VERT_ID, vertId.toString())
         medAzureToken(token = token)
     }
 
