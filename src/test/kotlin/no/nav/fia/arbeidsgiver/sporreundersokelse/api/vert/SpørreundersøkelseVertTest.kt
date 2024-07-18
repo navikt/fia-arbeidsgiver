@@ -23,8 +23,8 @@ import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForTema
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentResultater
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
-import no.nav.fia.arbeidsgiver.helper.hentTemaoversikt
-import no.nav.fia.arbeidsgiver.helper.hentTemaoversiktForEttTema
+import no.nav.fia.arbeidsgiver.helper.hentTemaDtoer
+import no.nav.fia.arbeidsgiver.helper.hentTemaDto
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
@@ -153,11 +153,11 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
+            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
                 spørreundersøkelseId = spørreundersøkelse.id
             )
-            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
-            temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
+            temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
+            temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
                     id = it.id,
                     navn = it.navn,
@@ -181,13 +181,13 @@ class SpørreundersøkelseVertTest {
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
+            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
-            temaOversikt.first().status shouldBe TemaStatus.ALLE_SPØRSMÅL_ÅPNET
-            temaOversikt[1].status shouldBe TemaStatus.ÅPNET
-            temaOversikt.last().status shouldBe TemaStatus.IKKE_ÅPNET
+            temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
+            temaDtoList[0].status shouldBe TemaStatus.ALLE_SPØRSMÅL_ÅPNET
+            temaDtoList[1].status shouldBe TemaStatus.ÅPNET
+            temaDtoList[2].status shouldBe TemaStatus.IKKE_ÅPNET
         }
     }
 
@@ -205,11 +205,11 @@ class SpørreundersøkelseVertTest {
                 )
             }
 
-            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversikt(
+            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            temaOversikt shouldHaveSize spørreundersøkelse.temaer.size
-            temaOversikt shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
+            temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
+            temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
                     id = it.id,
                     del = index + 1,
@@ -233,14 +233,14 @@ class SpørreundersøkelseVertTest {
             spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
 
         runBlocking {
-            val temaOversikt = fiaArbeidsgiverApi.hentTemaoversiktForEttTema(
+            val temaDto = fiaArbeidsgiverApi.hentTemaDto(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR
             )
-            temaOversikt shouldNotBe null
-            temaOversikt.del shouldBe 2
-            temaOversikt.navn shouldBe temaRedusereSykefravær.navn
-            temaOversikt.førsteSpørsmålId shouldBe temaRedusereSykefravær.spørsmål.first().id.toString()
+            temaDto shouldNotBe null
+            temaDto.del shouldBe 2
+            temaDto.navn shouldBe temaRedusereSykefravær.navn
+            temaDto.førsteSpørsmålId shouldBe temaRedusereSykefravær.spørsmål.first().id.toString()
         }
     }
 
