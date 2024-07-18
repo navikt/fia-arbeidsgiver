@@ -1,5 +1,9 @@
 name: Build and deploy fia-arbeidsgiver
-on: [ push ]
+on:
+  push:
+    branches:
+      - main
+      - ia-felles-kafka
 
 permissions: {}
 
@@ -10,6 +14,7 @@ jobs:
       contents: write
     name: build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: gradle/wrapper-validation-action@v2
@@ -55,6 +60,7 @@ jobs:
     needs: build
     if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
       - name: Deploy application to ${{ matrix.cluster }}
@@ -70,7 +76,7 @@ jobs:
       id-token: write
     name: Deploy app to dev
     needs: build
-    if: github.ref == 'refs/heads/azure-auth'
+    if: github.ref == 'refs/heads/ia-felles-kafka'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
