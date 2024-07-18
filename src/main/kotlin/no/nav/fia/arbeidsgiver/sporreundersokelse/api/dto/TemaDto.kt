@@ -11,7 +11,8 @@ data class TemaDto(
     val navn: String,
     val status: TemaStatus,
     val førsteSpørsmålId: String,
-    val spørsmålOgSvaralternativer: List<SpørsmålDto>,
+    val nesteTemaId: Int?,
+    val spørsmål: List<SpørsmålDto>,
 )
 
 fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus>): TemaDto {
@@ -28,6 +29,7 @@ fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus
         else -> TemaStatus.IKKE_ÅPNET
     }
     val gjeldendeTema = this.temaer.first { it.id == temaId }
+    val nesteTemaId = this.temaer.getOrNull(indeksGjeldendeTema + 1)?.id
 
     return TemaDto(
         id = gjeldendeTema.id,
@@ -35,7 +37,8 @@ fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus
         navn = gjeldendeTema.navn ?: gjeldendeTema.beskrivelse!!,
         status = status,
         førsteSpørsmålId = gjeldendeTema.spørsmål.first().id.toString(),
-        spørsmålOgSvaralternativer = gjeldendeTema.spørsmål.map { it.tilDto() }
+        nesteTemaId = nesteTemaId,
+        spørsmål = gjeldendeTema.spørsmål.map { it.tilDto() }
     )
 }
 

@@ -2,7 +2,9 @@ val ktorVersion = "2.3.11"
 val kotlinVersion = "2.0.0"
 val logbackVersion = "1.5.6"
 val prometheusVersion = "1.13.1"
-val iaFellesVersion = "1.2.0-RC"
+val iaFellesVersion = "1.2.0-RC3"
+val kotestVersion = "5.9.1"
+val testcontainersVersion = "1.19.8"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -18,7 +20,6 @@ repositories {
 }
 
 dependencies {
-    val iaFellesVersion = "1.2.0-RC2"
     // Felles definisjoner for IA-domenet
     implementation("com.github.navikt:ia-felles:$iaFellesVersion")
 
@@ -60,12 +61,12 @@ dependencies {
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
 
-    val kotestVersion = "5.9.1"
+
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
-    val testcontainersVersion = "1.19.8"
+
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
     testImplementation("org.wiremock:wiremock-standalone:3.6.0")

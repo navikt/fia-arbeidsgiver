@@ -24,13 +24,13 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKons
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSvaralternativ
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableTema
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.Besvarelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SvarResultatDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.OppdateringsType.ANTALL_SVAR
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.OppdateringsType.RESULTATER_FOR_TEMA
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.ResultaterSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørsmålResultatDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseAntallSvarDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.SpørreundersøkelseOppdateringNøkkel
-import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultater
+import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
 import org.apache.kafka.clients.CommonClientConfigs
 import org.apache.kafka.clients.admin.AdminClient
 import org.apache.kafka.clients.admin.AdminClientConfig
@@ -152,49 +152,51 @@ class KafkaContainer(network: Network) {
     }
 
     private fun Svaralternativ.tilKafkaResultatMelding(antallSvar: Int) =
-        Besvarelse(
+        SvarResultatDto(
             svarId = id.toString(),
             tekst = svartekst,
             antallSvar = antallSvar,
         )
 
     private fun Spørsmål.tilKafkaResultatMelding(antallSvar: Int) =
-        ResultaterSpørsmål(
+        SpørsmålResultatDto(
             spørsmålId = id.toString(),
             tekst = tekst,
             svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
             flervalg = flervalg
         )
 
-    private fun Tema.tilKafkaResultatMelding(antallSvar: Int) = TemaResultater(
-        temaId = id,
-        tema = navn ?: beskrivelse!!,
-        beskrivelse = beskrivelse,
-        spørsmålMedSvar = spørsmål.map {
-            it.tilKafkaResultatMelding(antallSvar = antallSvar)
-        }
+    private fun Tema.tilKafkaResultatMelding(antallSvar: Int) =
+        TemaResultatDto(
+            temaId = id,
+            tema = navn ?: beskrivelse!!,
+            beskrivelse = beskrivelse,
+            navn = navn ?: beskrivelse!!,
+            spørsmålMedSvar = spørsmål.map {
+                it.tilKafkaResultatMelding(antallSvar = antallSvar)
+            }
     )
 
     fun sendResultatPåTema(
         spørreundersøkelseId: UUID,
         antallSvarPerSpørsmål: Int,
-        temaMedSpørsmålOgSvaralternativerDto: Tema,
-    ): TemaResultater {
+        tema: Tema,
+    ): TemaResultatDto {
         val nøkkel = Json.encodeToString(
             SpørreundersøkelseOppdateringNøkkel(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
                 oppdateringsType = RESULTATER_FOR_TEMA
             )
         )
-        val temaMedSpørsmålOgSvarDto =
-            temaMedSpørsmålOgSvaralternativerDto.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
+
+        val temaResultatDto = tema.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
 
         sendOgVent(
             nøkkel = nøkkel,
-            melding = json.encodeToString(temaMedSpørsmålOgSvarDto),
+            melding = json.encodeToString(temaResultatDto),
             topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
         )
-        return temaMedSpørsmålOgSvarDto
+        return temaResultatDto
     }
 
     fun sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId: UUID) =

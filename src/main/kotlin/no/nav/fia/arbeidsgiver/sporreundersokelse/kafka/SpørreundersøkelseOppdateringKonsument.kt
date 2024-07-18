@@ -1,5 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
+import ia.felles.integrasjoner.kafkameldinger.oppdatering.SpørsmålResultatMelding
+import ia.felles.integrasjoner.kafkameldinger.oppdatering.SvarResultatMelding
+import ia.felles.integrasjoner.kafkameldinger.oppdatering.TemaResultatMelding
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 import kotlinx.coroutines.CancellationException
@@ -61,8 +64,7 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
                                 val nøkkel = json.decodeFromString<SpørreundersøkelseOppdateringNøkkel>(record.key())
                                 when (nøkkel.oppdateringsType) {
                                     RESULTATER_FOR_TEMA -> {
-                                        val resultat =
-                                            json.decodeFromString<TemaResultater>(record.value())
+                                        val resultat = json.decodeFromString<TemaResultatDto>(record.value())
                                         logger.info("Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${resultat.temaId}")
                                         spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, resultat)
                                     }
@@ -114,27 +116,28 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
     }
 
     @Serializable
-    data class TemaResultater(
-        val temaId: Int,
-        val tema: String?,
-        val beskrivelse: String?,
-        val spørsmålMedSvar: List<ResultaterSpørsmål>,
-    )
+    data class TemaResultatDto(
+        override val temaId: Int,
+        override val navn: String?,
+        override val tema: String?,
+        override val beskrivelse: String?,
+        override val spørsmålMedSvar: List<SpørsmålResultatDto>,
+    ) : TemaResultatMelding
 
     @Serializable
-    data class Besvarelse(
-        val svarId: String,
-        val tekst: String,
-        val antallSvar: Int,
-    )
+    data class SvarResultatDto(
+        override val svarId: String,
+        override val tekst: String,
+        override val antallSvar: Int,
+    ) : SvarResultatMelding
 
     @Serializable
-    data class ResultaterSpørsmål(
-        val spørsmålId: String,
-        val tekst: String,
-        val flervalg: Boolean,
-        val svarListe: List<Besvarelse>,
-    )
+    data class SpørsmålResultatDto(
+        override val spørsmålId: String,
+        override val tekst: String,
+        override val flervalg: Boolean,
+        override val svarListe: List<SvarResultatDto>,
+    ) : SpørsmålResultatMelding
 
 
     private fun cancel() = runBlocking {

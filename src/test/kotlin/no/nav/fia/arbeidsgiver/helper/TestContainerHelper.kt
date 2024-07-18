@@ -29,8 +29,8 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
@@ -159,7 +159,7 @@ internal suspend inline fun <reified T> GenericContainer<*>.performPost(
 
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
     bliMedDTO: BliMedDto,
-): IdentifiserbartSpørsmål {
+): IdentifiserbartSpørsmålDto {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
     ) {
@@ -172,7 +172,7 @@ internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
 }
 
 internal suspend fun GenericContainer<*>.svarPåSpørsmål(
-    spørsmål: IdentifiserbartSpørsmål,
+    spørsmål: IdentifiserbartSpørsmålDto,
     svarIder: List<String>,
     bliMedDTO: BliMedDto,
     block: () -> Unit = {},
@@ -193,9 +193,9 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
 }
 
 internal suspend fun GenericContainer<*>.hentSpørsmålSomDeltaker(
-    spørsmål: IdentifiserbartSpørsmål,
+    spørsmål: IdentifiserbartSpørsmålDto,
     bliMedDTO: BliMedDto,
-): SpørsmålsoversiktDto? {
+): DeltakerSpørsmålDto? {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}",
     ) {
@@ -255,7 +255,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
 }
 
 internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
-    spørsmål: IdentifiserbartSpørsmål,
+    spørsmål: IdentifiserbartSpørsmålDto,
     spørreundersøkelseId: UUID,
     vertId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),

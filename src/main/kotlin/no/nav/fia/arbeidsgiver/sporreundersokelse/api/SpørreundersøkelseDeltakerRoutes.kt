@@ -10,9 +10,9 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørsmålsoversiktDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDeltakerSpørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
@@ -33,7 +33,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         }
 
         call.respond(
-            HttpStatusCode.OK, IdentifiserbartSpørsmål(
+            HttpStatusCode.OK, IdentifiserbartSpørsmålDto(
                 temaId = førsteÅpneTema.id,
                 spørsmålId = førsteÅpneTema.spørsmål.first().id.toString()
             )
@@ -68,7 +68,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.tilSpørsmålsoversiktDto(spørsmålId = spørsmålId)
+            spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId = spørsmålId)
         )
     }
 

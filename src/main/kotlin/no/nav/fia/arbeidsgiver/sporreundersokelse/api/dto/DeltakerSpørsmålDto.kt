@@ -7,21 +7,21 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
 
 @Serializable
-data class SpørsmålsoversiktDto(
+data class DeltakerSpørsmålDto(
     val spørsmål: SpørsmålDto,
     val spørsmålnummer: Int,
     val antallSpørsmål: Int,
-    val antallTema: Int,
     val temanummer: Int,
-    val temabeskrivelse: String,
-    val forrigeSpørsmål: IdentifiserbartSpørsmål?,
-    val nesteSpørsmål: IdentifiserbartSpørsmål?,
+    val antallTema: Int,
+    val temanavn: String,
+    val nesteSpørsmål: IdentifiserbartSpørsmålDto?,
+    val forrigeSpørsmål: IdentifiserbartSpørsmålDto?,
 )
 
-fun Spørreundersøkelse.tilSpørsmålsoversiktDto(spørsmålId: UUID): SpørsmålsoversiktDto {
+fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpørsmålDto {
     val tema = temaer.temaFraSpørsmålId(spørsmålId)
-    return SpørsmålsoversiktDto(
-        temabeskrivelse = tema.beskrivelse ?: tema.navn!!,
+    return DeltakerSpørsmålDto(
+        temanavn = tema.beskrivelse ?: tema.navn!!,
         nesteSpørsmål = hentNesteSpørsmålOgTema(spørsmålId),
         forrigeSpørsmål = hentForrigeSpørsmålOgTema(spørsmålId),
         temanummer = temaer.indexOfFirst { it.id == tema.id } + 1,
