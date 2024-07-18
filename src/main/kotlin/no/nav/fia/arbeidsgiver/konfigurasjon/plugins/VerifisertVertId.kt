@@ -10,23 +10,21 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 const val HEADER_VERT_ID = "nav-fia-kartlegging-vert-id"
 
 fun VerifisertVertId(spørreundersøkelseService: SpørreundersøkelseService) =
-    createRouteScopedPlugin("VerifisertVertId") {
+	createRouteScopedPlugin("VerifisertVertId") {
 
-        pluginConfig.apply {
-            onCall { call ->
-                val vertId = call.vertId
-                val spørreundersøkelseId = call.spørreundersøkelseId
-                if (spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
-                    throw Feil(
-                        feilmelding = "Ugyldig vertId: $vertId",
-                        feilkode = HttpStatusCode.Forbidden
-                    )
-            }
-        }
-    }
+		pluginConfig.apply {
+			onCall { call ->
+				val vertId = call.vertId
+				val spørreundersøkelseId = call.spørreundersøkelseId
+				if (spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).vertId != vertId)
+					throw Feil(
+						feilmelding = "Ugyldig vertId: $vertId",
+						feilkode = HttpStatusCode.Forbidden
+					)
+			}
+		}
+	}
 
 private val ApplicationCall.vertId
-    get() = request.header(HEADER_VERT_ID)?.tilUUID("vertId") ?: throw Feil(
-        feilmelding = "Mangler vertId",
-        feilkode = HttpStatusCode.Forbidden
-    )
+	get() = request.header(HEADER_VERT_ID)?.tilUUID("vertId") ?:
+	throw Feil(feilmelding = "Mangler vertId", feilkode = HttpStatusCode.Forbidden)
