@@ -1,9 +1,5 @@
 name: Build and deploy fia-arbeidsgiver
-on:
-  push:
-    branches:
-      - main
-      - ia-felles-kafka
+on: [ push ]
 
 permissions: {}
 
