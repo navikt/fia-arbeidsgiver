@@ -16,7 +16,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
 
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
-    get("$VERT_BASEPATH/{spørreundersøkelseId}") {
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/oversikt") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId
