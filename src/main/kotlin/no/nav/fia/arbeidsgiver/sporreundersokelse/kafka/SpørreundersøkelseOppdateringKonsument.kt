@@ -118,18 +118,11 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
     @Serializable
     data class TemaResultatDto(
         override val temaId: Int,
-        override val navn: String?,
-        override val tema: String?,
-        override val beskrivelse: String?,
+        override val beskrivelse: String? = null,
+        override val tema: String? = null,
+        override val navn: String? = beskrivelse,
         override val spørsmålMedSvar: List<SpørsmålResultatDto>,
     ) : TemaResultatMelding
-
-    @Serializable
-    data class SvarResultatDto(
-        override val svarId: String,
-        override val tekst: String,
-        override val antallSvar: Int,
-    ) : SvarResultatMelding
 
     @Serializable
     data class SpørsmålResultatDto(
@@ -138,6 +131,13 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
         override val flervalg: Boolean,
         override val svarListe: List<SvarResultatDto>,
     ) : SpørsmålResultatMelding
+
+    @Serializable
+    data class SvarResultatDto(
+        override val svarId: String,
+        override val tekst: String,
+        override val antallSvar: Int,
+    ) : SvarResultatMelding
 
 
     private fun cancel() = runBlocking {
