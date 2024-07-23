@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import kotlinx.datetime.LocalDate
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import java.util.UUID
@@ -11,7 +10,6 @@ data class Spørreundersøkelse(
     val virksomhetsNavn: String,
     val status: SpørreundersøkelseStatus,
     val type: String,
-    val avslutningsdato: LocalDate,
     val temaer: List<Tema>,
 ) {
     fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {
