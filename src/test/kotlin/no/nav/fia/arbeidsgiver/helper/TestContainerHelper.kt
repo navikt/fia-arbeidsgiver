@@ -265,7 +265,7 @@ internal suspend fun GenericContainer<*>.hentTemaDtoer(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): List<TemaDto> {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}",
+        url = "$VERT_BASEPATH/${spørreundersøkelseId}/oversikt",
     ) {
         medAzureToken(token = token)
     }
