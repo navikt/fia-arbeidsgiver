@@ -1,10 +1,10 @@
-val ktorVersion = "2.3.11"
+val ktorVersion = "2.3.12"
 val kotlinVersion = "2.0.0"
 val logbackVersion = "1.5.6"
-val prometheusVersion = "1.13.1"
+val prometheusVersion = "1.13.2"
 val iaFellesVersion = "1.2.0-RC3"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.19.8"
+val testcontainersVersion = "1.20.0"
 
 plugins {
     kotlin("jvm") version "2.0.0"
@@ -40,7 +40,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.7.0")
+    implementation("org.apache.kafka:kafka-clients:3.7.1")
 
     // Lettuce - Redis client
     implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
@@ -49,7 +49,7 @@ dependencies {
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:4.0.0")
 
     // altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet
-    implementation("commons-codec:commons-codec:1.17.0")
+    implementation("commons-codec:commons-codec:1.17.1")
 
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.40")
@@ -69,9 +69,9 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
-    testImplementation("org.wiremock:wiremock-standalone:3.6.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.9.0")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.6")
+    testImplementation("no.nav.security:mock-oauth2-server:2.1.8")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
@@ -81,7 +81,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.111.Final")
+                require("4.1.112.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
