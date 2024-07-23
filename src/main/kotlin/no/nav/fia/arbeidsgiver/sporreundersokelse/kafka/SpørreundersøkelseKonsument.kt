@@ -102,12 +102,12 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
     @Serializable
     data class SerializableSpørreundersøkelse(
         override val spørreundersøkelseId: String,
-        override val vertId: String?,
+        override val vertId: String? = null,
         override val orgnummer: String,
         override val virksomhetsNavn: String,
         override val status: SpørreundersøkelseStatus,
         override val type: String,
-        override val avslutningsdato: LocalDate,
+        override val avslutningsdato: LocalDate?=null,
         override val temaMedSpørsmålOgSvaralternativer: List<SerializableTema>,
     ) : SpørreundersøkelseMelding {
         fun tilDomene() = Spørreundersøkelse(
@@ -116,7 +116,6 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
             virksomhetsNavn = virksomhetsNavn,
             status = status,
             type = type,
-            avslutningsdato = avslutningsdato,
             temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
         )
     }
@@ -124,10 +123,10 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
     @Serializable
     data class SerializableTema(
         override val temaId: Int,
-        override val navn: String?,
-        override val temanavn: Temanavn?,
-        override val beskrivelse: String?,
-        override val introtekst: String?,
+        override val temanavn: Temanavn? = null,
+        override val beskrivelse: String? = null,
+        override val navn: String? = beskrivelse,
+        override val introtekst: String? = null,
         override val spørsmålOgSvaralternativer: List<SerializableSpørsmål>,
     ) : TemaMelding {
         fun tilDomene() = Tema(
