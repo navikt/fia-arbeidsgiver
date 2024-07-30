@@ -2,7 +2,7 @@ val ktorVersion = "2.3.12"
 val kotlinVersion = "2.0.0"
 val logbackVersion = "1.5.6"
 val prometheusVersion = "1.13.2"
-val iaFellesVersion = "1.2.0-RC4"
+val iaFellesVersion = "1.2.0"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.0"
 
@@ -54,21 +54,19 @@ dependencies {
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:9.40")
 
-
-    // Felles definisjoner for IA-domenet
-    implementation("com.github.navikt:ia-felles:$iaFellesVersion")
-
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
 
-
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
+
     testImplementation("io.ktor:ktor-server-tests-jvm:$ktorVersion")
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
+
     testImplementation("org.wiremock:wiremock-standalone:3.9.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.8")

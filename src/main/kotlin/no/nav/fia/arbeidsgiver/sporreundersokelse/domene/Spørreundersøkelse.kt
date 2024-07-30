@@ -9,7 +9,6 @@ data class Spørreundersøkelse(
     val orgnummer: String,
     val virksomhetsNavn: String,
     val status: SpørreundersøkelseStatus,
-    val type: String,
     val temaer: List<Tema>,
 ) {
     fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {

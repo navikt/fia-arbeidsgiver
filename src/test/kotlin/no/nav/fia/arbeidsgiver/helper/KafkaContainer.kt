@@ -2,7 +2,6 @@ package no.nav.fia.arbeidsgiver.helper
 
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import java.time.Duration
-import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.*
 import kotlinx.coroutines.delay
@@ -10,7 +9,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
-import kotlinx.datetime.toKotlinLocalDate
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -211,7 +209,6 @@ class KafkaContainer(network: Network) {
 
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
-        vertId: UUID = UUID.randomUUID(),
         orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
         virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
@@ -219,17 +216,13 @@ class KafkaContainer(network: Network) {
         flervalg: Boolean = false,
     ) = SerializableSpørreundersøkelse(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
-        vertId = vertId.toString(),
         orgnummer = orgnummer,
         virksomhetsNavn = virksomhetsNavn,
-        type = "kartlegging",
+        status = spørreundersøkelseStatus,
         temaMedSpørsmålOgSvaralternativer = temanavn.mapIndexed { index, navn ->
             SerializableTema(
                 temaId = index,
                 navn = navn,
-                temanavn = null,
-                introtekst = null,
-                beskrivelse = null,
                 spørsmålOgSvaralternativer = listOf(
                     SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
@@ -264,8 +257,6 @@ class KafkaContainer(network: Network) {
                 )
             )
         },
-        status = spørreundersøkelseStatus,
-        avslutningsdato = LocalDate.now().toKotlinLocalDate(),
     )
 
     private fun sendOgVent(

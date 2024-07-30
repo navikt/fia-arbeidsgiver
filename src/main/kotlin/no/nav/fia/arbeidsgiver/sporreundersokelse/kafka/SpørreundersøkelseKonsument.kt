@@ -102,20 +102,19 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
     @Serializable
     data class SerializableSpørreundersøkelse(
         override val spørreundersøkelseId: String,
-        override val vertId: String? = null,
         override val orgnummer: String,
         override val virksomhetsNavn: String,
         override val status: SpørreundersøkelseStatus,
-        override val type: String,
-        override val avslutningsdato: LocalDate?=null,
         override val temaMedSpørsmålOgSvaralternativer: List<SerializableTema>,
+        override val type: String?=null,
+        override val vertId: String? = null,
+        override val avslutningsdato: LocalDate?=null,
     ) : SpørreundersøkelseMelding {
         fun tilDomene() = Spørreundersøkelse(
             id = UUID.fromString(spørreundersøkelseId),
             orgnummer = orgnummer,
             virksomhetsNavn = virksomhetsNavn,
             status = status,
-            type = type,
             temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
         )
     }
