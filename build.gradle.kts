@@ -1,14 +1,14 @@
 val ktorVersion = "2.3.12"
-val kotlinVersion = "2.0.0"
+val kotlinVersion = "2.0.10"
 val logbackVersion = "1.5.6"
-val prometheusVersion = "1.13.2"
+val prometheusVersion = "1.13.3"
 val iaFellesVersion = "1.2.0"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.20.0"
+val testcontainersVersion = "1.20.1"
 
 plugins {
-    kotlin("jvm") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    kotlin("jvm") version "2.0.10"
+    kotlin("plugin.serialization") version "2.0.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -36,14 +36,14 @@ dependencies {
     implementation("io.ktor:ktor-server-rate-limit:$ktorVersion")
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("net.logstash.logback:logstash-logback-encoder:7.4")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.7.1")
+    implementation("org.apache.kafka:kafka-clients:3.8.0")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.3.2.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.4.0.RELEASE")
 
     // altinn-klient
     implementation("no.nav.arbeidsgiver:altinn-rettigheter-proxy-klient:4.0.0")
@@ -67,7 +67,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.9.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.9.1")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.8")
     constraints {
@@ -85,7 +85,7 @@ dependencies {
         }
         testImplementation("org.apache.commons:commons-compress") {
             version {
-                require("1.26.2")
+                require("1.27.0")
             }
             because("testcontainers har sårbar versjon")
         }
