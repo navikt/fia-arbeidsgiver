@@ -10,6 +10,7 @@ import io.ktor.server.routing.RouteSelectorEvaluation
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
+import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
@@ -19,10 +20,12 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 
-fun Application.configureRouting(redisService: RedisService) {
+fun Application.configureRouting(
+    redisService: RedisService,
+    applikasjonsHelse: ApplikasjonsHelse,
+) {
     val spørreundersøkelseService = SpørreundersøkelseService(redisService)
     routing {
-        helse()
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 
         medVerifisertSesjonId(spørreundersøkelseService = spørreundersøkelseService) {
@@ -43,6 +46,8 @@ fun Application.configureRouting(redisService: RedisService) {
                 }
             }
         }
+
+        helse(lever = { applikasjonsHelse.alive }, klar = { applikasjonsHelse.ready })
     }
 }
 
