@@ -3,9 +3,6 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 import ia.felles.integrasjoner.kafkameldinger.oppdatering.SpørsmålResultatMelding
 import ia.felles.integrasjoner.kafkameldinger.oppdatering.SvarResultatMelding
 import ia.felles.integrasjoner.kafkameldinger.oppdatering.TemaResultatMelding
-import java.time.Duration
-import kotlin.coroutines.CoroutineContext
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -14,6 +11,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
@@ -25,8 +23,13 @@ import org.apache.kafka.common.errors.WakeupException
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.time.Duration
+import kotlin.coroutines.CoroutineContext
 
-class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: SpørreundersøkelseService) :
+class SpørreundersøkelseOppdateringKonsument(
+    val spørreundersøkelseService: SpørreundersøkelseService,
+    val applikasjonsHelse: ApplikasjonsHelse,
+) :
     CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
@@ -53,7 +56,7 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
                 consumer.subscribe(listOf(topic.navnMedNamespace))
                 logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
 
-                while (job.isActive) {
+                while (applikasjonsHelse.alive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
@@ -88,9 +91,8 @@ class SpørreundersøkelseOppdateringKonsument(val spørreundersøkelseService: 
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${topic.navn}", e)
-                        job.cancel(CancellationException(e.message))
-                        job.join()
-                        throw e
+                        applikasjonsHelse.ready = false
+                        applikasjonsHelse.alive = false
                     }
                 }
             }

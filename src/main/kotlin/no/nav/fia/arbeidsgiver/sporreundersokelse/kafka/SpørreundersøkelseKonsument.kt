@@ -6,17 +6,23 @@ import ia.felles.integrasjoner.kafkameldinger.SpørsmålMelding
 import ia.felles.integrasjoner.kafkameldinger.SvaralternativMelding
 import ia.felles.integrasjoner.kafkameldinger.TemaMelding
 import ia.felles.integrasjoner.kafkameldinger.Temanavn
-import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
 import org.apache.kafka.common.errors.WakeupException
@@ -26,14 +32,11 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import java.util.*
 import kotlin.coroutines.CoroutineContext
-import kotlinx.datetime.LocalDate
-import kotlinx.serialization.Serializable
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
 
-class SpørreundersøkelseKonsument(val spørreundersøkelseService: SpørreundersøkelseService) : CoroutineScope {
+class SpørreundersøkelseKonsument(
+    val spørreundersøkelseService: SpørreundersøkelseService,
+    val applikasjonsHelse: ApplikasjonsHelse,
+) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = KafkaTopics.SPØRREUNDERSØKELSE
@@ -59,7 +62,7 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                 consumer.subscribe(listOf(topic.navnMedNamespace))
                 logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
 
-                while (job.isActive) {
+                while (applikasjonsHelse.alive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
@@ -90,9 +93,8 @@ class SpørreundersøkelseKonsument(val spørreundersøkelseService: Spørreunde
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${topic.navn}", e)
-                        job.cancel(CancellationException(e.message))
-                        job.join()
-                        throw e
+                        applikasjonsHelse.ready = false
+                        applikasjonsHelse.alive = false
                     }
                 }
             }

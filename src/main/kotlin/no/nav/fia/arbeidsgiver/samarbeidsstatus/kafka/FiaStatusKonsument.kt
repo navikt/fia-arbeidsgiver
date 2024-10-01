@@ -1,10 +1,16 @@
 package no.nav.fia.arbeidsgiver.samarbeidsstatus.kafka
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
+import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import org.apache.kafka.clients.consumer.KafkaConsumer
 import org.apache.kafka.common.errors.RetriableException
@@ -15,7 +21,10 @@ import org.slf4j.LoggerFactory
 import java.time.Duration
 import kotlin.coroutines.CoroutineContext
 
-class FiaStatusKonsument(val samarbeidsstatusService: SamarbeidsstatusService) : CoroutineScope {
+class FiaStatusKonsument(
+    val samarbeidsstatusService: SamarbeidsstatusService,
+    val applikasjonsHelse: ApplikasjonsHelse
+) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = KafkaTopics.SAK_STATUS
@@ -38,7 +47,7 @@ class FiaStatusKonsument(val samarbeidsstatusService: SamarbeidsstatusService) :
                 consumer.subscribe(listOf(topic.navnMedNamespace))
                 logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
 
-                while (job.isActive) {
+                while (applikasjonsHelse.alive) {
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
@@ -59,9 +68,8 @@ class FiaStatusKonsument(val samarbeidsstatusService: SamarbeidsstatusService) :
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
                         logger.error("Exception is shutting down kafka listner for ${topic.navn}", e)
-                        job.cancel(CancellationException(e.message))
-                        job.join()
-                        throw e
+                        applikasjonsHelse.ready = false
+                        applikasjonsHelse.alive = false
                     }
                 }
             }

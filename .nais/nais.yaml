@@ -10,6 +10,16 @@ spec:
   resources:
     requests:
       cpu: 100m
+  liveness:
+    path: "/internal/isalive"
+    port: 8080
+    initialDelay: 20
+    timeout: 60
+  readiness:
+    path: "/internal/isready"
+    port: 8080
+    initialDelay: 20
+    timeout: 60
   azure:
     application:
       enabled: true
