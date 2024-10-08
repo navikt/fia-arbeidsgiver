@@ -89,6 +89,12 @@ dependencies {
             }
             because("testcontainers har sårbar versjon")
         }
+        testImplementation("commons-io:commons-io") {
+            version {
+                require("2.17.0")
+            }
+            because("testcontainers har sårbar versjon")
+        }
     }
 }
 
