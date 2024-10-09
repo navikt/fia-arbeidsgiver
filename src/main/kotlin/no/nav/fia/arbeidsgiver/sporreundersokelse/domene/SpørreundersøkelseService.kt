@@ -99,12 +99,17 @@ class SpørreundersøkelseService(
 
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-        return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
-            undersøkelse.tilDomene()
-        } else throw Feil(
-            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
-            feilkode = HttpStatusCode.Forbidden
-        )
+        return when (undersøkelse.status) {
+            SpørreundersøkelseStatus.PÅBEGYNT -> undersøkelse.tilDomene()
+            SpørreundersøkelseStatus.AVSLUTTET -> throw Feil(
+                feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet",
+                feilkode = HttpStatusCode.Gone
+            )
+            else -> throw Feil(
+                feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
+                feilkode = HttpStatusCode.Forbidden
+            )
+        }
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {

@@ -106,7 +106,7 @@ class SpørreundersøkelseDeltakerTest {
                     bliMedDTO = bliMedDTO
                 )
             }
-            fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${SpørreundersøkelseStatus.AVSLUTTET}'".toRegex()
+            fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet".toRegex()
         }
     }
 

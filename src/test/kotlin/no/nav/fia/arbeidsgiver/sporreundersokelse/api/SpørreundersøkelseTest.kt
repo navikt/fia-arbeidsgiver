@@ -100,7 +100,7 @@ class SpørreundersøkelseTest {
                 url = BLI_MED_PATH,
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
             )
-            bliMedRespons.status shouldBe HttpStatusCode.Forbidden
+            bliMedRespons.status shouldBe HttpStatusCode.Gone
             fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
