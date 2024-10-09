@@ -1,5 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
+import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -23,7 +24,7 @@ import no.nav.fia.arbeidsgiver.helper.hentAntallSvarForTema
 import no.nav.fia.arbeidsgiver.helper.hentFørsteSpørsmål
 import no.nav.fia.arbeidsgiver.helper.hentResultater
 import no.nav.fia.arbeidsgiver.helper.hentSpørsmålSomDeltaker
-import no.nav.fia.arbeidsgiver.helper.hentTemaDtoer
+import no.nav.fia.arbeidsgiver.helper.vertHentOversikt
 import no.nav.fia.arbeidsgiver.helper.hentTemaDto
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
@@ -153,7 +154,7 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
+            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -181,7 +182,7 @@ class SpørreundersøkelseVertTest {
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
+            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -205,7 +206,7 @@ class SpørreundersøkelseVertTest {
                 )
             }
 
-            val temaDtoList = fiaArbeidsgiverApi.hentTemaDtoer(
+            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -467,6 +468,36 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             antallDeltakereSomHarFullført shouldBe 1
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente en avsluttet spørreundersøkelse`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val pågåendeSpørreundersøkelse =
+            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = SpørreundersøkelseStatus.AVSLUTTET)
+        ).tilDomene()
+
+        runBlocking {
+            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+                spørreundersøkelseId = spørreundersøkelse.id
+            )
+            temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
+            temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
+                TemaDto(
+                    id = it.id,
+                    navn = it.navn,
+                    del = index + 1,
+                    status = if (it.id == spørreundersøkelse.temaer.first().id) TemaStatus.ÅPNET else TemaStatus.IKKE_ÅPNET,
+                    førsteSpørsmålId = it.spørsmål.first().id.toString(),
+                    nesteTemaId = spørreundersøkelse.temaer.elementAtOrNull(index + 1)?.id,
+                    spørsmål = it.spørsmål.map { it.tilDto() },
+                )
+            }
         }
     }
 }

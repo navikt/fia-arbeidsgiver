@@ -260,7 +260,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     return response.body()
 }
 
-internal suspend fun GenericContainer<*>.hentTemaDtoer(
+internal suspend fun GenericContainer<*>.vertHentOversikt(
     spørreundersøkelseId: UUID,
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): List<TemaDto> {
