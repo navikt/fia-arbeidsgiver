@@ -23,6 +23,7 @@ fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus
     val indeksGjeldendeTema = this.temaer.indexOfFirst { it.id == temaId }
     val temaIdTilForrigeTema = if (indeksGjeldendeTema > 0) temaStatus[indeksGjeldendeTema - 1].temaId else -1
     val status = when {
+        temaStatus.any { it.temaId == temaId && it.erStengt } -> TemaStatus.STENGT
         temaStatus.any { it.temaId == temaId && it.harÅpnetAlleSpørsmål } -> TemaStatus.ALLE_SPØRSMÅL_ÅPNET
         temaStatus.any { it.temaId == temaIdTilForrigeTema && it.harÅpnetAlleSpørsmål } -> TemaStatus.ÅPNET
         indeksGjeldendeTema == 0 -> TemaStatus.ÅPNET

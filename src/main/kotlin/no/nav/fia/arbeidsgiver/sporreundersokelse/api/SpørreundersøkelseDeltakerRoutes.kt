@@ -13,7 +13,6 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDeltakerSpørsmål
-import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
@@ -29,7 +28,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
             spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         val førsteÅpneTema = spørreundersøkelse.temaer.first {
-            TemaStatus.STENGT != spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, it.id)
+            !spørreundersøkelseService.erTemaStengt(spørreundersøkelseId, it.id)
         }
 
         call.respond(
@@ -89,7 +88,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
             )
         }
 
-        if (TemaStatus.STENGT == spørreundersøkelseService.hentTemaStatus(spørreundersøkelseId, temaId)) {
+        if (spørreundersøkelseService.erTemaStengt(spørreundersøkelseId, temaId)) {
             application.log.info("Tema '$temaId' er stengt, hent nytt spørsmål")
             call.respond(
                 message = "Tema '$temaId' er stengt, hent nytt spørsmål",

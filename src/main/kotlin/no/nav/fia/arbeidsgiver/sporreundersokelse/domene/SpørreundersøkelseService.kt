@@ -171,7 +171,11 @@ class SpørreundersøkelseService(
         redisService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
     }
 
-    fun hentTemaStatus(spørreundersøkelseId: UUID, temaId: Int): TemaStatus? {
+    fun erTemaStengt(spørreundersøkelseId: UUID, temaId: Int) =
+        hentTemaStatus(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId) == TemaStatus.STENGT
+
+
+    private fun hentTemaStatus(spørreundersøkelseId: UUID, temaId: Int): TemaStatus? {
         return redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
             TemaStatus.valueOf(it)
         }
