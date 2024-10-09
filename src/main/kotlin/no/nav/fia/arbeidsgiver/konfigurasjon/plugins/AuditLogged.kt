@@ -50,7 +50,7 @@ fun AuditLogged(spørreundersøkelseService: SpørreundersøkelseService) = crea
 
 private fun ApplicationCall.hentOrgnummer(spørreundersøkelseService: SpørreundersøkelseService) =
     if(erSpørreundersøkelseRoute()) {
-        spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId).orgnummer
+        spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId).orgnummer
     }
     else
         this.orgnr
