@@ -18,7 +18,7 @@ const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
     get("$VERT_BASEPATH/{spørreundersøkelseId}/oversikt") {
         val spørreundersøkelseId = call.spørreundersøkelseId
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+        val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(
             spørreundersøkelseId = spørreundersøkelseId
         )
         val temaStatus = spørreundersøkelse.temaer.map { tema ->
@@ -41,7 +41,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/virksomhetsnavn") {
         val spørreundersøkelseId = call.spørreundersøkelseId
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+        val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(
             spørreundersøkelseId = spørreundersøkelseId
         )
         call.respond(
@@ -52,7 +52,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}") {
         val spørreundersøkelseId = call.spørreundersøkelseId
-        val spørreundersøkelse = spørreundersøkelseService.hentePågåendeSpørreundersøkelse(
+        val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(
             spørreundersøkelseId = spørreundersøkelseId
         )
 
@@ -112,7 +112,7 @@ fun Route.spørreundersøkelseVertStatus(
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/antall-fullfort") {
         val spørreundersøkelse =
-            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
+            spørreundersøkelseService.hentSpørreundersøkelseSomVert(spørreundersøkelseId = call.spørreundersøkelseId)
 
         val antallFullført = spørreundersøkelse.temaer.minOf { tema ->
             spørreundersøkelseService.antallSvarPåSpørsmålMedFærrestBesvarelser(tema, spørreundersøkelse)
@@ -135,7 +135,7 @@ fun Route.spørreundersøkelseVertStatus(
 
     get("$VERT_BASEPATH/{spørreundersøkelseId}/tema/{temaId}/antall-svar") {
         val spørreundersøkelse =
-            spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId = call.spørreundersøkelseId)
+            spørreundersøkelseService.hentSpørreundersøkelseSomVert(spørreundersøkelseId = call.spørreundersøkelseId)
         val tema = spørreundersøkelse.temaer.firstOrNull {
             it.id == call.temaId
         } ?: throw Feil(feilmelding = "Fant ikke tema ${call.temaId}", feilkode = HttpStatusCode.NotFound)

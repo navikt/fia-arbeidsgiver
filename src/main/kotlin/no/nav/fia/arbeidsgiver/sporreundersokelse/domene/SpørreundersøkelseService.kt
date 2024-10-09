@@ -82,6 +82,21 @@ class SpørreundersøkelseService(
         return undersøkelse
     }
 
+    private fun SpørreundersøkelseStatus.kanVisesForVert() = when (this) {
+        SpørreundersøkelseStatus.PÅBEGYNT, SpørreundersøkelseStatus.AVSLUTTET -> true
+        else -> false
+    }
+
+    fun hentSpørreundersøkelseSomVert(spørreundersøkelseId: UUID): Spørreundersøkelse {
+        val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        return if (undersøkelse.status.kanVisesForVert()) {
+            undersøkelse.tilDomene()
+        } else throw Feil(
+            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
+            feilkode = HttpStatusCode.Forbidden
+        )
+    }
+
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return if (undersøkelse.status == SpørreundersøkelseStatus.PÅBEGYNT) {
