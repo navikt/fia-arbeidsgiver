@@ -31,7 +31,11 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
                         temaId = tema.id,
                         spørsmålId = spørsmål.id
                     )
-                }
+                },
+                erStengt = spørreundersøkelseService.erTemaStengt(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    temaId = tema.id
+                )
             )
         }
         call.respond(
@@ -66,7 +70,11 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
                         temaId = tema.id,
                         spørsmålId = spørsmål.id
                     )
-                }
+                },
+                erStengt = spørreundersøkelseService.erTemaStengt(
+                    spørreundersøkelseId = spørreundersøkelseId,
+                    temaId = tema.id
+                )
             )
         }
 

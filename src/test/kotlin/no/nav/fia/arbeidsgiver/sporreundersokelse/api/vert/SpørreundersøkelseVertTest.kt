@@ -193,6 +193,31 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
+    fun `vert skal kunne hente riktig temastatus når man har stengt tema 1`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+
+        runBlocking {
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = spørreundersøkelse.temaer.first().id,
+                spørreundersøkelseId = spørreundersøkelse.id,
+            )
+            fiaArbeidsgiverApi.stengTema(
+                temaId = spørreundersøkelse.temaer.first().id,
+                spørreundersøkelseId = spørreundersøkelse.id,
+            )
+
+            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+                spørreundersøkelseId = spørreundersøkelse.id,
+            )
+            temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
+            temaDtoList[0].status shouldBe TemaStatus.STENGT
+            temaDtoList[1].status shouldBe TemaStatus.ÅPNET
+            temaDtoList[2].status shouldBe TemaStatus.IKKE_ÅPNET
+        }
+    }
+
+    @Test
     fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål alle temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse =
@@ -284,7 +309,7 @@ class SpørreundersøkelseVertTest {
                     spørsmål = førsteSpørsmål,
                     spørreundersøkelseId = spørreundersøkelse.id,
 
-                ) shouldBe antallSvar
+                    ) shouldBe antallSvar
             }
         }
     }
@@ -292,7 +317,7 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne lukke et tema, og det bør resultere i en kafkamelding`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             val temaId = spørreundersøkelse.temaer.first().id
