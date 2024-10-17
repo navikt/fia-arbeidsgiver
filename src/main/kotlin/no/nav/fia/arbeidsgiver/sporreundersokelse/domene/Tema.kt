@@ -1,8 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
 import io.ktor.http.HttpStatusCode
-import java.util.UUID
 import no.nav.fia.arbeidsgiver.http.Feil
+import java.util.UUID
 
 data class Tema(
     val id: Int,
@@ -38,4 +38,3 @@ fun List<Tema>.temaFraSpørsmålId(spørsmålId: UUID) =
             spørsmål.id == spørsmålId
         }
     } ?: throw Feil("Fant ikke tema til spørsmålId $spørsmålId", feilkode = HttpStatusCode.NotFound)
-

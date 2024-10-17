@@ -2,7 +2,6 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import io.ktor.http.HttpStatusCode
-import java.util.*
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
@@ -18,6 +17,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvar
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 class SpørreundersøkelseService(
     private val redisService: RedisService,
@@ -34,7 +34,7 @@ class SpørreundersøkelseService(
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE,
             nøkkel = spørreundersøkelse.spørreundersøkelseId,
-            verdi = Json.encodeToString(spørreundersøkelse)
+            verdi = Json.encodeToString(spørreundersøkelse),
         )
     }
 
@@ -42,15 +42,18 @@ class SpørreundersøkelseService(
         redisService.lagre(
             type = Type.ANTALL_SVAR_FOR_SPØRSMÅL,
             nøkkel = "${spørreundersøkelseAntallSvarDto.spørreundersøkelseId}-${spørreundersøkelseAntallSvarDto.spørsmålId}",
-            verdi = spørreundersøkelseAntallSvarDto.antallSvar.toString()
+            verdi = spørreundersøkelseAntallSvarDto.antallSvar.toString(),
         )
     }
 
-    fun lagre(spørreundersøkelseId: String, temaresultat: TemaResultatDto) {
+    fun lagre(
+        spørreundersøkelseId: String,
+        temaresultat: TemaResultatDto,
+    ) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE_RESULTAT,
-            nøkkel = "${spørreundersøkelseId}-${temaresultat.temaId}",
-            verdi = Json.encodeToString(temaresultat)
+            nøkkel = "$spørreundersøkelseId-${temaresultat.temaId}",
+            verdi = Json.encodeToString(temaresultat),
         )
     }
 
@@ -62,11 +65,17 @@ class SpørreundersøkelseService(
         }
     }
 
-    fun lagreSesjon(sesjonsId: UUID, spørreundersøkelseId: UUID) {
+    fun lagreSesjon(
+        sesjonsId: UUID,
+        spørreundersøkelseId: UUID,
+    ) {
         redisService.lagre(Type.SESJON, sesjonsId.toString(), spørreundersøkelseId.toString())
     }
 
-    fun lagreAntallDeltakere(spørreundersøkelseId: UUID, antallDeltakere: Int) {
+    fun lagreAntallDeltakere(
+        spørreundersøkelseId: UUID,
+        antallDeltakere: Int,
+    ) {
         redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
 
@@ -75,26 +84,29 @@ class SpørreundersøkelseService(
             Json.decodeFromString<SerializableSpørreundersøkelse>(it)
         } ?: throw Feil(
             feilmelding = "Ukjent spørreundersøkelse '$spørreundersøkelseId'",
-            feilkode = HttpStatusCode.Forbidden
+            feilkode = HttpStatusCode.Forbidden,
         )
 
         logger.info("Hentet spørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
         return undersøkelse
     }
 
-    private fun SpørreundersøkelseStatus.kanVisesForVert() = when (this) {
-        SpørreundersøkelseStatus.PÅBEGYNT, SpørreundersøkelseStatus.AVSLUTTET -> true
-        else -> false
-    }
+    private fun SpørreundersøkelseStatus.kanVisesForVert() =
+        when (this) {
+            SpørreundersøkelseStatus.PÅBEGYNT, SpørreundersøkelseStatus.AVSLUTTET -> true
+            else -> false
+        }
 
     fun hentSpørreundersøkelseSomVert(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return if (undersøkelse.status.kanVisesForVert()) {
             undersøkelse.tilDomene()
-        } else throw Feil(
-            feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
-            feilkode = HttpStatusCode.Forbidden
-        )
+        } else {
+            throw Feil(
+                feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
+                feilkode = HttpStatusCode.Forbidden,
+            )
+        }
     }
 
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
@@ -103,94 +115,107 @@ class SpørreundersøkelseService(
             SpørreundersøkelseStatus.PÅBEGYNT -> undersøkelse.tilDomene()
             SpørreundersøkelseStatus.AVSLUTTET -> throw Feil(
                 feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet",
-                feilkode = HttpStatusCode.Gone
+                feilkode = HttpStatusCode.Gone,
             )
             else -> throw Feil(
                 feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' har feil status '${undersøkelse.status}'",
-                feilkode = HttpStatusCode.Forbidden
+                feilkode = HttpStatusCode.Forbidden,
             )
         }
     }
 
-    fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? {
-        return redisService.hente(Type.SESJON, sesjonsId.toString())?.let {
+    fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? =
+        redisService.hente(Type.SESJON, sesjonsId.toString())?.let {
             UUID.fromString(it)
         }
-    }
 
-    fun hentAntallDeltakere(spørreundersøkelseId: UUID): Int {
-        return redisService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
-    }
+    fun hentAntallDeltakere(spørreundersøkelseId: UUID): Int =
+        redisService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
 
+    fun hentAntallSvar(
+        spørreundersøkelseId: UUID,
+        spørsmålId: UUID,
+    ): Int = redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
 
-    fun hentAntallSvar(spørreundersøkelseId: UUID, spørsmålId: UUID): Int {
-        return redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
-    }
-
-    fun hentResultater(spørreundersøkelseId: UUID, temaId: Int): TemaResultatDto {
+    fun hentResultater(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ): TemaResultatDto {
         val resultater =
-            redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "${spørreundersøkelseId}-${temaId}")?.let {
+            redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "$spørreundersøkelseId-$temaId")?.let {
                 Json.decodeFromString<TemaResultatDto>(it)
             } ?: throw Feil(
                 feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
-                feilkode = HttpStatusCode.Forbidden
+                feilkode = HttpStatusCode.Forbidden,
             )
         logger.info("Hentet resultater for tema med id '$temaId med id '$spørreundersøkelseId'")
         return resultater
     }
 
-    fun åpneTema(spørreundersøkelseId: UUID, temaId: Int) {
+    fun åpneTema(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ) {
         redisService.lagre(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId", "ja")
     }
 
-    fun erTemaÅpent(spørreundersøkelseId: UUID, temaId: Int) =
-        redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
+    fun erTemaÅpent(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ) = redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
 
-    fun erSpørsmålÅpent(spørreundersøkelseId: UUID, temaId: Int, spørsmålId: UUID): Boolean {
-        return redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
-                erTemaÅpent(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId)
-    }
+    fun erSpørsmålÅpent(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+        spørsmålId: UUID,
+    ): Boolean =
+        redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
+            erTemaÅpent(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId)
 
     fun sendSvar(
         spørreundersøkelseId: UUID,
         sesjonsId: UUID,
         spørsmålId: UUID,
         svarIder: List<UUID>,
-    ) =
-        spørreundersøkelseSvarProdusent.sendSvar(
-            svar = SpørreundersøkelseSvarDTO(
-                spørreundersøkelseId = spørreundersøkelseId.toString(),
-                sesjonId = sesjonsId.toString(),
-                spørsmålId = spørsmålId.toString(),
-                svarIder = svarIder.map { it.toString() },
-            )
-        )
+    ) = spørreundersøkelseSvarProdusent.sendSvar(
+        svar = SpørreundersøkelseSvarDTO(
+            spørreundersøkelseId = spørreundersøkelseId.toString(),
+            sesjonId = sesjonsId.toString(),
+            spørsmålId = spørsmålId.toString(),
+            svarIder = svarIder.map { it.toString() },
+        ),
+    )
 
-    fun lukkTema(spørreundersøkelseId: UUID, temaId: Int) {
+    fun lukkTema(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ) {
         spørreundersøkelseHendelseProdusent.sendHendelse(
             hendelse = StengTema(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
-                temaId = temaId
-            )
+                temaId = temaId,
+            ),
         )
         redisService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
     }
 
-    fun erTemaStengt(spørreundersøkelseId: UUID, temaId: Int) =
-        hentTemaStatus(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId) == TemaStatus.STENGT
+    fun erTemaStengt(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ) = hentTemaStatus(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId) == TemaStatus.STENGT
 
-
-    private fun hentTemaStatus(spørreundersøkelseId: UUID, temaId: Int): TemaStatus? {
-        return redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
+    private fun hentTemaStatus(
+        spørreundersøkelseId: UUID,
+        temaId: Int,
+    ): TemaStatus? =
+        redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
             TemaStatus.valueOf(it)
         }
-    }
 
-    fun erAlleTemaerErStengt(spørreundersøkelse: Spørreundersøkelse): Boolean {
-        return spørreundersøkelse.temaer.all { tema ->
+    fun erAlleTemaerErStengt(spørreundersøkelse: Spørreundersøkelse): Boolean =
+        spørreundersøkelse.temaer.all { tema ->
             TemaStatus.STENGT == hentTemaStatus(spørreundersøkelse.id, tema.id)
         }
-    }
 
     fun antallSvarPåSpørsmålMedFærrestBesvarelser(
         tema: Tema,
@@ -199,7 +224,7 @@ class SpørreundersøkelseService(
         val antallSvarPerSpørsmål = tema.spørsmål.map { spørsmål ->
             hentAntallSvar(
                 spørreundersøkelseId = spørreundersøkelse.id,
-                spørsmålId = spørsmål.id
+                spørsmålId = spørsmål.id,
             )
         }
 

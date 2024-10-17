@@ -9,9 +9,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.ktor.client.request.header
 import io.ktor.http.HttpStatusCode
-import java.util.*
-import kotlin.test.Test
-import kotlin.test.assertNotNull
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
@@ -32,6 +29,9 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.junit.After
 import org.junit.Before
+import java.util.UUID
+import kotlin.test.Test
+import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
     private val spørreundersøkelseSvarKonsument =
@@ -59,7 +59,7 @@ class SpørreundersøkelseDeltakerTest {
                     bliMedDTO = BliMedDto(
                         spørreundersøkelseId = spørreundersøkelseId.toString(),
                         sesjonsId = UUID.randomUUID().toString(),
-                    )
+                    ),
                 )
             }
         }
@@ -72,8 +72,8 @@ class SpørreundersøkelseDeltakerTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
-            )
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+            ),
         )
 
         runBlocking {
@@ -94,16 +94,15 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.sendSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = SpørreundersøkelseStatus.AVSLUTTET)
+                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = SpørreundersøkelseStatus.AVSLUTTET),
             )
-
 
             shouldFail {
                 val spørsmål = spørreundersøkelseFraKafka.tilDomene().hentSpørsmålITema(startDto)
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
                     svarIder = listOf(spørsmål?.svaralternativer?.first()?.id.toString()),
-                    bliMedDTO = bliMedDTO
+                    bliMedDTO = bliMedDTO,
                 )
             }
             fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet".toRegex()
@@ -134,7 +133,7 @@ class SpørreundersøkelseDeltakerTest {
 
             val randomSpørsmålId = UUID.randomUUID()
             fiaArbeidsgiverApi.performGet(
-                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$randomSpørsmålId"
+                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$randomSpørsmålId",
             ) {
                 header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
             }.status shouldBe HttpStatusCode.NotFound
@@ -155,7 +154,7 @@ class SpørreundersøkelseDeltakerTest {
             val temaId = -1
 
             fiaArbeidsgiverApi.performGet(
-                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$spørsmålId"
+                url = "$DELTAKER_BASEPATH/$spørreundersøkelseId/tema/$temaId/sporsmal/$spørsmålId",
             ) {
                 header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
             }.status shouldBe HttpStatusCode.NotFound
@@ -178,12 +177,12 @@ class SpørreundersøkelseDeltakerTest {
 
             spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = førsteTema.id, spørsmålId = spørsmålIdFørsteTema),
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             ) shouldNotBe null
 
             spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = sisteTema.id, spørsmålId = spørsmålIdSisteTema),
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             ) shouldNotBe null
         }
     }
@@ -199,21 +198,21 @@ class SpørreundersøkelseDeltakerTest {
 
             val spørsmål = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = startDto,
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             )
 
             spørsmål.nesteSpørsmål?.spørsmålId shouldBe spørreundersøkelse.nesteSpørsmålITema(
                 temaId = startDto.temaId,
-                spørsmålId = startDto.spørsmålId
+                spørsmålId = startDto.spørsmålId,
             )?.id.toString()
 
             // -- Test at "nesteSpørsmål" for siste spørsmål i ett tema peker på første spørsmål i neste tema
             val sisteSpørsmålITema = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = IdentifiserbartSpørsmålDto(
                     temaId = startDto.temaId,
-                    spørsmålId = spørreundersøkelse.temaer.first().spørsmål.last().id.toString()
+                    spørsmålId = spørreundersøkelse.temaer.first().spørsmål.last().id.toString(),
                 ),
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             )
             sisteSpørsmålITema.nesteSpørsmål?.temaId shouldBe spørreundersøkelse.temaer[1].id
             sisteSpørsmålITema.nesteSpørsmål?.spørsmålId shouldBe spørreundersøkelse.temaer[1].spørsmål.first().id.toString()
@@ -234,12 +233,12 @@ class SpørreundersøkelseDeltakerTest {
             // -- Vert har ikke åpnet spørsmål ennå
             fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
                 spørsmål = startDto,
-                bliMedDTO = bliMedDto
+                bliMedDTO = bliMedDto,
             ) shouldBe null
 
             val deltakerSpørsmålDto = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = startDto,
-                bliMedDTO = bliMedDto
+                bliMedDTO = bliMedDto,
             )
             deltakerSpørsmålDto.spørsmål.tekst shouldBe førsteSpørsmål.tekst
             deltakerSpørsmålDto.spørsmål.svaralternativer.first().id shouldBe førsteSpørsmål.svaralternativer.first().id.toString()
@@ -267,12 +266,12 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.svarPåSpørsmål(
                 spørsmål = startDto,
                 svarIder = listOf(spørsmål?.svaralternativer?.first()?.id.toString()),
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             )
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument
+                konsument = spørreundersøkelseSvarKonsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
@@ -299,9 +298,9 @@ class SpørreundersøkelseDeltakerTest {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
                     svarIder = listOf(
-                        spørreundersøkelse.hentSpørsmålITema(startDto)?.svaralternativer?.first()?.id.toString()
+                        spørreundersøkelse.hentSpørsmålITema(startDto)?.svaralternativer?.first()?.id.toString(),
                     ),
-                    bliMedDTO = bliMedDTO.copy(spørreundersøkelseId = UUID.randomUUID().toString())
+                    bliMedDTO = bliMedDTO.copy(spørreundersøkelseId = UUID.randomUUID().toString()),
                 )
             }
             // -- tester på "Ugyldig sesjonsId", da vi verifiserer sesjonsId mot spørreundersøkelsesId
@@ -322,7 +321,7 @@ class SpørreundersøkelseDeltakerTest {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     spørsmål = startDto,
                     svarIder = listOf(svarId),
-                    bliMedDTO = bliMedDTO
+                    bliMedDTO = bliMedDTO,
                 )
             }
             fiaArbeidsgiverApi shouldContainLog "Ukjent svar for spørsmålId: \\(${startDto.spørsmålId}\\)".toRegex()
@@ -353,9 +352,9 @@ class SpørreundersøkelseDeltakerTest {
                     spørsmål = identifiserbartSpørsmålDto,
                     svarIder = listOf(
                         spørsmål?.svaralternativer?.first()?.id.toString(),
-                        spørsmål?.svaralternativer?.last()?.id.toString()
+                        spørsmål?.svaralternativer?.last()?.id.toString(),
                     ),
-                    bliMedDTO = bliMedDTO
+                    bliMedDTO = bliMedDTO,
                 )
             }
             fiaArbeidsgiverApi shouldContainLog "Spørsmål er ikke flervalg, id: ${spørsmål?.id}".toRegex()
@@ -367,7 +366,7 @@ class SpørreundersøkelseDeltakerTest {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, flervalg = true)
+            spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, flervalg = true),
         ).tilDomene()
 
         runBlocking {
@@ -389,14 +388,14 @@ class SpørreundersøkelseDeltakerTest {
                 spørsmål = identifiserbartSpørsmålDto,
                 svarIder = listOf(
                     spørsmål?.svaralternativer?.first()?.id.toString(),
-                    spørsmål?.svaralternativer?.last()?.id.toString()
+                    spørsmål?.svaralternativer?.last()?.id.toString(),
                 ),
-                bliMedDTO = bliMedDTO
+                bliMedDTO = bliMedDTO,
             )
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument
+                konsument = spørreundersøkelseSvarKonsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
@@ -408,7 +407,7 @@ class SpørreundersøkelseDeltakerTest {
                     svar.spørsmålId shouldBe spørsmål?.id.toString()
                     svar.svarIder shouldBe listOf(
                         spørsmål?.svaralternativer?.first()?.id.toString(),
-                        spørsmål?.svaralternativer?.last()?.id.toString()
+                        spørsmål?.svaralternativer?.last()?.id.toString(),
                     )
                 }
             }
@@ -433,7 +432,7 @@ class SpørreundersøkelseDeltakerTest {
             fiaArbeidsgiverApi.svarPåSpørsmål(
                 startDto,
                 listOf(spørsmål.spørsmål.svaralternativer.first().id),
-                bliMedDTO
+                bliMedDTO,
             )
             fiaArbeidsgiverApi shouldContainLog "Tema '${startDto.temaId}' er stengt, hent nytt spørsmål".toRegex()
         }
@@ -451,7 +450,7 @@ class SpørreundersøkelseDeltakerTest {
             val deltakerSpørsmålDto =
                 spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                     spørsmål = startDtoFørsteSpørsmål,
-                    bliMedDTO = bliMedDTO
+                    bliMedDTO = bliMedDTO,
                 )
 
             spørreundersøkelse.temaer.forEach {
@@ -465,7 +464,7 @@ class SpørreundersøkelseDeltakerTest {
                 fiaArbeidsgiverApi.svarPåSpørsmål(
                     startDtoFørsteSpørsmål,
                     listOf(deltakerSpørsmålDto.spørsmål.svaralternativer.first().id),
-                    bliMedDTO
+                    bliMedDTO,
                 )
             }
 
@@ -513,5 +512,3 @@ private suspend fun Spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
     assertNotNull(deltakerSpørsmålDto)
     deltakerSpørsmålDto
 }
-
-

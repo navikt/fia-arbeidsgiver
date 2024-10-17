@@ -8,14 +8,17 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
-
-class SpørreundersøkelseSvarProdusent(kafkaConfig: KafkaConfig) {
+class SpørreundersøkelseSvarProdusent(
+    kafkaConfig: KafkaConfig,
+) {
     private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties())
 
     init {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            producer.close()
-        })
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                producer.close()
+            },
+        )
     }
 
     fun sendSvar(svar: SpørreundersøkelseSvarDTO) {
@@ -32,8 +35,6 @@ class SpørreundersøkelseSvarProdusent(kafkaConfig: KafkaConfig) {
     ) {
         fun tilNøkkel() = "${sesjonId}_$spørsmålId"
 
-        fun tilMelding(): String {
-            return Json.encodeToString(this)
-        }
+        fun tilMelding(): String = Json.encodeToString(this)
     }
 }

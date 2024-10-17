@@ -20,18 +20,15 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
-import java.time.Duration
-import java.util.*
-import kotlin.io.path.Path
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerSpørsmålDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -40,6 +37,9 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HttpWaitStrategy
 import org.testcontainers.images.builder.ImageFromDockerfile
+import java.time.Duration
+import java.util.UUID
+import kotlin.io.path.Path
 
 class TestContainerHelper {
     companion object {
@@ -55,19 +55,19 @@ class TestContainerHelper {
 
         val fiaArbeidsgiverApi =
             GenericContainer(
-                ImageFromDockerfile().withDockerfile(Path("./Dockerfile"))
+                ImageFromDockerfile().withDockerfile(Path("./Dockerfile")),
             )
                 .withNetwork(network)
                 .withExposedPorts(8080)
                 .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
                 .withEnv(
                     authServer.getEnv() +
-                            altinnProxy.getEnv() +
-                            kafka.getEnv() +
-                            redis.getEnv() +
-                            mapOf(
-                                "NAIS_CLUSTER_NAME" to "lokal"
-                            )
+                        altinnProxy.getEnv() +
+                        kafka.getEnv() +
+                        redis.getEnv() +
+                        mapOf(
+                            "NAIS_CLUSTER_NAME" to "lokal",
+                        ),
                 )
                 .dependsOn(authServer.container, kafka.container, redis.container)
                 .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
@@ -86,7 +86,7 @@ class TestContainerHelper {
             subject = subject,
             audience = audience,
             claims = claims,
-            issuerId = "tokenx"
+            issuerId = "tokenx",
         )
 
         internal fun azureAccessToken(
@@ -94,13 +94,13 @@ class TestContainerHelper {
             audience: String = "azure:fia-arbeidsgiver",
             claims: Map<String, Any> = mapOf(
                 "NAVident" to VERT_NAV_IDENT,
-                "groups" to listOf(AuthContainer.saksbehandlerGroupId)
+                "groups" to listOf(AuthContainer.saksbehandlerGroupId),
             ),
         ) = authServer.issueToken(
             subject = subject,
             audience = audience,
             claims = claims,
-            issuerId = "azure"
+            issuerId = "azure",
         )
 
         infix fun GenericContainer<*>.shouldContainLog(regex: Regex) = logs shouldContain regex
@@ -116,49 +116,46 @@ private val httpClient = HttpClient(CIO) {
 private suspend fun GenericContainer<*>.performRequest(
     url: String,
     config: HttpRequestBuilder.() -> Unit = {},
-) =
-    httpClient.request {
-        config()
-        header(HttpHeaders.Accept, "application/json")
-        url {
-            protocol = URLProtocol.HTTP
-            host = this@performRequest.host
-            port = firstMappedPort
-            path(url)
-        }
+) = httpClient.request {
+    config()
+    header(HttpHeaders.Accept, "application/json")
+    url {
+        protocol = URLProtocol.HTTP
+        host = this@performRequest.host
+        port = firstMappedPort
+        path(url)
     }
-
-internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit = {
-    header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
 }
 
-internal fun HttpRequestBuilder.medAzureToken(
-    token: String = TestContainerHelper.azureAccessToken().serialize(),
-) {
+internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit =
+    {
+        header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
+    }
+
+internal fun HttpRequestBuilder.medAzureToken(token: String = TestContainerHelper.azureAccessToken().serialize()) {
     header(HttpHeaders.Authorization, "Bearer $token")
 }
 
-internal suspend fun GenericContainer<*>.performGet(url: String, config: HttpRequestBuilder.() -> Unit = {}) =
-    performRequest(url) {
-        config()
-        method = HttpMethod.Get
-    }
+internal suspend fun GenericContainer<*>.performGet(
+    url: String,
+    config: HttpRequestBuilder.() -> Unit = {},
+) = performRequest(url) {
+    config()
+    method = HttpMethod.Get
+}
 
 internal suspend inline fun <reified T> GenericContainer<*>.performPost(
     url: String,
     body: T,
     crossinline config: HttpRequestBuilder.() -> Unit = {},
-) =
-    performRequest(url) {
-        config()
-        method = HttpMethod.Post
-        header(HttpHeaders.ContentType, ContentType.Application.Json)
-        setBody(body)
-    }
+) = performRequest(url) {
+    config()
+    method = HttpMethod.Post
+    header(HttpHeaders.ContentType, ContentType.Application.Json)
+    setBody(body)
+}
 
-internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(
-    bliMedDTO: BliMedDto,
-): IdentifiserbartSpørsmålDto {
+internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(bliMedDTO: BliMedDto): IdentifiserbartSpørsmålDto {
     val response = performGet(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
     ) {
@@ -178,7 +175,7 @@ internal suspend fun GenericContainer<*>.svarPåSpørsmål(
 ) {
     val response = performPost(
         url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/svar",
-        body = SvarRequest(svarIder = svarIder)
+        body = SvarRequest(svarIder = svarIder),
     ) {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
@@ -214,8 +211,8 @@ internal suspend fun GenericContainer<*>.åpneTema(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${temaId}/start",
-        body = Unit
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId/start",
+        body = Unit,
     ) {
         medAzureToken(token = token)
     }
@@ -228,7 +225,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForTema(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/antall-svar",
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId/antall-svar",
     ) {
         medAzureToken(token = token)
     }
@@ -240,7 +237,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørreundersøkelse(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/antall-fullfort",
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-fullfort",
     ) {
         medAzureToken(token = token)
     }
@@ -253,7 +250,7 @@ internal suspend fun GenericContainer<*>.hentAntallSvarForSpørsmål(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): Int {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/${spørsmål.temaId}/sporsmal/${spørsmål.spørsmålId}/antall-svar",
     ) {
         medAzureToken(token = token)
     }
@@ -265,7 +262,7 @@ internal suspend fun GenericContainer<*>.vertHentOversikt(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): List<TemaDto> {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/oversikt",
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/oversikt",
     ) {
         medAzureToken(token = token)
     }
@@ -278,7 +275,7 @@ internal suspend fun GenericContainer<*>.hentTemaDto(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ): TemaDto {
     val response = performGet(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId",
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId",
     ) {
         medAzureToken(token = token)
     }
@@ -301,8 +298,8 @@ internal suspend fun GenericContainer<*>.stengTema(
     token: String = TestContainerHelper.azureAccessToken().serialize(),
 ) {
     val response = performPost(
-        url = "$VERT_BASEPATH/${spørreundersøkelseId}/tema/$temaId/avslutt",
-        body = Unit
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/tema/$temaId/avslutt",
+        body = Unit,
     ) {
         medAzureToken(token = token)
     }
@@ -339,12 +336,10 @@ internal suspend fun GenericContainer<*>.vertHenterAntallDeltakere(
     return response.body()
 }
 
-internal suspend fun GenericContainer<*>.bliMed(
-    spørreundersøkelseId: UUID,
-): BliMedDto {
+internal suspend fun GenericContainer<*>.bliMed(spørreundersøkelseId: UUID): BliMedDto {
     val response = performPost(
         url = BLI_MED_PATH,
-        body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+        body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
     )
     response.status shouldBe HttpStatusCode.OK
     val body = response.bodyAsText()

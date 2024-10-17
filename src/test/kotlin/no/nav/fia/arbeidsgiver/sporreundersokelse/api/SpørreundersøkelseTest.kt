@@ -5,8 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpStatusCode
-import java.util.*
-import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
@@ -18,6 +16,8 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import org.junit.After
 import org.junit.Before
+import java.util.UUID
+import kotlin.test.Test
 
 class SpørreundersøkelseTest {
     private val spørreundersøkelseSvarKonsument =
@@ -47,7 +47,7 @@ class SpørreundersøkelseTest {
     }
 
     @Test
-    fun `skal kunne bli med i spørreundersøkelse dersom ukjente felter`() { //Gir svar på om vi støtter ukjente felter i requestene våre
+    fun `skal kunne bli med i spørreundersøkelse dersom ukjente felter`() { // Gir svar på om vi støtter ukjente felter i requestene våre
         val spørreundersøkelseId = UUID.randomUUID()
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
@@ -56,8 +56,8 @@ class SpørreundersøkelseTest {
                 url = BLI_MED_PATH,
                 body = BliMedRequestMedUkjentFelt(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
-                    ukjentFelt = "654321"
-                )
+                    ukjentFelt = "654321",
+                ),
             )
             response.status shouldBe HttpStatusCode.OK
         }
@@ -65,16 +65,17 @@ class SpørreundersøkelseTest {
 
     @Suppress("unused")
     @Serializable
-    private class BliMedRequestMedUkjentFelt(val spørreundersøkelseId: String, val ukjentFelt: String)
-
+    private class BliMedRequestMedUkjentFelt(
+        val spørreundersøkelseId: String,
+        val ukjentFelt: String,
+    )
 
     @Test
     fun `returnerer BAD_REQUEST dersom UUID er feil formatert`() {
-
         runBlocking {
             val response = fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = "tullogtøys")
+                body = BliMedRequest(spørreundersøkelseId = "tullogtøys"),
             )
             response.status shouldBe HttpStatusCode.BadRequest
             fiaArbeidsgiverApi shouldContainLog "Ugyldig formatert UUID".toRegex()
@@ -91,14 +92,14 @@ class SpørreundersøkelseTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET
-            )
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET,
+            ),
         )
 
         runBlocking {
             val bliMedRespons = fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             bliMedRespons.status shouldBe HttpStatusCode.Gone
             fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
@@ -112,18 +113,17 @@ class SpørreundersøkelseTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET
-            )
+                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+            ),
         )
 
         runBlocking {
             val bliMedRespons = fiaArbeidsgiverApi.performPost(
                 url = BLI_MED_PATH,
-                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString())
+                body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             bliMedRespons.status shouldBe HttpStatusCode.Forbidden
             fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
-
 }

@@ -10,16 +10,19 @@ import org.testcontainers.utility.DockerImageName
 
 private const val REDIS_PORT = 6379
 
-class RedisContainer(network: Network) {
+class RedisContainer(
+    network: Network,
+) {
     val networkAlias = "redisContainer"
     val redisUsername = "redislokaltusername"
     val redisPassord = "redislokaltpassord"
 
-    fun getEnv() = mapOf(
-        "REDIS_URI_FIA_SAMARBEIDSSTATUS" to "redis://$networkAlias:$REDIS_PORT",
-        "REDIS_USERNAME_FIA_SAMARBEIDSSTATUS" to redisUsername,
-        "REDIS_PASSWORD_FIA_SAMARBEIDSSTATUS" to redisPassord
-    )
+    fun getEnv() =
+        mapOf(
+            "REDIS_URI_FIA_SAMARBEIDSSTATUS" to "redis://$networkAlias:$REDIS_PORT",
+            "REDIS_USERNAME_FIA_SAMARBEIDSSTATUS" to redisUsername,
+            "REDIS_PASSWORD_FIA_SAMARBEIDSSTATUS" to redisPassord,
+        )
 
     private val redisService by lazy {
         RedisService(
@@ -38,7 +41,7 @@ class RedisContainer(network: Network) {
     }
 
     val container = GenericContainer(
-        DockerImageName.parse("redis:7.2.4-alpine")
+        DockerImageName.parse("redis:7.2.4-alpine"),
     )
         .withNetwork(network)
         .withNetworkAliases(networkAlias)

@@ -9,14 +9,17 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvar
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
-
-class SpørreundersøkelseHendelseProdusent(kafkaConfig: KafkaConfig) {
+class SpørreundersøkelseHendelseProdusent(
+    kafkaConfig: KafkaConfig,
+) {
     private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties())
 
     init {
-        Runtime.getRuntime().addShutdownHook(Thread {
-            producer.close()
-        })
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                producer.close()
+            },
+        )
     }
 
     fun <T> sendHendelse(hendelse: SpørreundersøkelseHendelse<T>) {
@@ -24,8 +27,8 @@ class SpørreundersøkelseHendelseProdusent(kafkaConfig: KafkaConfig) {
             ProducerRecord(
                 KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navnMedNamespace,
                 hendelse.tilNøkkel(),
-                hendelse.tilMelding()
-            )
+                hendelse.tilMelding(),
+            ),
         )
     }
 
@@ -33,19 +36,19 @@ class SpørreundersøkelseHendelseProdusent(kafkaConfig: KafkaConfig) {
         spørreundersøkelseId: String,
         temaId: Int,
     ) : SpørreundersøkelseHendelse<Int>(
-        spørreundersøkelseId = spørreundersøkelseId,
-        hendelsesType = HendelsType.STENG_TEMA,
-        data = temaId
-    )
+            spørreundersøkelseId = spørreundersøkelseId,
+            hendelsesType = HendelsType.STENG_TEMA,
+            data = temaId,
+        )
 
     class SvarPåSpørsmål(
         spørreundersøkelseId: String,
         svarPåSpørsmål: SpørreundersøkelseSvarDTO,
     ) : SpørreundersøkelseHendelse<SpørreundersøkelseSvarDTO>(
-        spørreundersøkelseId = spørreundersøkelseId,
-        hendelsesType = HendelsType.SVAR_PÅ_SPØRSMÅL,
-        data = svarPåSpørsmål
-    )
+            spørreundersøkelseId = spørreundersøkelseId,
+            hendelsesType = HendelsType.SVAR_PÅ_SPØRSMÅL,
+            data = svarPåSpørsmål,
+        )
 
     @Serializable
     sealed class SpørreundersøkelseHendelse<T>(
@@ -57,8 +60,8 @@ class SpørreundersøkelseHendelseProdusent(kafkaConfig: KafkaConfig) {
             Json.encodeToString(
                 SpørreundersøkelseHendelseNøkkel(
                     spørreundersøkelseId,
-                    hendelsesType
-                )
+                    hendelsesType,
+                ),
             )
 
         fun tilMelding() =
@@ -68,10 +71,9 @@ class SpørreundersøkelseHendelseProdusent(kafkaConfig: KafkaConfig) {
             }
     }
 
-
     enum class HendelsType {
         STENG_TEMA,
-        SVAR_PÅ_SPØRSMÅL
+        SVAR_PÅ_SPØRSMÅL,
     }
 
     @Serializable

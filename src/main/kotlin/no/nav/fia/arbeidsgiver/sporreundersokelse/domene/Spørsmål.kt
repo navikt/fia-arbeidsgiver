@@ -1,6 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import java.util.*
+import java.util.UUID
 
 data class Spørsmål(
     val id: UUID,

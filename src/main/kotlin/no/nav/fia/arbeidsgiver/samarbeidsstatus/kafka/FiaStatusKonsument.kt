@@ -23,7 +23,7 @@ import kotlin.coroutines.CoroutineContext
 
 class FiaStatusKonsument(
     val samarbeidsstatusService: SamarbeidsstatusService,
-    val applikasjonsHelse: ApplikasjonsHelse
+    val applikasjonsHelse: ApplikasjonsHelse,
 ) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
@@ -31,7 +31,7 @@ class FiaStatusKonsument(
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
-        StringDeserializer()
+        StringDeserializer(),
     )
 
     override val coroutineContext: CoroutineContext
@@ -53,7 +53,7 @@ class FiaStatusKonsument(
                         if (records.count() < 1) continue
                         logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
-                        records.forEach {record ->
+                        records.forEach { record ->
                             try {
                                 val payload = Json.decodeFromString<IASakStatus>(record.value())
                                 samarbeidsstatusService.lagre(payload)
@@ -76,10 +76,11 @@ class FiaStatusKonsument(
         }
     }
 
-    private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${topic.navn}")
-        kafkaConsumer.wakeup()
-        job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${topic.navn}")
-    }
+    private fun cancel() =
+        runBlocking {
+            logger.info("Stopping kafka consumer job for ${topic.navn}")
+            kafkaConsumer.wakeup()
+            job.cancelAndJoin()
+            logger.info("Stopped kafka consumer job for ${topic.navn}")
+        }
 }

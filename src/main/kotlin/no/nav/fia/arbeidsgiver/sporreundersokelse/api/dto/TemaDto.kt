@@ -15,11 +15,10 @@ data class TemaDto(
     val spørsmål: List<SpørsmålDto>,
 )
 
-fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus>): TemaDto {
-    //TODO: Refactor.
-    //TODO: Ikke map gjennom alle temaer og lag liste av TemaSvarStatus, men heller hent kun status for gjeldende tema
-    // vi har TemaId det gjelder for, så tilTemaDto trenger ikke ta inn. Id
-    // TO typer tilTemaDto.
+fun Spørreundersøkelse.tilTemaDto(
+    temaId: Int,
+    temaStatus: List<TemaSvarStatus>,
+): TemaDto {
     val indeksGjeldendeTema = this.temaer.indexOfFirst { it.id == temaId }
     val temaIdTilForrigeTema = if (indeksGjeldendeTema > 0) temaStatus[indeksGjeldendeTema - 1].temaId else -1
     val status = when {
@@ -39,9 +38,8 @@ fun Spørreundersøkelse.tilTemaDto(temaId: Int, temaStatus: List<TemaSvarStatus
         status = status,
         førsteSpørsmålId = gjeldendeTema.spørsmål.first().id.toString(),
         nesteTemaId = nesteTemaId,
-        spørsmål = gjeldendeTema.spørsmål.map { it.tilDto() }
+        spørsmål = gjeldendeTema.spørsmål.map { it.tilDto() },
     )
 }
 
-fun Spørreundersøkelse.tilTemaDtoer(temaStatus: List<TemaSvarStatus>) =
-    temaer.map { tilTemaDto(temaId = it.id, temaStatus = temaStatus) }
+fun Spørreundersøkelse.tilTemaDtoer(temaStatus: List<TemaSvarStatus>) = temaer.map { tilTemaDto(temaId = it.id, temaStatus = temaStatus) }

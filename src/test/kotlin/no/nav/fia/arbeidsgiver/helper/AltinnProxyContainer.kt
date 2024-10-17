@@ -6,7 +6,6 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import org.apache.http.protocol.HTTP.CONTENT_TYPE
 import org.testcontainers.Testcontainers
 
-
 class AltinnProxyContainer {
     companion object {
         val ALTINN_ORGNR_1 = "311111111"
@@ -39,9 +38,10 @@ class AltinnProxyContainer {
                                      "OrganizationForm": "BEDR",
                                      "Status": "Active"
                                 }
-                            ]""".trimMargin()
-                        )
-                )
+                            ]
+                            """.trimMargin(),
+                        ),
+                ),
         )
 
         if (!it.isRunning) {
@@ -52,8 +52,9 @@ class AltinnProxyContainer {
         Testcontainers.exposeHostPorts(it.port())
     }
 
-    fun getEnv() = mapOf(
-        "ALTINN_RETTIGHETER_PROXY_URL" to "http://host.testcontainers.internal:${wireMock.port()}/altinn",
-        "ALTINN_RETTIGHETER_PROXY_CLIENT_ID" to "hei",
-    )
+    fun getEnv() =
+        mapOf(
+            "ALTINN_RETTIGHETER_PROXY_URL" to "http://host.testcontainers.internal:${wireMock.port()}/altinn",
+            "ALTINN_RETTIGHETER_PROXY_CLIENT_ID" to "hei",
+        )
 }

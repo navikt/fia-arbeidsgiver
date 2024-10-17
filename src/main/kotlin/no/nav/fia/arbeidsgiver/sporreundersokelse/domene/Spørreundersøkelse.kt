@@ -24,7 +24,7 @@ data class Spørreundersøkelse(
             temaer.elementAtOrNull(gjeldeneTemaIdx + 1)?.let {
                 IdentifiserbartSpørsmålDto(
                     temaId = it.id,
-                    spørsmålId = it.spørsmål.first().id.toString()
+                    spørsmålId = it.spørsmål.first().id.toString(),
                 )
             }
         }
@@ -43,7 +43,7 @@ data class Spørreundersøkelse(
             temaer.elementAtOrNull(gjeldeneTemaIdx - 1)?.let {
                 IdentifiserbartSpørsmålDto(
                     temaId = it.id,
-                    spørsmålId = it.spørsmål.last().id.toString()
+                    spørsmålId = it.spørsmål.last().id.toString(),
                 )
             }
         }
@@ -55,9 +55,11 @@ data class Spørreundersøkelse(
             tema.spørsmål.elementAtOrNull(spørsmålIdx)
         }
 
-    fun nesteSpørsmålITema(temaId: Int, spørsmålId: String) =
-        temaer.firstOrNull { it.id == temaId }?.let { tema ->
-            val spørsmålIdx = tema.spørsmål.indexOfFirst { it.id == UUID.fromString(spørsmålId) }
-            tema.spørsmål.elementAtOrNull(spørsmålIdx + 1)
-        }
+    fun nesteSpørsmålITema(
+        temaId: Int,
+        spørsmålId: String,
+    ) = temaer.firstOrNull { it.id == temaId }?.let { tema ->
+        val spørsmålIdx = tema.spørsmål.indexOfFirst { it.id == UUID.fromString(spørsmålId) }
+        tema.spørsmål.elementAtOrNull(spørsmålIdx + 1)
+    }
 }

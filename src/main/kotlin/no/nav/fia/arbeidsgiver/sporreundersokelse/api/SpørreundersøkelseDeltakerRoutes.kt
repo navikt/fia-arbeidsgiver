@@ -18,7 +18,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
 import sesjonId
 
-
 const val DELTAKER_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/deltaker"
 
 fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: SpørreundersøkelseService) {
@@ -32,10 +31,11 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         }
 
         call.respond(
-            HttpStatusCode.OK, IdentifiserbartSpørsmålDto(
+            status = HttpStatusCode.OK,
+            message = IdentifiserbartSpørsmålDto(
                 temaId = førsteÅpneTema.id,
-                spørsmålId = førsteÅpneTema.spørsmål.first().id.toString()
-            )
+                spørsmålId = førsteÅpneTema.spørsmål.first().id.toString(),
+            ),
         )
     }
 
@@ -54,7 +54,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         if (!spørreundersøkelseService.erSpørsmålÅpent(
                 spørreundersøkelseId = spørreundersøkelseId,
                 temaId = temaId,
-                spørsmålId = spørsmålId
+                spørsmålId = spørsmålId,
             )
         ) {
             return@get call.respond(HttpStatusCode.Accepted)
@@ -62,7 +62,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
 
         call.respond(
             HttpStatusCode.OK,
-            spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId = spørsmålId)
+            spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId = spørsmålId),
         )
     }
 
@@ -84,7 +84,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         if (spørreundersøkelseService.erAlleTemaerErStengt(spørreundersøkelse)) {
             throw Feil(
                 feilmelding = "Alle temaer er stengt for spørreundersøkelse '$spørreundersøkelseId'",
-                feilkode = HttpStatusCode.BadRequest
+                feilkode = HttpStatusCode.BadRequest,
             )
         }
 
@@ -92,14 +92,16 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
             application.log.info("Tema '$temaId' er stengt, hent nytt spørsmål")
             call.respond(
                 message = "Tema '$temaId' er stengt, hent nytt spørsmål",
-                status = HttpStatusCode.SeeOther
+                status = HttpStatusCode.SeeOther,
             )
         }
 
-        if (spørsmål.svaralternativer.none { svarIder.contains(it.id) })
+        if (spørsmål.svaralternativer.none { svarIder.contains(it.id) }) {
             throw Feil(
-                feilmelding = "Ukjent svar for spørsmålId: (${spørsmålId})", feilkode = HttpStatusCode.Forbidden
+                feilmelding = "Ukjent svar for spørsmålId: ($spørsmålId)",
+                feilkode = HttpStatusCode.Forbidden,
             )
+        }
 
         if (svarIder.size > 1 && !spørsmål.flervalg) {
             throw Feil(feilmelding = "Spørsmål er ikke flervalg, id: $spørsmålId", feilkode = HttpStatusCode.BadRequest)

@@ -6,7 +6,6 @@ import io.lettuce.core.StaticCredentialsProvider
 import io.lettuce.core.api.sync.RedisCommands
 import no.nav.fia.arbeidsgiver.konfigurasjon.Redis
 
-
 class RedisService(
     url: String = Redis.redisUrl,
     username: String = Redis.redisUsername,
@@ -16,6 +15,10 @@ class RedisService(
     val sync: RedisCommands<String, String>
     val defaultTimeToLiveSeconds: Long
 
+    companion object {
+        const val ETT_DØGN = 1 * 24 * 60 * 60L
+    }
+
     init {
         redisUri.credentialsProvider = StaticCredentialsProvider(username, password?.toCharArray())
 
@@ -23,7 +26,6 @@ class RedisService(
         val connection = redisClient.connect()
         sync = connection.sync()
 
-        val ETT_DØGN = 1 * 24 * 60 * 60L
         defaultTimeToLiveSeconds = ETT_DØGN
     }
 
@@ -44,9 +46,7 @@ class RedisService(
     fun hente(
         type: Type,
         nøkkel: String,
-    ): String? {
-        return sync.get("${type.name}-$nøkkel")
-    }
+    ): String? = sync.get("${type.name}-$nøkkel")
 }
 
 enum class Type {
@@ -58,5 +58,5 @@ enum class Type {
     ANTALL_SVAR_FOR_SPØRSMÅL,
     TEMA_STATUS,
     ER_SPØRSMÅL_ÅPENT,
-    ER_TEMA_ÅPENT;
+    ER_TEMA_ÅPENT,
 }

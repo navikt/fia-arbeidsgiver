@@ -30,7 +30,7 @@ import org.apache.kafka.common.serialization.StringDeserializer
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.time.Duration
-import java.util.*
+import java.util.UUID
 import kotlin.coroutines.CoroutineContext
 
 class SpørreundersøkelseKonsument(
@@ -43,7 +43,7 @@ class SpørreundersøkelseKonsument(
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
-        StringDeserializer()
+        StringDeserializer(),
     )
     private val json = Json {
         ignoreUnknownKeys = true
@@ -72,7 +72,7 @@ class SpørreundersøkelseKonsument(
                             try {
                                 val spørreundersøkelse =
                                     json.decodeFromString<SerializableSpørreundersøkelse>(
-                                        record.value()
+                                        record.value(),
                                     )
 
                                 if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
@@ -108,17 +108,18 @@ class SpørreundersøkelseKonsument(
         override val virksomhetsNavn: String,
         override val status: SpørreundersøkelseStatus,
         override val temaMedSpørsmålOgSvaralternativer: List<SerializableTema>,
-        override val type: String?=null,
+        override val type: String? = null,
         override val vertId: String? = null,
-        override val avslutningsdato: LocalDate?=null,
+        override val avslutningsdato: LocalDate? = null,
     ) : SpørreundersøkelseMelding {
-        fun tilDomene() = Spørreundersøkelse(
-            id = UUID.fromString(spørreundersøkelseId),
-            orgnummer = orgnummer,
-            virksomhetsNavn = virksomhetsNavn,
-            status = status,
-            temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
-        )
+        fun tilDomene() =
+            Spørreundersøkelse(
+                id = UUID.fromString(spørreundersøkelseId),
+                orgnummer = orgnummer,
+                virksomhetsNavn = virksomhetsNavn,
+                status = status,
+                temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
+            )
     }
 
     @Serializable
@@ -130,11 +131,12 @@ class SpørreundersøkelseKonsument(
         override val introtekst: String? = null,
         override val spørsmålOgSvaralternativer: List<SerializableSpørsmål>,
     ) : TemaMelding {
-        fun tilDomene() = Tema(
-            id = temaId,
-            navn = navn ?: beskrivelse!!,
-            spørsmål = spørsmålOgSvaralternativer.map { it.tilDomene() },
-        )
+        fun tilDomene() =
+            Tema(
+                id = temaId,
+                navn = navn ?: beskrivelse!!,
+                spørsmål = spørsmålOgSvaralternativer.map { it.tilDomene() },
+            )
     }
 
     @Serializable
@@ -144,12 +146,13 @@ class SpørreundersøkelseKonsument(
         override val flervalg: Boolean,
         override val svaralternativer: List<SerializableSvaralternativ>,
     ) : SpørsmålMelding {
-        fun tilDomene() = Spørsmål(
-            id = UUID.fromString(id),
-            tekst = spørsmål,
-            svaralternativer = svaralternativer.map { it.tilDomene() },
-            flervalg = flervalg,
-        )
+        fun tilDomene() =
+            Spørsmål(
+                id = UUID.fromString(id),
+                tekst = spørsmål,
+                svaralternativer = svaralternativer.map { it.tilDomene() },
+                flervalg = flervalg,
+            )
     }
 
     @Serializable
@@ -157,17 +160,18 @@ class SpørreundersøkelseKonsument(
         override val svarId: String,
         override val svartekst: String,
     ) : SvaralternativMelding {
-        fun tilDomene() = Svaralternativ(
-            id = UUID.fromString(svarId),
-            svartekst = svartekst,
-        )
+        fun tilDomene() =
+            Svaralternativ(
+                id = UUID.fromString(svarId),
+                svartekst = svartekst,
+            )
     }
 
-
-    private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${topic.navn}")
-        kafkaConsumer.wakeup()
-        job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${topic.navn}")
-    }
+    private fun cancel() =
+        runBlocking {
+            logger.info("Stopping kafka consumer job for ${topic.navn}")
+            kafkaConsumer.wakeup()
+            job.cancelAndJoin()
+            logger.info("Stopped kafka consumer job for ${topic.navn}")
+        }
 }

@@ -46,7 +46,7 @@ fun Application.configureSecurity() {
                 withClaimPresence("NAVident")
                 withClaim("groups") { claim: Claim, _: DecodedJWT ->
                     claim.asList(String::class.java).contains(Miljø.saksbehandlerGruppe) ||
-                    claim.asList(String::class.java).contains(Miljø.superbrukerGruppe)
+                        claim.asList(String::class.java).contains(Miljø.superbrukerGruppe)
                 }
             }
             validate { token ->

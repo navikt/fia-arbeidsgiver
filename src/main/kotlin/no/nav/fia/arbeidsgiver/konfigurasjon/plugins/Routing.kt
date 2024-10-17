@@ -14,8 +14,8 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
-import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltaker
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltaker
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
@@ -59,10 +59,11 @@ fun Route.auditLogged(
     authorizedRoutes()
 }
 
-fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) = createChild(selector).apply {
-    install(AuthorizationPlugin)
-    authorizedRoutes()
-}
+fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) =
+    createChild(selector).apply {
+        install(AuthorizationPlugin)
+        authorizedRoutes()
+    }
 
 fun Route.medVerifisertSesjonId(
     spørreundersøkelseService: SpørreundersøkelseService,
@@ -73,5 +74,8 @@ fun Route.medVerifisertSesjonId(
 }
 
 private class CustomSelector : RouteSelector() {
-    override fun evaluate(context: RoutingResolveContext, segmentIndex: Int) = RouteSelectorEvaluation.Transparent
+    override fun evaluate(
+        context: RoutingResolveContext,
+        segmentIndex: Int,
+    ) = RouteSelectorEvaluation.Transparent
 }

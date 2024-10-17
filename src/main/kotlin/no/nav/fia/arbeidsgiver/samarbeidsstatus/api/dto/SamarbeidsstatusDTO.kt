@@ -6,7 +6,7 @@ import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 @Serializable
 data class SamarbeidsstatusDTO(
     val orgnr: String,
-    val samarbeid: Samarbeidsstaus
+    val samarbeid: Samarbeidsstaus,
 )
 
 fun IASakStatus.tilSamarbeid() = SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.fraIASakStatus(status))

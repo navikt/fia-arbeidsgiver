@@ -4,12 +4,12 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import java.util.*
-import kotlin.test.Test
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
+import java.util.UUID
+import kotlin.test.Test
 
 class SpørreundersøkelseKonsumentTest {
     @Test
@@ -44,7 +44,8 @@ class SpørreundersøkelseKonsumentTest {
         val spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(id)
 
         TestContainerHelper.kafka.sendSpørreundersøkelse(
-            spørreundersøkelseId = id, medEkstraFelt = true
+            spørreundersøkelseId = id,
+            medEkstraFelt = true,
         ) shouldNotBeEqual spørreundersøkelse
 
         runBlocking {

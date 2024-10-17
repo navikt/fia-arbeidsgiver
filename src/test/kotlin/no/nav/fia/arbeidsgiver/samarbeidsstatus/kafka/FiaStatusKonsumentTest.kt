@@ -6,7 +6,6 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import java.time.LocalDateTime
 import kotlin.test.Test
 
-
 class FiaStatusKonsumentTest {
     @Test
     fun `skal kunne konsumere meldinger`() {
@@ -30,15 +29,14 @@ class FiaStatusKonsumentTest {
         TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(
             orgnr = orgnr,
             status = "VI_BISTÅR",
-            sistOppdatert = sistOppdatert
+            sistOppdatert = sistOppdatert,
         )
         TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(
             orgnr = orgnr,
             status = "VURDERES",
-            sistOppdatert = sistOppdatert.minusSeconds(1)
+            sistOppdatert = sistOppdatert.minusSeconds(1),
         )
 
         TestContainerHelper.redis.samarbeidsstatusService.henteSakStatus(orgnr)?.status shouldBe "VI_BISTÅR"
     }
-
 }

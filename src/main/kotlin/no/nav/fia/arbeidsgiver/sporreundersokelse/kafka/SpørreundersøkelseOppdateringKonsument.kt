@@ -29,15 +29,14 @@ import kotlin.coroutines.CoroutineContext
 class SpørreundersøkelseOppdateringKonsument(
     val spørreundersøkelseService: SpørreundersøkelseService,
     val applikasjonsHelse: ApplikasjonsHelse,
-) :
-    CoroutineScope {
+) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
     private val kafkaConsumer = KafkaConsumer(
         KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
-        StringDeserializer()
+        StringDeserializer(),
     )
     private val json = Json {
         ignoreUnknownKeys = true
@@ -68,18 +67,21 @@ class SpørreundersøkelseOppdateringKonsument(
                                 when (nøkkel.oppdateringsType) {
                                     RESULTATER_FOR_TEMA -> {
                                         val resultat = json.decodeFromString<TemaResultatDto>(record.value())
-                                        logger.info("Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${resultat.temaId}")
+                                        logger.info(
+                                            "Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${resultat.temaId}",
+                                        )
                                         spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, resultat)
                                     }
 
                                     ANTALL_SVAR -> {
                                         val antallSvar =
                                             json.decodeFromString<SpørreundersøkelseAntallSvarDto>(record.value())
-                                        logger.info("Lagrer antall svar for spørsmål: ${antallSvar.spørsmålId} i spørreundersøkelse: ${antallSvar.spørreundersøkelseId}")
+                                        logger.info(
+                                            "Lagrer antall svar for spørsmål: ${antallSvar.spørsmålId} i spørreundersøkelse: ${antallSvar.spørreundersøkelseId}",
+                                        )
                                         spørreundersøkelseService.lagre(antallSvar)
                                     }
                                 }
-
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
@@ -114,7 +116,7 @@ class SpørreundersøkelseOppdateringKonsument(
 
     enum class OppdateringsType {
         RESULTATER_FOR_TEMA,
-        ANTALL_SVAR
+        ANTALL_SVAR,
     }
 
     @Serializable
@@ -141,11 +143,11 @@ class SpørreundersøkelseOppdateringKonsument(
         override val antallSvar: Int,
     ) : SvarResultatMelding
 
-
-    private fun cancel() = runBlocking {
-        logger.info("Stopping kafka consumer job for ${topic.navn}")
-        kafkaConsumer.wakeup()
-        job.cancelAndJoin()
-        logger.info("Stopped kafka consumer job for ${topic.navn}")
-    }
+    private fun cancel() =
+        runBlocking {
+            logger.info("Stopping kafka consumer job for ${topic.navn}")
+            kafkaConsumer.wakeup()
+            job.cancelAndJoin()
+            logger.info("Stopped kafka consumer job for ${topic.navn}")
+        }
 }

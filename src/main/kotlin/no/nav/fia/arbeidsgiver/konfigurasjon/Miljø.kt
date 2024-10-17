@@ -1,13 +1,20 @@
 package no.nav.fia.arbeidsgiver.konfigurasjon
 
 enum class Cluster {
-    `prod-gcp`, `dev-gcp`, lokal
+    @Suppress("ktlint:standard:enum-entry-name-case")
+    `prod-gcp`,
+
+    @Suppress("ktlint:standard:enum-entry-name-case")
+    `dev-gcp`,
+
+    @Suppress("ktlint:standard:enum-entry-name-case")
+    lokal,
 }
 
 internal object Miljø {
     val cluster = Cluster.valueOf(System.getenv("NAIS_CLUSTER_NAME") ?: "prod-gcp")
 
-    //-- tokenX (idporten)
+    // -- tokenX (idporten)
     val tokenxIssuer: String = System.getenv("TOKEN_X_ISSUER")
     val tokenxJwksUri: String = System.getenv("TOKEN_X_JWKS_URI")
     val tokenxClientId: String = System.getenv("TOKEN_X_CLIENT_ID")

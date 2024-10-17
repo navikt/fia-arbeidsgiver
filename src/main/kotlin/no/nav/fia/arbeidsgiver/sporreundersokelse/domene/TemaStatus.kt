@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-
 enum class TemaStatus {
     IKKE_ÅPNET,
     ÅPNET,

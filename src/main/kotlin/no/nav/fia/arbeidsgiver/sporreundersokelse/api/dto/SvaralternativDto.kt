@@ -9,7 +9,8 @@ data class SvaralternativDto(
     val tekst: String,
 )
 
-fun Svaralternativ.tilDto() = SvaralternativDto(
-    id = id.toString(),
-    tekst = svartekst
-)
+fun Svaralternativ.tilDto() =
+    SvaralternativDto(
+        id = id.toString(),
+        tekst = svartekst,
+    )

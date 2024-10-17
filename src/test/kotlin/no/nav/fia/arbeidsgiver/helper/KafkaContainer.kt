@@ -1,9 +1,6 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
-import java.time.Duration
-import java.time.LocalDateTime
-import java.util.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -45,8 +42,14 @@ import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
 import org.testcontainers.utility.DockerImageName
+import java.time.Duration
+import java.time.LocalDateTime
+import java.util.TimeZone
+import java.util.UUID
 
-class KafkaContainer(network: Network) {
+class KafkaContainer(
+    network: Network,
+) {
     private val kafkaNetworkAlias = "kafkaContainer"
     private var adminClient: AdminClient
     private var kafkaProducer: KafkaProducer<String, String>
@@ -55,13 +58,13 @@ class KafkaContainer(network: Network) {
     }
 
     val container: KafkaContainer = KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.6.0")
+        DockerImageName.parse("confluentinc/cp-kafka:7.6.0"),
     )
         .withKraft()
         .withNetwork(network)
         .withNetworkAliases(kafkaNetworkAlias)
         .withLogConsumer(
-            Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams()
+            Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams(),
         )
         .withEnv(
             mutableMapOf(
@@ -69,7 +72,7 @@ class KafkaContainer(network: Network) {
                 "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
                 "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
                 "TZ" to TimeZone.getDefault().id,
-            )
+            ),
         )
         .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
         .waitingFor(HostPortWaitStrategy())
@@ -80,12 +83,13 @@ class KafkaContainer(network: Network) {
             kafkaProducer = producer()
         }
 
-    fun getEnv() = mapOf(
-        "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
-        "KAFKA_TRUSTSTORE_PATH" to "",
-        "KAFKA_KEYSTORE_PATH" to "",
-        "KAFKA_CREDSTORE_PASSWORD" to "",
-    )
+    fun getEnv() =
+        mapOf(
+            "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
+            "KAFKA_TRUSTSTORE_PATH" to "",
+            "KAFKA_KEYSTORE_PATH" to "",
+            "KAFKA_CREDSTORE_PASSWORD" to "",
+        )
 
     fun sendStatusOppdateringForVirksomhet(
         orgnr: String,
@@ -96,12 +100,12 @@ class KafkaContainer(network: Network) {
             orgnr = orgnr,
             saksnummer = "sak",
             status = status,
-            sistOppdatert = sistOppdatert.toKotlinLocalDateTime()
+            sistOppdatert = sistOppdatert.toKotlinLocalDateTime(),
         )
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = json.encodeToString(iaStatusOppdatering),
-            topic = KafkaTopics.SAK_STATUS
+            topic = KafkaTopics.SAK_STATUS,
         )
     }
 
@@ -121,7 +125,7 @@ class KafkaContainer(network: Network) {
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = KafkaTopics.SPØRREUNDERSØKELSE
+            topic = KafkaTopics.SPØRREUNDERSØKELSE,
         )
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
@@ -134,17 +138,17 @@ class KafkaContainer(network: Network) {
         val antallSvarDto = SpørreundersøkelseAntallSvarDto(
             spørreundersøkelseId = spørreundersøkelseId,
             spørsmålId = spørsmålId,
-            antallSvar = antallSvar
+            antallSvar = antallSvar,
         )
         sendOgVent(
             nøkkel = Json.encodeToString(
                 SpørreundersøkelseOppdateringNøkkel(
                     spørreundersøkelseId,
-                    ANTALL_SVAR
-                )
+                    ANTALL_SVAR,
+                ),
             ),
             melding = json.encodeToString(antallSvarDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
+            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return antallSvarDto
     }
@@ -161,7 +165,7 @@ class KafkaContainer(network: Network) {
             spørsmålId = id.toString(),
             tekst = tekst,
             svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
-            flervalg = flervalg
+            flervalg = flervalg,
         )
 
     private fun Tema.tilKafkaResultatMelding(antallSvar: Int) =
@@ -172,8 +176,8 @@ class KafkaContainer(network: Network) {
             navn = navn,
             spørsmålMedSvar = spørsmål.map {
                 it.tilKafkaResultatMelding(antallSvar = antallSvar)
-            }
-    )
+            },
+        )
 
     fun sendResultatPåTema(
         spørreundersøkelseId: UUID,
@@ -183,8 +187,8 @@ class KafkaContainer(network: Network) {
         val nøkkel = Json.encodeToString(
             SpørreundersøkelseOppdateringNøkkel(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
-                oppdateringsType = RESULTATER_FOR_TEMA
-            )
+                oppdateringsType = RESULTATER_FOR_TEMA,
+            ),
         )
 
         val temaResultatDto = tema.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
@@ -192,7 +196,7 @@ class KafkaContainer(network: Network) {
         sendOgVent(
             nøkkel = nøkkel,
             melding = json.encodeToString(temaResultatDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING
+            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return temaResultatDto
     }
@@ -203,9 +207,8 @@ class KafkaContainer(network: Network) {
             spørreundersøkelse = enStandardSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
                 spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
-            )
+            ),
         )
-
 
     fun enStandardSpørreundersøkelse(
         spørreundersøkelseId: UUID,
@@ -231,13 +234,13 @@ class KafkaContainer(network: Network) {
                         svaralternativer = listOf(
                             SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
-                                "ingenting"
+                                "ingenting",
                             ),
                             SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
-                                "alt"
+                                "alt",
                             ),
-                        )
+                        ),
                     ),
                     SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
@@ -246,15 +249,15 @@ class KafkaContainer(network: Network) {
                         svaralternativer = listOf(
                             SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
-                                "noen ting"
+                                "noen ting",
                             ),
                             SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),
-                                "alt"
+                                "alt",
                             ),
-                        )
-                    )
-                )
+                        ),
+                    ),
+                ),
             )
         },
     )
@@ -276,8 +279,8 @@ class KafkaContainer(network: Network) {
                 NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
                 NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
                 NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort())
-            )
+                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort()),
+            ),
         )
     }
 
@@ -291,10 +294,10 @@ class KafkaContainer(network: Network) {
                 ProducerConfig.LINGER_MS_CONFIG to "0",
                 ProducerConfig.RETRIES_CONFIG to "0",
                 ProducerConfig.BATCH_SIZE_CONFIG to "1",
-                SaslConfigs.SASL_MECHANISM to "PLAIN"
+                SaslConfigs.SASL_MECHANISM to "PLAIN",
             ),
             StringSerializer(),
-            StringSerializer()
+            StringSerializer(),
         )
 
     fun nyKonsument(topic: KafkaTopics) =

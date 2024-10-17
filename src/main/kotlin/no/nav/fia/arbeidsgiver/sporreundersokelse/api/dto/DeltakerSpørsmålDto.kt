@@ -1,10 +1,10 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto
 
-import java.util.UUID
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.spørsmålFraId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.temaFraSpørsmålId
+import java.util.UUID
 
 @Serializable
 data class DeltakerSpørsmålDto(
@@ -28,7 +28,6 @@ fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpø
         antallTema = temaer.size,
         spørsmålnummer = tema.indeksFraSpørsmålId(spørsmålId = spørsmålId) + 1,
         antallSpørsmål = tema.spørsmål.size,
-        spørsmål = temaer.spørsmålFraId(spørsmålId = spørsmålId).tilDto()
+        spørsmål = temaer.spørsmålFraId(spørsmålId = spørsmålId).tilDto(),
     )
 }
-

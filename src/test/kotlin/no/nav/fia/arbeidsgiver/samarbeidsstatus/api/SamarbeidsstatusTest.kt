@@ -1,13 +1,12 @@
 package no.nav.fia.arbeidsgiver.samarbeidsstatus.api
 
 import io.kotest.matchers.shouldBe
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
+import io.ktor.client.request.header
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_2
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING
@@ -15,6 +14,8 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
 import kotlin.test.Test
 
 class SamarbeidsstatusTest {
@@ -38,14 +39,15 @@ class SamarbeidsstatusTest {
         runBlocking {
             fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/123456789") {
                 header(
-                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.tokenXAccessToken(
+                    HttpHeaders.Authorization,
+                    "Bearer " + TestContainerHelper.tokenXAccessToken(
                         subject = "123",
                         audience = "NEI OG NEI",
                         claims = mapOf(
                             "pid" to "123",
                             "acr" to "Level4",
                         ),
-                    ).serialize()
+                    ).serialize(),
                 )
             }.status shouldBe HttpStatusCode.Unauthorized
         }
@@ -56,14 +58,15 @@ class SamarbeidsstatusTest {
         runBlocking {
             fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
                 header(
-                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.tokenXAccessToken(
+                    HttpHeaders.Authorization,
+                    "Bearer " + TestContainerHelper.tokenXAccessToken(
                         subject = "123",
                         audience = "hei",
                         claims = mapOf(
                             "pid" to "123",
                             "acr" to "Level3",
                         ),
-                    ).serialize()
+                    ).serialize(),
                 )
             }.status shouldBe HttpStatusCode.Unauthorized
         }
@@ -73,7 +76,8 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn tilgang`() {
         runBlocking {
             fiaArbeidsgiverApi.performGet(
-                "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1", withTokenXToken()
+                "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1",
+                withTokenXToken(),
             ).status shouldBe HttpStatusCode.OK
         }
     }
@@ -83,14 +87,15 @@ class SamarbeidsstatusTest {
         runBlocking {
             fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
                 header(
-                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.tokenXAccessToken(
+                    HttpHeaders.Authorization,
+                    "Bearer " + TestContainerHelper.tokenXAccessToken(
                         subject = "123",
                         audience = "tokenx:fia-arbeidsgiver",
                         claims = mapOf(
                             "pid" to "123",
                             "acr" to "Level4",
                         ),
-                    ).serialize()
+                    ).serialize(),
                 )
             }.status shouldBe HttpStatusCode.OK
         }
@@ -101,14 +106,15 @@ class SamarbeidsstatusTest {
         runBlocking {
             fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
                 header(
-                    HttpHeaders.Authorization, "Bearer " + TestContainerHelper.tokenXAccessToken(
+                    HttpHeaders.Authorization,
+                    "Bearer " + TestContainerHelper.tokenXAccessToken(
                         subject = "123",
                         audience = "tokenx:fia-arbeidsgiver",
                         claims = mapOf(
                             "pid" to "123",
                             "acr" to "idporten-loa-high",
                         ),
-                    ).serialize()
+                    ).serialize(),
                 )
             }.status shouldBe HttpStatusCode.OK
         }
@@ -118,7 +124,8 @@ class SamarbeidsstatusTest {
     fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilgang`() {
         runBlocking {
             fiaArbeidsgiverApi.performGet(
-                "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING", withTokenXToken()
+                "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING",
+                withTokenXToken(),
             ).status shouldBe HttpStatusCode.Forbidden
         }
     }
@@ -130,10 +137,12 @@ class SamarbeidsstatusTest {
             TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VURDERES")
 
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
-                url = "$SAMARBEIDSSTATUS_PATH/$orgnr", config = withTokenXToken()
+                url = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                config = withTokenXToken(),
             ).bodyAsText()
 
-            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.IKKE_I_SAMARBEID)
+            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe
+                SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.IKKE_I_SAMARBEID)
         }
     }
 
@@ -144,7 +153,8 @@ class SamarbeidsstatusTest {
             TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VI_BISTÅR")
 
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
-                url = "$SAMARBEIDSSTATUS_PATH/$orgnr", config = withTokenXToken()
+                url = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                config = withTokenXToken(),
             ).bodyAsText()
 
             Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.I_SAMARBEID)
@@ -156,10 +166,12 @@ class SamarbeidsstatusTest {
         runBlocking {
             val orgnr = ALTINN_ORGNR_2
             val responsSomTekst = fiaArbeidsgiverApi.performGet(
-                url = "$SAMARBEIDSSTATUS_PATH/$orgnr", config = withTokenXToken()
+                url = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                config = withTokenXToken(),
             ).bodyAsText()
 
-            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.IKKE_I_SAMARBEID)
+            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe
+                SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.IKKE_I_SAMARBEID)
         }
     }
 }

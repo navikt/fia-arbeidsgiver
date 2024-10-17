@@ -6,18 +6,18 @@ import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseId
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import java.util.*
+import java.util.UUID
 
 const val HEADER_SESJON_ID = "nav-fia-kartlegging-sesjon-id"
 
+@Suppress("ktlint:standard:function-naming")
 fun VerifisertSesjonId(spørreundersøkelseService: SpørreundersøkelseService) =
     createRouteScopedPlugin("VerifisertSesjonId") {
-
         pluginConfig.apply {
             onCall { call ->
                 spørreundersøkelseService.validerSesjonId(
                     sesjonId = call.sesjonId,
-                    spørreundersøkelseId = call.spørreundersøkelseId
+                    spørreundersøkelseId = call.spørreundersøkelseId,
                 )
             }
         }
@@ -26,12 +26,14 @@ fun VerifisertSesjonId(spørreundersøkelseService: SpørreundersøkelseService)
 val ApplicationCall.sesjonId
     get() = request.header(HEADER_SESJON_ID)?.tilUUID("sesjonId") ?: throw Feil(
         feilmelding = "Mangler sesjonId",
-        feilkode = HttpStatusCode.Forbidden
+        feilkode = HttpStatusCode.Forbidden,
     )
 
 private fun SpørreundersøkelseService.validerSesjonId(
-	sesjonId: UUID, spørreundersøkelseId: UUID,
+    sesjonId: UUID,
+    spørreundersøkelseId: UUID,
 ) {
-    if (henteSpørreundersøkelseIdFraSesjon(sesjonId) != spørreundersøkelseId)
+    if (henteSpørreundersøkelseIdFraSesjon(sesjonId) != spørreundersøkelseId) {
         throw Feil(feilmelding = "Ugyldig sesjonId", feilkode = HttpStatusCode.Forbidden)
+    }
 }

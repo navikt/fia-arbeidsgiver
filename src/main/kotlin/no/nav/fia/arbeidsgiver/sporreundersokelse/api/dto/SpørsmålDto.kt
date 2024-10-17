@@ -11,9 +11,10 @@ data class SpørsmålDto(
     val svaralternativer: List<SvaralternativDto>,
 )
 
-fun Spørsmål.tilDto() = SpørsmålDto(
-    id = id.toString(),
-    tekst = tekst,
-    flervalg = flervalg,
-    svaralternativer = svaralternativer.map { it.tilDto() }
-)
+fun Spørsmål.tilDto() =
+    SpørsmålDto(
+        id = id.toString(),
+        tekst = tekst,
+        flervalg = flervalg,
+        svaralternativer = svaralternativer.map { it.tilDto() },
+    )
