@@ -76,11 +76,7 @@ class SpørreundersøkelseKonsument(
                                     )
                                 logger.info("Mottok spørreundersøkelse med type: ${spørreundersøkelse.type}")
                                 when (spørreundersøkelse.type) {
-                                    "Evaluering" -> {
-                                        logger.warn("Evaluering er ikke implementert, ignorerer melding")
-                                    }
-                                    "Behovsvurdering", null -> {
-                                        logger.info("Mottok spørreundersøkelse med type: ${spørreundersøkelse.type}")
+                                    "Evaluering", "Behovsvurdering", null -> {
                                         if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
                                             logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
                                             spørreundersøkelseService.slett(spørreundersøkelse)
@@ -129,6 +125,7 @@ class SpørreundersøkelseKonsument(
                 orgnummer = orgnummer,
                 virksomhetsNavn = virksomhetsNavn,
                 status = status,
+                type = type ?: "Behovsvurdering",
                 temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
             )
     }

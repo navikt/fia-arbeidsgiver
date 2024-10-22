@@ -17,40 +17,62 @@ import kotlin.test.Test
 class SpørreundersøkelseKonsumentTest {
     @Test
     fun `skal kunne konsumere evaluering og logge`() {
-        // TODO: Sørg for at evaluering blir lagret i Redis
         val spørreundersøkelseId = UUID.randomUUID()
-        val evaluering = kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
+        kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
             fiaArbeidsgiverApi.shouldContainLog(
-                "Mottok spørreundersøkelse med type: ${evaluering.type}".toRegex(),
+                "Mottok spørreundersøkelse med type: Evaluering".toRegex(),
             )
-            fiaArbeidsgiverApi.shouldContainLog(
-                "Evaluering er ikke implementert, ignorerer melding".toRegex(),
-            )
+
+            val evaluering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            evaluering.id shouldBe spørreundersøkelseId
+            evaluering.type shouldBe "Evaluering"
+            evaluering.temaer.forEach {
+                it.navn shouldNotBe null
+                it.spørsmål shouldNotBe emptyList<Spørsmål>()
+            }
         }
     }
 
     @Test
     fun `skal kunne konsumere meldinger og lagre dem i Redis`() {
+        // TODO: Denne testen skal(tm) kunne slettes onsdag 30.oktober 2024 da ingen meldinger produseres uten type lenger
+
         val spørreundersøkelseId = UUID.randomUUID()
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val result =
+            fiaArbeidsgiverApi.shouldContainLog(
+                "Mottok spørreundersøkelse med type: null".toRegex(),
+            )
+
+            val behovsvurdering =
                 redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-            result.id shouldBe spørreundersøkelseId
-            result.temaer.forEach {
+            behovsvurdering.id shouldBe spørreundersøkelseId
+            behovsvurdering.type shouldBe "Behovsvurdering"
+            behovsvurdering.temaer.forEach {
                 it.navn shouldNotBe null
                 it.spørsmål shouldNotBe emptyList<Spørsmål>()
             }
         }
+    }
+
+    @Test
+    fun `skal kunne konsumere nye meldinger med type og lagre dem i Redis`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, type = "Behovsvurdering")
+        kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, spørreundersøkelse = spørreundersøkelse)
 
         runBlocking {
-            val result =
+            fiaArbeidsgiverApi.shouldContainLog(
+                "Mottok spørreundersøkelse med type: Behovsvurdering".toRegex(),
+            )
+            val behovsvurdering =
                 redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-            result.id shouldBe spørreundersøkelseId
-            result.temaer.forEach {
+            behovsvurdering.id shouldBe spørreundersøkelseId
+            behovsvurdering.type shouldBe "Behovsvurdering"
+            behovsvurdering.temaer.forEach {
                 it.navn shouldNotBe null
                 it.spørsmål shouldNotBe emptyList<Spørsmål>()
             }
