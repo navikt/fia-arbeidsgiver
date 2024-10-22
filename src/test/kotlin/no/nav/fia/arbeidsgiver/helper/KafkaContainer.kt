@@ -130,6 +130,27 @@ class KafkaContainer(
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
 
+    fun sendEvaluering(
+        spørreundersøkelseId: UUID,
+        spørreundersøkelse: SerializableSpørreundersøkelse = enStandardEvaluering(spørreundersøkelseId),
+        medEkstraFelt: Boolean = false,
+    ): SerializableSpørreundersøkelse {
+        val spørreundersøkelsesStreng =
+            if (!medEkstraFelt) {
+                json.encodeToString<SerializableSpørreundersøkelse>(spørreundersøkelse)
+            } else {
+                json.encodeToString<SerializableSpørreundersøkelse>(spørreundersøkelse)
+                    .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
+            }
+
+        sendOgVent(
+            nøkkel = spørreundersøkelseId.toString(),
+            melding = spørreundersøkelsesStreng,
+            topic = KafkaTopics.SPØRREUNDERSØKELSE,
+        )
+        return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
+    }
+
     fun sendAntallSvar(
         spørreundersøkelseId: String,
         spørsmålId: String,
@@ -222,6 +243,7 @@ class KafkaContainer(
         orgnummer = orgnummer,
         virksomhetsNavn = virksomhetsNavn,
         status = spørreundersøkelseStatus,
+        type = "Behovsvurdering",
         temaMedSpørsmålOgSvaralternativer = temanavn.mapIndexed { index, navn ->
             SerializableTema(
                 temaId = index,
@@ -246,6 +268,58 @@ class KafkaContainer(
                         id = UUID.randomUUID().toString(),
                         spørsmål = "Hva gjør dere IKKE med IA?",
                         flervalg = flervalg,
+                        svaralternativer = listOf(
+                            SerializableSvaralternativ(
+                                svarId = UUID.randomUUID().toString(),
+                                "noen ting",
+                            ),
+                            SerializableSvaralternativ(
+                                svarId = UUID.randomUUID().toString(),
+                                "alt",
+                            ),
+                        ),
+                    ),
+                ),
+            )
+        },
+    )
+
+    fun enStandardEvaluering(
+        spørreundersøkelseId: UUID,
+        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
+        temaer: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
+    ) = SerializableSpørreundersøkelse(
+        spørreundersøkelseId = spørreundersøkelseId.toString(),
+        orgnummer = orgnummer,
+        virksomhetsNavn = virksomhetsNavn,
+        status = spørreundersøkelseStatus,
+        type = "Evaluering",
+        temaMedSpørsmålOgSvaralternativer = temaer.mapIndexed { index, navn ->
+            SerializableTema(
+                temaId = index,
+                navn = navn,
+                spørsmålOgSvaralternativer = listOf(
+                    SerializableSpørsmål(
+                        id = UUID.randomUUID().toString(),
+                        spørsmål = "Hvordan går det med IA etter samarbeid?",
+                        flervalg = false,
+                        svaralternativer = listOf(
+                            SerializableSvaralternativ(
+                                svarId = UUID.randomUUID().toString(),
+                                "ingenting",
+                            ),
+                            SerializableSvaralternativ(
+                                svarId = UUID.randomUUID().toString(),
+                                "alt",
+                            ),
+                        ),
+                    ),
+                    SerializableSpørsmål(
+                        id = UUID.randomUUID().toString(),
+                        spørsmål = "Hva kunne vært bedre?",
+                        flervalg = false,
                         svaralternativer = listOf(
                             SerializableSvaralternativ(
                                 svarId = UUID.randomUUID().toString(),

@@ -74,13 +74,24 @@ class SpørreundersøkelseKonsument(
                                     json.decodeFromString<SerializableSpørreundersøkelse>(
                                         record.value(),
                                     )
-
-                                if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
-                                    logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
-                                    spørreundersøkelseService.slett(spørreundersøkelse)
-                                } else {
-                                    logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
-                                    spørreundersøkelseService.lagre(spørreundersøkelse)
+                                logger.info("Mottok spørreundersøkelse med type: ${spørreundersøkelse.type}")
+                                when (spørreundersøkelse.type) {
+                                    "Evaluering" -> {
+                                        logger.warn("Evaluering er ikke implementert, ignorerer melding")
+                                    }
+                                    "Behovsvurdering", null -> {
+                                        logger.info("Mottok spørreundersøkelse med type: ${spørreundersøkelse.type}")
+                                        if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
+                                            logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
+                                            spørreundersøkelseService.slett(spørreundersøkelse)
+                                        } else {
+                                            logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
+                                            spørreundersøkelseService.lagre(spørreundersøkelse)
+                                        }
+                                    }
+                                    else -> {
+                                        logger.warn("Ukjent type spørreundersøkelse: ${spørreundersøkelse.type}")
+                                    }
                                 }
                             } catch (e: IllegalArgumentException) {
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}, melding: '${record.value()}'", e)
