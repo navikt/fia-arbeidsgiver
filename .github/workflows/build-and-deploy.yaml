@@ -36,6 +36,7 @@ jobs:
         id: docker-push
         env:
           TRIVY_JAVA_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-java-db:1"
+          TRIVY_DB_REPOSITORY: "public.ecr.aws/aquasecurity/trivy-db"
         with:
           team: pia
           tag: latest
