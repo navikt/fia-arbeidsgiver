@@ -28,6 +28,7 @@ import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.vertHentOversikt
 import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
+import no.nav.fia.arbeidsgiver.helper.vertHenterSpørreundersøkelseKontekst
 import no.nav.fia.arbeidsgiver.helper.vertHenterVirksomhetsnavn
 import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
@@ -35,6 +36,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørreundersøkelseKontekstDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
@@ -127,6 +129,21 @@ class SpørreundersøkelseVertTest {
             fiaArbeidsgiverApi.vertHenterVirksomhetsnavn(
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe spørreundersøkelse.virksomhetsNavn
+        }
+    }
+
+    @Test
+    fun `vert skal kunne hente kontekst til en spørreundersøkelse`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+
+        runBlocking {
+            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+                spørreundersøkelseId = spørreundersøkelse.id,
+            )
+            kontekst.type shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().type
+            kontekst.virksomhetsnavn shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().virksomhetsnavn
+            kontekst.samarbeidsnavn shouldBe null
         }
     }
 

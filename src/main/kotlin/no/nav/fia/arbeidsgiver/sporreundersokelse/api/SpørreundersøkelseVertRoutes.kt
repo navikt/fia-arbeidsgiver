@@ -9,6 +9,7 @@ import io.ktor.server.routing.get
 import io.ktor.server.routing.post
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaSvarStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørreundersøkelseKontekstDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilTemaDtoer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
@@ -16,6 +17,19 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
 
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
+
+    get("$VERT_BASEPATH/{spørreundersøkelseId}/kontekst") {
+        val spørreundersøkelseId = call.spørreundersøkelseId
+        val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(
+            spørreundersøkelseId = spørreundersøkelseId,
+        )
+
+        call.respond(
+            status = HttpStatusCode.OK,
+            message = spørreundersøkelse.tilSpørreundersøkelseKontekstDto()
+        )
+    }
+
     get("$VERT_BASEPATH/{spørreundersøkelseId}/oversikt") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(

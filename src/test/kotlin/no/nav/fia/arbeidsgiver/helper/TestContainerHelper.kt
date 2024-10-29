@@ -28,6 +28,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.DeltakerSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SpørreundersøkelseKontekstDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.SvarRequest
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import org.slf4j.Logger
@@ -313,6 +314,20 @@ internal suspend fun GenericContainer<*>.vertHenterVirksomhetsnavn(
 ): String {
     val response = performGet(
         url = "$VERT_BASEPATH/$spørreundersøkelseId/virksomhetsnavn",
+    ) {
+        medAzureToken(token = token)
+    }
+    response.status shouldBe HttpStatusCode.OK
+
+    return response.body()
+}
+
+internal suspend fun GenericContainer<*>.vertHenterSpørreundersøkelseKontekst(
+    spørreundersøkelseId: UUID,
+    token: String = TestContainerHelper.azureAccessToken().serialize(),
+): SpørreundersøkelseKontekstDto {
+    val response = performGet(
+        url = "$VERT_BASEPATH/$spørreundersøkelseId/kontekst",
     ) {
         medAzureToken(token = token)
     }
