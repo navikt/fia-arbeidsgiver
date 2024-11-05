@@ -7,10 +7,12 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 data class SpørreundersøkelseKontekstDto(
     val type: String,
     val virksomhetsnavn: String,
-    val samarbeidsnavn: String? = null
+    val samarbeidsnavn: String,
 )
 
-fun Spørreundersøkelse.tilSpørreundersøkelseKontekstDto() = SpørreundersøkelseKontekstDto(
-    type = this.type,
-    virksomhetsnavn = this.virksomhetsNavn,
-)
+fun Spørreundersøkelse.tilSpørreundersøkelseKontekstDto() =
+    SpørreundersøkelseKontekstDto(
+        type = this.type,
+        virksomhetsnavn = this.virksomhetsNavn,
+        samarbeidsnavn = this.samarbeidsNavn,
+    )

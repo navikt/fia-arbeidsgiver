@@ -118,12 +118,15 @@ class SpørreundersøkelseKonsument(
         override val type: String? = null,
         override val vertId: String? = null,
         override val avslutningsdato: LocalDate? = null,
+        val samarbeidsNavn: String? = null,
+        // TODO: oppdater ia-felles etter 14.11.2024 med nye felter når gamle har blitt konsumert
     ) : SpørreundersøkelseMelding {
         fun tilDomene() =
             Spørreundersøkelse(
                 id = UUID.fromString(spørreundersøkelseId),
                 orgnummer = orgnummer,
                 virksomhetsNavn = virksomhetsNavn,
+                samarbeidsNavn = samarbeidsNavn ?: virksomhetsNavn,
                 status = status,
                 type = type ?: "Behovsvurdering",
                 temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },

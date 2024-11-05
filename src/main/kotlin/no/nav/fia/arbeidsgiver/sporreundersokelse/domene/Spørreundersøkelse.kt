@@ -8,6 +8,7 @@ data class Spørreundersøkelse(
     val id: UUID,
     val orgnummer: String,
     val virksomhetsNavn: String,
+    val samarbeidsNavn: String,
     val status: SpørreundersøkelseStatus,
     val type: String,
     val temaer: List<Tema>,

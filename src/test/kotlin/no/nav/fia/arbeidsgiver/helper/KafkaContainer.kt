@@ -242,6 +242,7 @@ class KafkaContainer(
     ) = SerializableSpørreundersøkelse(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
         orgnummer = orgnummer,
+        samarbeidsNavn = "Navn på et samarbeid",
         virksomhetsNavn = virksomhetsNavn,
         status = spørreundersøkelseStatus,
         type = type,

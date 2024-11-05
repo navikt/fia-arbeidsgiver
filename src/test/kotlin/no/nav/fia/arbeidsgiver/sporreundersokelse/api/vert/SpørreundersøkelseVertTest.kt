@@ -143,7 +143,7 @@ class SpørreundersøkelseVertTest {
             )
             kontekst.type shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().type
             kontekst.virksomhetsnavn shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().virksomhetsnavn
-            kontekst.samarbeidsnavn shouldBe null
+            kontekst.samarbeidsnavn shouldBe "Navn på et samarbeid"
         }
     }
 
