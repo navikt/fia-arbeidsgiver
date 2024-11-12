@@ -148,6 +148,23 @@ class SpørreundersøkelseVertTest {
     }
 
     @Test
+    fun `vert skal kunne hente plan fra en evaluerings kontekst`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.sendEvaluering(spørreundersøkelseId).tilDomene()
+
+        runBlocking {
+            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+                spørreundersøkelseId = spørreundersøkelse.id,
+            )
+            kontekst.type shouldBe "Evaluering"
+            kontekst.virksomhetsnavn shouldBe spørreundersøkelse.virksomhetsNavn
+            kontekst.samarbeidsnavn shouldBe "Navn på et samarbeid"
+            kontekst.plan shouldNotBe null
+            kontekst.plan shouldBe spørreundersøkelse.plan
+        }
+    }
+
+    @Test
     fun `vert skal kunne hente antall deltakere i en undersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse =
