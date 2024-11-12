@@ -2,6 +2,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
 import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import java.util.UUID
 
 data class Spørreundersøkelse(
@@ -12,6 +13,7 @@ data class Spørreundersøkelse(
     val status: SpørreundersøkelseStatus,
     val type: String,
     val temaer: List<Tema>,
+    val plan: PlanDto?,
 ) {
     fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {
         val gjeldendeTema = temaer.temaFraSpørsmålId(nåværendeSpørmålId)

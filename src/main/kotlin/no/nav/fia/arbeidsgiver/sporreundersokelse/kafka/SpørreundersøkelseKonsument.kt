@@ -18,6 +18,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
@@ -118,8 +119,9 @@ class SpørreundersøkelseKonsument(
         override val type: String? = null,
         override val vertId: String? = null,
         override val avslutningsdato: LocalDate? = null,
-        val samarbeidsNavn: String? = null,
         // TODO: oppdater ia-felles etter 14.11.2024 med nye felter når gamle har blitt konsumert
+        val samarbeidsNavn: String? = null,
+        val plan: PlanDto? = null,
     ) : SpørreundersøkelseMelding {
         fun tilDomene() =
             Spørreundersøkelse(
@@ -129,6 +131,7 @@ class SpørreundersøkelseKonsument(
                 samarbeidsNavn = samarbeidsNavn ?: virksomhetsNavn,
                 status = status,
                 type = type ?: "Behovsvurdering",
+                plan = plan,
                 temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
             )
     }

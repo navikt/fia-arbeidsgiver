@@ -16,6 +16,22 @@ import kotlin.test.Test
 
 class SpørreundersøkelseKonsumentTest {
     @Test
+    fun `skal kunne konsumere evaluering med plan`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val sendtEvaluering = kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
+
+        val evaluering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        evaluering.id shouldBe spørreundersøkelseId
+        evaluering.type shouldBe "Evaluering"
+        evaluering.temaer.forEach {
+            it.navn shouldNotBe null
+            it.spørsmål shouldNotBe emptyList<Spørsmål>()
+        }
+        evaluering.plan shouldNotBe null
+        evaluering.plan?.id shouldBe sendtEvaluering.plan?.id
+    }
+
+    @Test
     fun `skal kunne konsumere evaluering og logge`() {
         val spørreundersøkelseId = UUID.randomUUID()
         kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)

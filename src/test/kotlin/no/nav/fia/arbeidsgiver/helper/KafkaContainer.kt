@@ -12,6 +12,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
+import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
@@ -132,7 +133,16 @@ class KafkaContainer(
 
     fun sendEvaluering(
         spørreundersøkelseId: UUID,
-        spørreundersøkelse: SerializableSpørreundersøkelse = enStandardSpørreundersøkelse(spørreundersøkelseId, type = "Evaluering"),
+        spørreundersøkelse: SerializableSpørreundersøkelse = enStandardSpørreundersøkelse(
+            spørreundersøkelseId,
+            type = "Evaluering",
+            plan = PlanDto(
+                id = UUID.randomUUID().toString(),
+                sistEndret = LocalDateTime.now().toKotlinLocalDateTime(),
+                sistPublisert = null,
+                temaer = listOf(),
+            ),
+        ),
         medEkstraFelt: Boolean = false,
     ): SerializableSpørreundersøkelse {
         val spørreundersøkelsesStreng =
@@ -239,6 +249,7 @@ class KafkaContainer(
         temanavn: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
         flervalg: Boolean = false,
         type: String? = null,
+        plan: PlanDto? = null,
     ) = SerializableSpørreundersøkelse(
         spørreundersøkelseId = spørreundersøkelseId.toString(),
         orgnummer = orgnummer,
@@ -246,6 +257,7 @@ class KafkaContainer(
         virksomhetsNavn = virksomhetsNavn,
         status = spørreundersøkelseStatus,
         type = type,
+        plan = plan,
         temaMedSpørsmålOgSvaralternativer = temanavn.mapIndexed { index, navn ->
             SerializableTema(
                 temaId = index,
