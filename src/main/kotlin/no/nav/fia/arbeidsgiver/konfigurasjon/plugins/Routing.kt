@@ -2,11 +2,11 @@ package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
 import VerifisertSesjonId
 import io.ktor.server.application.Application
-import io.ktor.server.application.install
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.RouteSelector
 import io.ktor.server.routing.RouteSelectorEvaluation
+import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
@@ -54,13 +54,13 @@ fun Application.configureRouting(
 fun Route.auditLogged(
     spørreundersøkelseService: SpørreundersøkelseService,
     authorizedRoutes: Route.() -> Unit,
-) = createChild(selector).apply {
+) = (this as RoutingNode).createChild(selector).apply {
     install(AuditLogged(spørreundersøkelseService = spørreundersøkelseService))
     authorizedRoutes()
 }
 
 fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) =
-    createChild(selector).apply {
+    (this as RoutingNode).createChild(selector).apply {
         install(AuthorizationPlugin)
         authorizedRoutes()
     }
@@ -74,7 +74,7 @@ fun Route.medVerifisertSesjonId(
 }
 
 private class CustomSelector : RouteSelector() {
-    override fun evaluate(
+    override suspend fun evaluate(
         context: RoutingResolveContext,
         segmentIndex: Int,
     ) = RouteSelectorEvaluation.Transparent
