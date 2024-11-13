@@ -1,8 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.application
-import io.ktor.server.application.call
 import io.ktor.server.application.log
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
@@ -89,7 +87,7 @@ fun Route.spørreundersøkelseDeltaker(spørreundersøkelseService: Spørreunder
         }
 
         if (spørreundersøkelseService.erTemaStengt(spørreundersøkelseId, temaId)) {
-            application.log.info("Tema '$temaId' er stengt, hent nytt spørsmål")
+            call.application.log.info("Tema '$temaId' er stengt, hent nytt spørsmål")
             call.respond(
                 message = "Tema '$temaId' er stengt, hent nytt spørsmål",
                 status = HttpStatusCode.SeeOther,

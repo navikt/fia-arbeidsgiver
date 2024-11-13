@@ -71,7 +71,7 @@ jobs:
       id-token: write
     name: Deploy app to dev
     needs: build
-    if: github.ref == 'refs/heads/hent-riktig-status-etter-tema-er-stengt'
+    if: github.ref == 'refs/heads/oppdater-ktor'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
