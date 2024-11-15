@@ -1,7 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
 import HEADER_SESJON_ID
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
@@ -71,8 +72,8 @@ class SpørreundersøkelseDeltakerTest {
         kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = kafka.enStandardSpørreundersøkelse(
-                spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+                id = spørreundersøkelseId,
+                spørreundersøkelseStatus = OPPRETTET,
             ),
         )
 
@@ -94,7 +95,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.sendSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = SpørreundersøkelseStatus.AVSLUTTET),
+                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = AVSLUTTET),
             )
 
             shouldFail {
@@ -126,7 +127,7 @@ class SpørreundersøkelseDeltakerTest {
     fun `deltaker får NOT_FOUND dersom spørsmål ikke er funnet`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-        val temaId = spørreundersøkelse.temaMedSpørsmålOgSvaralternativer.first().temaId
+        val temaId = spørreundersøkelse.temaer.first().id
 
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)

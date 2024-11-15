@@ -1,6 +1,8 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.PÅBEGYNT
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -33,7 +35,7 @@ class SpørreundersøkelseService(
     fun lagre(spørreundersøkelse: SerializableSpørreundersøkelse) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE,
-            nøkkel = spørreundersøkelse.spørreundersøkelseId,
+            nøkkel = spørreundersøkelse.id,
             verdi = Json.encodeToString(spørreundersøkelse),
         )
     }
@@ -52,16 +54,16 @@ class SpørreundersøkelseService(
     ) {
         redisService.lagre(
             type = Type.SPØRREUNDERSØKELSE_RESULTAT,
-            nøkkel = "$spørreundersøkelseId-${temaresultat.temaId}",
+            nøkkel = "$spørreundersøkelseId-${temaresultat.id}",
             verdi = Json.encodeToString(temaresultat),
         )
     }
 
     fun slett(spørreundersøkelse: SerializableSpørreundersøkelse) {
-        logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
+        logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.id}'")
         listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
-            logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.spørreundersøkelseId}'")
-            redisService.slett(it, spørreundersøkelse.spørreundersøkelseId)
+            logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.id}'")
+            redisService.slett(it, spørreundersøkelse.id)
         }
     }
 
@@ -87,13 +89,13 @@ class SpørreundersøkelseService(
             feilkode = HttpStatusCode.Forbidden,
         )
 
-        logger.info("Hentet spørreundersøkelse med id '${undersøkelse.spørreundersøkelseId}' og status '${undersøkelse.status}'")
+        logger.info("Hentet spørreundersøkelse med id '${undersøkelse.id}' og status '${undersøkelse.status}'")
         return undersøkelse
     }
 
     private fun SpørreundersøkelseStatus.kanVisesForVert() =
         when (this) {
-            SpørreundersøkelseStatus.PÅBEGYNT, SpørreundersøkelseStatus.AVSLUTTET -> true
+            PÅBEGYNT, AVSLUTTET -> true
             else -> false
         }
 
@@ -112,8 +114,8 @@ class SpørreundersøkelseService(
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return when (undersøkelse.status) {
-            SpørreundersøkelseStatus.PÅBEGYNT -> undersøkelse.tilDomene()
-            SpørreundersøkelseStatus.AVSLUTTET -> throw Feil(
+            PÅBEGYNT -> undersøkelse.tilDomene()
+            AVSLUTTET -> throw Feil(
                 feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet",
                 feilkode = HttpStatusCode.Gone,
             )

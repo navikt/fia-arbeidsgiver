@@ -1,6 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
@@ -91,8 +92,8 @@ class SpørreundersøkelseTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
-                spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.AVSLUTTET,
+                id = spørreundersøkelseId,
+                spørreundersøkelseStatus = AVSLUTTET,
             ),
         )
 
@@ -112,8 +113,8 @@ class SpørreundersøkelseTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
-                spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.OPPRETTET,
+                id = spørreundersøkelseId,
+                spørreundersøkelseStatus = OPPRETTET,
             ),
         )
 

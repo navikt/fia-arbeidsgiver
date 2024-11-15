@@ -1,6 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
@@ -541,7 +541,7 @@ class SpørreundersøkelseVertTest {
 
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = SpørreundersøkelseStatus.AVSLUTTET),
+            spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = AVSLUTTET),
         ).tilDomene()
 
         runBlocking {

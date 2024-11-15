@@ -38,7 +38,7 @@ class SpørreundersøkelseKonsumentTest {
 
         runBlocking {
             fiaArbeidsgiverApi.shouldContainLog(
-                "Mottok spørreundersøkelse med type: Evaluering".toRegex(),
+                "Mottok spørreundersøkelse med type: 'Evaluering'".toRegex(),
             )
 
             val evaluering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
@@ -52,40 +52,14 @@ class SpørreundersøkelseKonsumentTest {
     }
 
     @Test
-    fun `skal kunne konsumere meldinger og lagre dem i Redis`() {
-        // TODO: Denne testen skal(tm) kunne slettes onsdag 30.oktober 2024 da ingen meldinger produseres uten type lenger
-
-        val spørreundersøkelseId = UUID.randomUUID()
-        kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-
-        runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog(
-                "Mottok spørreundersøkelse med type: null".toRegex(),
-            )
-
-            val behovsvurdering =
-                redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
-            behovsvurdering.id shouldBe spørreundersøkelseId
-            behovsvurdering.type shouldBe "Behovsvurdering"
-            behovsvurdering.temaer.forEach {
-                it.navn shouldNotBe null
-                it.spørsmål shouldNotBe emptyList<Spørsmål>()
-            }
-        }
-    }
-
-    @Test
     fun `skal kunne konsumere nye meldinger med type og lagre dem i Redis`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, type = "Behovsvurdering")
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, spørreundersøkelse = spørreundersøkelse)
 
         runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog(
-                "Mottok spørreundersøkelse med type: Behovsvurdering".toRegex(),
-            )
-            val behovsvurdering =
-                redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            fiaArbeidsgiverApi.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
+            val behovsvurdering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             behovsvurdering.id shouldBe spørreundersøkelseId
             behovsvurdering.type shouldBe "Behovsvurdering"
             behovsvurdering.temaer.forEach {
@@ -113,17 +87,17 @@ class SpørreundersøkelseKonsumentTest {
 
     @Test
     fun `skal håndtere slettede kartlegginger`() {
-        val spørreundersøkelseId = UUID.randomUUID()
-        kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        val id = UUID.randomUUID()
+        kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         val spørreundersøkelse =
-            redis.spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId)
-        spørreundersøkelse.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
+            redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
+        spørreundersøkelse.id shouldBe id.toString()
 
-        kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
+        kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
         shouldThrow<Feil> {
-            redis.spørreundersøkelseService.henteSpørreundersøkelse(spørreundersøkelseId)
+            redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
         }
-        redis.spørreundersøkelseService.hentAntallDeltakere(spørreundersøkelseId) shouldBe 0
+        redis.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
     }
 }

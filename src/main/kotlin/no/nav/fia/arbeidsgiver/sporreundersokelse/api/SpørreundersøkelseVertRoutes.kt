@@ -1,8 +1,7 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import io.ktor.http.HttpStatusCode
-import io.ktor.server.application.call
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
@@ -17,7 +16,6 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 const val VERT_BASEPATH = "$SPØRREUNDERSØKELSE_PATH/vert"
 
 fun Route.spørreundersøkelseVert(spørreundersøkelseService: SpørreundersøkelseService) {
-
     get("$VERT_BASEPATH/{spørreundersøkelseId}/kontekst") {
         val spørreundersøkelseId = call.spørreundersøkelseId
         val spørreundersøkelse = spørreundersøkelseService.hentSpørreundersøkelseSomVert(
@@ -26,7 +24,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
 
         call.respond(
             status = HttpStatusCode.OK,
-            message = spørreundersøkelse.tilSpørreundersøkelseKontekstDto()
+            message = spørreundersøkelse.tilSpørreundersøkelseKontekstDto(),
         )
     }
 
@@ -108,7 +106,7 @@ fun Route.spørreundersøkelseVert(spørreundersøkelseService: Spørreundersøk
             spørreundersøkelseId = spørreundersøkelseId,
         )
 
-        if (spørreundersøkelse.status == SpørreundersøkelseStatus.AVSLUTTET) {
+        if (spørreundersøkelse.status == AVSLUTTET) {
             return@post call.respond(
                 status = HttpStatusCode.Accepted,
                 message = "Spørreundersøkelse er allerede avsluttet",

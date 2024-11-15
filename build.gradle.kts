@@ -2,7 +2,7 @@ val ktorVersion = "3.0.1"
 val kotlinVersion = "2.0.21"
 val logbackVersion = "1.5.12"
 val prometheusVersion = "1.14.0"
-val iaFellesVersion = "1.2.0"
+val iaFellesVersion = "1.9.0-RC2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.3"
 

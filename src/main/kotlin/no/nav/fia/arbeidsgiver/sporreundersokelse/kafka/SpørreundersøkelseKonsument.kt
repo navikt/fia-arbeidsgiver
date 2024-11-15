@@ -1,18 +1,17 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseMelding
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
-import ia.felles.integrasjoner.kafkameldinger.SpørsmålMelding
-import ia.felles.integrasjoner.kafkameldinger.SvaralternativMelding
-import ia.felles.integrasjoner.kafkameldinger.TemaMelding
-import ia.felles.integrasjoner.kafkameldinger.Temanavn
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseMelding
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.SLETTET
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørsmålMelding
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SvaralternativMelding
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.TemaMelding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalDate
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
@@ -75,14 +74,14 @@ class SpørreundersøkelseKonsument(
                                     json.decodeFromString<SerializableSpørreundersøkelse>(
                                         record.value(),
                                     )
-                                logger.info("Mottok spørreundersøkelse med type: ${spørreundersøkelse.type}")
+                                logger.info("Mottok spørreundersøkelse med type: '${spørreundersøkelse.type}'")
                                 when (spørreundersøkelse.type) {
-                                    "Evaluering", "Behovsvurdering", null -> {
-                                        if (spørreundersøkelse.status == SpørreundersøkelseStatus.SLETTET) {
-                                            logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
+                                    "Evaluering", "Behovsvurdering" -> {
+                                        if (spørreundersøkelse.status == SLETTET) {
+                                            logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.id}")
                                             spørreundersøkelseService.slett(spørreundersøkelse)
                                         } else {
-                                            logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.spørreundersøkelseId}")
+                                            logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.id}")
                                             spørreundersøkelseService.lagre(spørreundersøkelse)
                                         }
                                     }
@@ -111,59 +110,53 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableSpørreundersøkelse(
-        override val spørreundersøkelseId: String,
+        override val id: String,
         override val orgnummer: String,
+        override val samarbeidsNavn: String,
         override val virksomhetsNavn: String,
         override val status: SpørreundersøkelseStatus,
-        override val temaMedSpørsmålOgSvaralternativer: List<SerializableTema>,
-        override val type: String? = null,
-        override val vertId: String? = null,
-        override val avslutningsdato: LocalDate? = null,
-        // TODO: oppdater ia-felles etter 14.11.2024 med nye felter når gamle har blitt konsumert
-        val samarbeidsNavn: String? = null,
-        val plan: PlanDto? = null,
+        override val temaer: List<SerializableTema>,
+        override val type: String,
+        val plan: PlanDto?,
     ) : SpørreundersøkelseMelding {
         fun tilDomene() =
             Spørreundersøkelse(
-                id = UUID.fromString(spørreundersøkelseId),
+                id = UUID.fromString(id),
                 orgnummer = orgnummer,
                 virksomhetsNavn = virksomhetsNavn,
-                samarbeidsNavn = samarbeidsNavn ?: virksomhetsNavn,
+                samarbeidsNavn = samarbeidsNavn,
                 status = status,
-                type = type ?: "Behovsvurdering",
+                type = type,
                 plan = plan,
-                temaer = temaMedSpørsmålOgSvaralternativer.map { it.tilDomene() },
+                temaer = temaer.map { it.tilDomene() },
             )
     }
 
     @Serializable
     data class SerializableTema(
-        override val temaId: Int,
-        override val temanavn: Temanavn? = null,
-        override val beskrivelse: String? = null,
-        override val navn: String? = beskrivelse,
-        override val introtekst: String? = null,
-        override val spørsmålOgSvaralternativer: List<SerializableSpørsmål>,
+        override val id: Int,
+        override val navn: String,
+        override val spørsmål: List<SerializableSpørsmål>,
     ) : TemaMelding {
         fun tilDomene() =
             Tema(
-                id = temaId,
-                navn = navn ?: beskrivelse!!,
-                spørsmål = spørsmålOgSvaralternativer.map { it.tilDomene() },
+                id = id,
+                navn = navn,
+                spørsmål = spørsmål.map { it.tilDomene() },
             )
     }
 
     @Serializable
     data class SerializableSpørsmål(
         override val id: String,
-        override val spørsmål: String,
+        override val tekst: String,
         override val flervalg: Boolean,
         override val svaralternativer: List<SerializableSvaralternativ>,
     ) : SpørsmålMelding {
         fun tilDomene() =
             Spørsmål(
                 id = UUID.fromString(id),
-                tekst = spørsmål,
+                tekst = tekst,
                 svaralternativer = svaralternativer.map { it.tilDomene() },
                 flervalg = flervalg,
             )
@@ -171,13 +164,13 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableSvaralternativ(
-        override val svarId: String,
-        override val svartekst: String,
+        override val id: String,
+        override val tekst: String,
     ) : SvaralternativMelding {
         fun tilDomene() =
             Svaralternativ(
-                id = UUID.fromString(svarId),
-                svartekst = svartekst,
+                id = UUID.fromString(id),
+                svartekst = tekst,
             )
     }
 

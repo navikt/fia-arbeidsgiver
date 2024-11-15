@@ -66,11 +66,11 @@ class SpørreundersøkelseOppdateringKonsument(
                                 val nøkkel = json.decodeFromString<SpørreundersøkelseOppdateringNøkkel>(record.key())
                                 when (nøkkel.oppdateringsType) {
                                     RESULTATER_FOR_TEMA -> {
-                                        val resultat = json.decodeFromString<TemaResultatDto>(record.value())
+                                        val temaResultat = json.decodeFromString<TemaResultatDto>(record.value())
                                         logger.info(
-                                            "Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${resultat.temaId}",
+                                            "Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${temaResultat.id}",
                                         )
-                                        spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, resultat)
+                                        spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, temaResultat)
                                     }
 
                                     ANTALL_SVAR -> {
@@ -121,16 +121,14 @@ class SpørreundersøkelseOppdateringKonsument(
 
     @Serializable
     data class TemaResultatDto(
-        override val temaId: Int,
-        override val beskrivelse: String? = null,
-        override val tema: String? = null,
-        override val navn: String? = beskrivelse,
+        override val id: Int,
+        override val navn: String,
         override val spørsmålMedSvar: List<SpørsmålResultatDto>,
     ) : TemaResultatMelding
 
     @Serializable
     data class SpørsmålResultatDto(
-        override val spørsmålId: String,
+        override val id: String,
         override val tekst: String,
         override val flervalg: Boolean,
         override val svarListe: List<SvarResultatDto>,
@@ -138,7 +136,7 @@ class SpørreundersøkelseOppdateringKonsument(
 
     @Serializable
     data class SvarResultatDto(
-        override val svarId: String,
+        override val id: String,
         override val tekst: String,
         override val antallSvar: Int,
     ) : SvarResultatMelding

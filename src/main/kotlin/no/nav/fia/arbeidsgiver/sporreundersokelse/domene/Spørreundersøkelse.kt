@@ -1,6 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import java.util.UUID

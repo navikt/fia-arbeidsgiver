@@ -1,6 +1,8 @@
 package no.nav.fia.arbeidsgiver.helper
 
-import ia.felles.integrasjoner.kafkameldinger.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.PÅBEGYNT
+import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.SLETTET
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -186,14 +188,14 @@ class KafkaContainer(
 
     private fun Svaralternativ.tilKafkaResultatMelding(antallSvar: Int) =
         SvarResultatDto(
-            svarId = id.toString(),
+            id = id.toString(),
             tekst = svartekst,
             antallSvar = antallSvar,
         )
 
     private fun Spørsmål.tilKafkaResultatMelding(antallSvar: Int) =
         SpørsmålResultatDto(
-            spørsmålId = id.toString(),
+            id = id.toString(),
             tekst = tekst,
             svarListe = svaralternativer.map { it.tilKafkaResultatMelding(antallSvar = antallSvar) },
             flervalg = flervalg,
@@ -201,9 +203,7 @@ class KafkaContainer(
 
     private fun Tema.tilKafkaResultatMelding(antallSvar: Int) =
         TemaResultatDto(
-            temaId = id,
-            tema = navn.uppercase(),
-            beskrivelse = navn,
+            id = id,
             navn = navn,
             spørsmålMedSvar = spørsmål.map {
                 it.tilKafkaResultatMelding(antallSvar = antallSvar)
@@ -236,60 +236,60 @@ class KafkaContainer(
         sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = enStandardSpørreundersøkelse(
-                spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelseStatus = SpørreundersøkelseStatus.SLETTET,
+                id = spørreundersøkelseId,
+                spørreundersøkelseStatus = SLETTET,
             ),
         )
 
     fun enStandardSpørreundersøkelse(
-        spørreundersøkelseId: UUID,
+        id: UUID,
         orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
         virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
-        spørreundersøkelseStatus: SpørreundersøkelseStatus = SpørreundersøkelseStatus.PÅBEGYNT,
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
         flervalg: Boolean = false,
-        type: String? = null,
+        type: String = "Behovsvurdering",
         plan: PlanDto? = null,
     ) = SerializableSpørreundersøkelse(
-        spørreundersøkelseId = spørreundersøkelseId.toString(),
+        id = id.toString(),
         orgnummer = orgnummer,
         samarbeidsNavn = "Navn på et samarbeid",
         virksomhetsNavn = virksomhetsNavn,
         status = spørreundersøkelseStatus,
         type = type,
         plan = plan,
-        temaMedSpørsmålOgSvaralternativer = temanavn.mapIndexed { index, navn ->
+        temaer = temanavn.mapIndexed { index, navn ->
             SerializableTema(
-                temaId = index,
+                id = index,
                 navn = navn,
-                spørsmålOgSvaralternativer = listOf(
+                spørsmål = listOf(
                     SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
-                        spørsmål = "Hva gjør dere med IA?",
+                        tekst = "Hva gjør dere med IA?",
                         flervalg = flervalg,
                         svaralternativer = listOf(
                             SerializableSvaralternativ(
-                                svarId = UUID.randomUUID().toString(),
-                                "ingenting",
+                                id = UUID.randomUUID().toString(),
+                                tekst = "ingenting",
                             ),
                             SerializableSvaralternativ(
-                                svarId = UUID.randomUUID().toString(),
-                                "alt",
+                                id = UUID.randomUUID().toString(),
+                                tekst = "alt",
                             ),
                         ),
                     ),
                     SerializableSpørsmål(
                         id = UUID.randomUUID().toString(),
-                        spørsmål = "Hva gjør dere IKKE med IA?",
+                        tekst = "Hva gjør dere IKKE med IA?",
                         flervalg = flervalg,
                         svaralternativer = listOf(
                             SerializableSvaralternativ(
-                                svarId = UUID.randomUUID().toString(),
-                                "noen ting",
+                                id = UUID.randomUUID().toString(),
+                                tekst = "noen ting",
                             ),
                             SerializableSvaralternativ(
-                                svarId = UUID.randomUUID().toString(),
-                                "alt",
+                                id = UUID.randomUUID().toString(),
+                                tekst = "alt",
                             ),
                         ),
                     ),
