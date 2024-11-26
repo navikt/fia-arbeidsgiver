@@ -5,6 +5,7 @@ import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.Spørreunders
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldHaveAtLeastSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -185,6 +186,30 @@ class SpørreundersøkelseDeltakerTest {
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = sisteTema.id, spørsmålId = spørsmålIdSisteTema),
                 bliMedDTO = bliMedDTO,
             ) shouldNotBe null
+        }
+    }
+
+    @Test
+    fun `deltaker skal kunne få kategori på spørsmål i en evaluering`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelse = kafka.enStandardEvaluering(
+                id = spørreundersøkelseId,
+            ),
+        ).tilDomene()
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val førsteTema = spørreundersøkelse.temaer.first()
+            val spørsmålIdFørsteTema = førsteTema.spørsmål.first().id.toString()
+
+            val deltakerSpmDto = spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
+                spørsmål = IdentifiserbartSpørsmålDto(temaId = førsteTema.id, spørsmålId = spørsmålIdFørsteTema),
+                bliMedDTO = bliMedDTO,
+            )
+
+            listOf("Utvikle IA-arbeidet", "Veien videre") shouldContain deltakerSpmDto.spørsmål.kategori
         }
     }
 
