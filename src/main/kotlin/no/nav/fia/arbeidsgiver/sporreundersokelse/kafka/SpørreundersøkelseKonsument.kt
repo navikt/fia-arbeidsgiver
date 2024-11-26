@@ -152,6 +152,7 @@ class SpørreundersøkelseKonsument(
         override val tekst: String,
         override val flervalg: Boolean,
         override val svaralternativer: List<SerializableSvaralternativ>,
+        val kategori: String? = null,
     ) : SpørsmålMelding {
         fun tilDomene() =
             Spørsmål(
@@ -159,6 +160,7 @@ class SpørreundersøkelseKonsument(
                 tekst = tekst,
                 svaralternativer = svaralternativer.map { it.tilDomene() },
                 flervalg = flervalg,
+                kategori = kategori ?: "",
             )
     }
 

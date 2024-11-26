@@ -2,6 +2,7 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import io.kotest.inspectors.forAll
+import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainInOrder
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -207,6 +208,35 @@ class SpørreundersøkelseVertTest {
                     nesteTemaId = spørreundersøkelse.temaer.elementAtOrNull(index + 1)?.id,
                     spørsmål = it.spørsmål.map { it.tilDto() },
                 )
+            }
+        }
+    }
+
+    @Test
+    fun `vert skal kunne få kategori på alle spørsmål i en evaluering`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(
+            spørreundersøkelseId = spørreundersøkelseId,
+            spørreundersøkelse = kafka.enStandardEvaluering(
+                id = spørreundersøkelseId,
+            ),
+        )
+
+        runBlocking {
+            fiaArbeidsgiverApi.åpneTema(
+                temaId = spørreundersøkelse.temaer.first().id,
+                spørreundersøkelseId = spørreundersøkelseId,
+            )
+
+            val temaer = fiaArbeidsgiverApi.vertHentOversikt(
+                spørreundersøkelseId = spørreundersøkelseId,
+            )
+            temaer shouldHaveSize 2
+            temaer.forEach { tema ->
+                tema.spørsmål.forAll { spm ->
+                    listOf("Utvikle IA-arbeidet", "Veien videre") shouldContain spm.kategori
+                }
             }
         }
     }

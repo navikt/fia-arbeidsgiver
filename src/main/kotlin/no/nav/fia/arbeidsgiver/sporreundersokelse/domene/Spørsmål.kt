@@ -7,4 +7,5 @@ data class Spørsmål(
     val tekst: String,
     val flervalg: Boolean,
     val svaralternativer: List<Svaralternativ>,
+    val kategori: String,
 )

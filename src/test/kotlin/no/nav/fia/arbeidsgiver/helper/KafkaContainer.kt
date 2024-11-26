@@ -298,6 +298,65 @@ class KafkaContainer(
         },
     )
 
+    fun enStandardEvaluering(
+        id: UUID,
+        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
+        temanavn: List<String> = listOf("Partssamarbeid", "Arbeidsmiljø"),
+        flervalg: Boolean = false,
+        type: String = "Evaluering",
+        plan: PlanDto? = null,
+    ) = SerializableSpørreundersøkelse(
+        id = id.toString(),
+        orgnummer = orgnummer,
+        samarbeidsNavn = "Navn på et samarbeid",
+        virksomhetsNavn = virksomhetsNavn,
+        status = spørreundersøkelseStatus,
+        type = type,
+        plan = plan,
+        temaer = temanavn.mapIndexed { index, navn ->
+            SerializableTema(
+                id = index,
+                navn = navn,
+                spørsmål = listOf(
+                    SerializableSpørsmål(
+                        id = UUID.randomUUID().toString(),
+                        tekst = "Hva gjør dere med IA?",
+                        flervalg = flervalg,
+                        svaralternativer = listOf(
+                            SerializableSvaralternativ(
+                                id = UUID.randomUUID().toString(),
+                                tekst = "ingenting",
+                            ),
+                            SerializableSvaralternativ(
+                                id = UUID.randomUUID().toString(),
+                                tekst = "alt",
+                            ),
+                        ),
+                        kategori = "Utvikle IA-arbeidet",
+                    ),
+                    SerializableSpørsmål(
+                        id = UUID.randomUUID().toString(),
+                        tekst = "Hva gjør dere IKKE med IA?",
+                        flervalg = flervalg,
+                        svaralternativer = listOf(
+                            SerializableSvaralternativ(
+                                id = UUID.randomUUID().toString(),
+                                tekst = "noen ting",
+                            ),
+                            SerializableSvaralternativ(
+                                id = UUID.randomUUID().toString(),
+                                tekst = "alt",
+                            ),
+                        ),
+                        kategori = "Veien videre",
+                    ),
+                ),
+            )
+        },
+    )
+
     private fun sendOgVent(
         nøkkel: String,
         melding: String,

@@ -9,6 +9,7 @@ data class SpørsmålDto(
     val tekst: String,
     val flervalg: Boolean,
     val svaralternativer: List<SvaralternativDto>,
+    val kategori: String,
 )
 
 fun Spørsmål.tilDto() =
@@ -17,4 +18,5 @@ fun Spørsmål.tilDto() =
         tekst = tekst,
         flervalg = flervalg,
         svaralternativer = svaralternativer.map { it.tilDto() },
+        kategori = kategori,
     )
