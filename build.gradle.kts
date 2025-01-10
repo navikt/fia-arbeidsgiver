@@ -1,14 +1,14 @@
-val ktorVersion = "3.0.1"
-val kotlinVersion = "2.0.21"
-val logbackVersion = "1.5.12"
-val prometheusVersion = "1.14.0"
-val iaFellesVersion = "1.9.0"
+val ktorVersion = "3.0.3"
+val kotlinVersion = "2.1.0"
+val logbackVersion = "1.5.15"
+val prometheusVersion = "1.14.2"
+val iaFellesVersion = "1.10.1"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.20.3"
+val testcontainersVersion = "1.20.4"
 
 plugins {
-    kotlin("jvm") version "2.0.21"
-    kotlin("plugin.serialization") version "2.0.21"
+    kotlin("jvm") version "2.1.0"
+    kotlin("plugin.serialization") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -48,16 +48,16 @@ dependencies {
     implementation("org.apache.kafka:kafka-clients:3.9.0")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.5.0.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.5.2.RELEASE")
 
     // altinn-klient
     implementation("com.github.navikt:altinn-rettigheter-proxy-klient:altinn-rettigheter-proxy-klient-5.0.0")
 
     // altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet
-    implementation("commons-codec:commons-codec:1.17.1")
+    implementation("commons-codec:commons-codec:1.17.2")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:9.46")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -70,7 +70,7 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.9.2")
+    testImplementation("org.wiremock:wiremock-standalone:3.10.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
@@ -84,7 +84,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.115.Final")
+                require("4.1.116.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
@@ -96,7 +96,7 @@ dependencies {
         }
         testImplementation("commons-io:commons-io") {
             version {
-                require("2.17.0")
+                require("2.18.0")
             }
             because("testcontainers har sårbar versjon")
         }
