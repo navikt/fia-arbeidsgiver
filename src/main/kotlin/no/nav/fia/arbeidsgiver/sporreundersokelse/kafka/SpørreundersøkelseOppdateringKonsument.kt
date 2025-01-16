@@ -88,7 +88,7 @@ class SpørreundersøkelseOppdateringKonsument(
                         }
                         logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
-                        logger.info("Konsument for ${topic.navn} is shutting down")
+                        logger.info("Konsument for ${topic.navn} is shutting down",e)
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
@@ -132,6 +132,7 @@ class SpørreundersøkelseOppdateringKonsument(
         override val tekst: String,
         override val flervalg: Boolean,
         override val svarListe: List<SvarResultatDto>,
+        val kategori: String? = null,
     ) : SpørsmålResultatMelding
 
     @Serializable
