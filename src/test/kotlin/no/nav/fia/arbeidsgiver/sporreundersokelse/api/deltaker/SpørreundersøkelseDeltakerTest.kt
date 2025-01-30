@@ -51,6 +51,23 @@ class SpørreundersøkelseDeltakerTest {
     }
 
     @Test
+    fun `skal få type tilbake`() {
+        val spørreundersøkelseId = UUID.randomUUID()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+
+        runBlocking {
+            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO)
+
+
+            spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
+                spørsmål = IdentifiserbartSpørsmålDto(temaId = startDto.temaId, spørsmålId = startDto.spørsmålId),
+                bliMedDTO = bliMedDTO,
+            ).type shouldBe spørreundersøkelse.type
+        }
+    }
+
+    @Test
     fun `skal verifisere sesjonsid for deltakere`() {
         val spørreundersøkelseId = UUID.randomUUID()
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()

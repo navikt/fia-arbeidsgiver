@@ -16,6 +16,7 @@ data class DeltakerSpørsmålDto(
     val temanavn: String,
     val nesteSpørsmål: IdentifiserbartSpørsmålDto?,
     val forrigeSpørsmål: IdentifiserbartSpørsmålDto?,
+    val type: String,
 )
 
 fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpørsmålDto {
@@ -29,5 +30,6 @@ fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpø
         spørsmålnummer = tema.indeksFraSpørsmålId(spørsmålId = spørsmålId) + 1,
         antallSpørsmål = tema.spørsmål.size,
         spørsmål = temaer.spørsmålFraId(spørsmålId = spørsmålId).tilDto(),
+        type = type
     )
 }
