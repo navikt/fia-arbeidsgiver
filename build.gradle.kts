@@ -1,14 +1,14 @@
-val ktorVersion = "3.0.3"
-val kotlinVersion = "2.1.0"
-val logbackVersion = "1.5.15"
-val prometheusVersion = "1.14.2"
-val iaFellesVersion = "1.10.1"
+val ktorVersion = "3.1.0"
+val kotlinVersion = "2.1.10"
+val logbackVersion = "1.5.16"
+val prometheusVersion = "1.14.4"
+val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.4"
 
 plugins {
-    kotlin("jvm") version "2.1.0"
-    kotlin("plugin.serialization") version "2.1.0"
+    kotlin("jvm") version "2.1.10"
+    kotlin("plugin.serialization") version "2.1.10"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -16,7 +16,9 @@ group = "no.nav"
 
 repositories {
     mavenCentral()
-    maven("https://jitpack.io")
+    maven {
+        url = uri("https://jitpack.io")
+    }
 }
 
 dependencies {
@@ -42,19 +44,16 @@ dependencies {
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
     implementation("net.logstash.logback:logstash-logback-encoder:8.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
     implementation("org.apache.kafka:kafka-clients:3.9.0")
 
     // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.5.2.RELEASE")
+    implementation("io.lettuce:lettuce-core:6.5.3.RELEASE")
 
     // altinn-klient
     implementation("com.github.navikt:altinn-rettigheter-proxy-klient:altinn-rettigheter-proxy-klient-5.0.0")
-
-    // altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet
-    implementation("commons-codec:commons-codec:1.17.2")
 
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
@@ -70,21 +69,21 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.10.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.12.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
         implementation("net.minidev:json-smart") {
             version {
-                require("2.5.1")
+                require("2.5.2")
             }
             because(
-                "From Kotlin version: 1.7.20 -> Earlier versions of json-smart package are vulnerable to Denial of Service (DoS) due to a StackOverflowError when parsing a deeply nested JSON array or object.",
+                "versjoner < 2.5.2 har diverse sårbarheter",
             )
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.116.Final")
+                require("4.1.118.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
