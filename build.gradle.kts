@@ -73,6 +73,14 @@ dependencies {
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
+        implementation("commons-codec:commons-codec") {
+            version {
+                require("1.17.2")
+            }
+            because(
+                "altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet",
+            )
+        }
         implementation("net.minidev:json-smart") {
             version {
                 require("2.5.2")
