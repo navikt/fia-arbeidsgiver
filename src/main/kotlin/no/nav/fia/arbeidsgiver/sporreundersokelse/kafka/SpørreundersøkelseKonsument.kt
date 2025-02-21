@@ -90,7 +90,7 @@ class SpørreundersøkelseKonsument(
                                     }
                                 }
                             } catch (e: IllegalArgumentException) {
-                                logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}, melding: '${record.value()}'", e)
+                                logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
                         }
                         logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
