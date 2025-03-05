@@ -17,7 +17,7 @@ class FiaStatusKonsumentTest {
         )
 
         runBlocking {
-            val result = TestContainerHelper.redis.samarbeidsstatusService.henteSakStatus(orgnr)
+            val result = TestContainerHelper.valkey.samarbeidsstatusService.henteSakStatus(orgnr)
             result?.orgnr shouldBe orgnr
         }
     }
@@ -37,6 +37,6 @@ class FiaStatusKonsumentTest {
             sistOppdatert = sistOppdatert.minusSeconds(1),
         )
 
-        TestContainerHelper.redis.samarbeidsstatusService.henteSakStatus(orgnr)?.status shouldBe "VI_BISTÅR"
+        TestContainerHelper.valkey.samarbeidsstatusService.henteSakStatus(orgnr)?.status shouldBe "VI_BISTÅR"
     }
 }

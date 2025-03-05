@@ -4,12 +4,9 @@ import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.Spørreunders
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.PÅBEGYNT
 import io.ktor.http.HttpStatusCode
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.redis.RedisService
-import no.nav.fia.arbeidsgiver.redis.Type
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørreundersøkelse
@@ -17,12 +14,14 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppd
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
+import no.nav.fia.arbeidsgiver.valkey.Type
+import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.UUID
 
 class SpørreundersøkelseService(
-    private val redisService: RedisService,
+    private val valkeyService: ValkeyService,
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val spørreundersøkelseSvarProdusent by lazy {
@@ -33,7 +32,7 @@ class SpørreundersøkelseService(
     }
 
     fun lagre(spørreundersøkelse: SerializableSpørreundersøkelse) {
-        redisService.lagre(
+        valkeyService.lagre(
             type = Type.SPØRREUNDERSØKELSE,
             nøkkel = spørreundersøkelse.id,
             verdi = Json.encodeToString(spørreundersøkelse),
@@ -41,7 +40,7 @@ class SpørreundersøkelseService(
     }
 
     fun lagre(spørreundersøkelseAntallSvarDto: SpørreundersøkelseAntallSvarDto) {
-        redisService.lagre(
+        valkeyService.lagre(
             type = Type.ANTALL_SVAR_FOR_SPØRSMÅL,
             nøkkel = "${spørreundersøkelseAntallSvarDto.spørreundersøkelseId}-${spørreundersøkelseAntallSvarDto.spørsmålId}",
             verdi = spørreundersøkelseAntallSvarDto.antallSvar.toString(),
@@ -52,7 +51,7 @@ class SpørreundersøkelseService(
         spørreundersøkelseId: String,
         temaresultat: TemaResultatDto,
     ) {
-        redisService.lagre(
+        valkeyService.lagre(
             type = Type.SPØRREUNDERSØKELSE_RESULTAT,
             nøkkel = "$spørreundersøkelseId-${temaresultat.id}",
             verdi = Json.encodeToString(temaresultat),
@@ -63,7 +62,7 @@ class SpørreundersøkelseService(
         logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.id}'")
         listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
             logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.id}'")
-            redisService.slett(it, spørreundersøkelse.id)
+            valkeyService.slett(it, spørreundersøkelse.id)
         }
     }
 
@@ -71,18 +70,18 @@ class SpørreundersøkelseService(
         sesjonsId: UUID,
         spørreundersøkelseId: UUID,
     ) {
-        redisService.lagre(Type.SESJON, sesjonsId.toString(), spørreundersøkelseId.toString())
+        valkeyService.lagre(Type.SESJON, sesjonsId.toString(), spørreundersøkelseId.toString())
     }
 
     fun lagreAntallDeltakere(
         spørreundersøkelseId: UUID,
         antallDeltakere: Int,
     ) {
-        redisService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
+        valkeyService.lagre(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString(), antallDeltakere.toString())
     }
 
     fun henteSpørreundersøkelse(spørreundersøkelseId: UUID): SerializableSpørreundersøkelse {
-        val undersøkelse = redisService.hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
+        val undersøkelse = valkeyService.hente(Type.SPØRREUNDERSØKELSE, spørreundersøkelseId.toString())?.let {
             Json.decodeFromString<SerializableSpørreundersøkelse>(it)
         } ?: throw Feil(
             feilmelding = "Ukjent spørreundersøkelse '$spørreundersøkelseId'",
@@ -127,24 +126,24 @@ class SpørreundersøkelseService(
     }
 
     fun henteSpørreundersøkelseIdFraSesjon(sesjonsId: UUID): UUID? =
-        redisService.hente(Type.SESJON, sesjonsId.toString())?.let {
+        valkeyService.hente(Type.SESJON, sesjonsId.toString())?.let {
             UUID.fromString(it)
         }
 
     fun hentAntallDeltakere(spørreundersøkelseId: UUID): Int =
-        redisService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
+        valkeyService.hente(Type.ANTALL_DELTAKERE, spørreundersøkelseId.toString())?.toInt() ?: 0
 
     fun hentAntallSvar(
         spørreundersøkelseId: UUID,
         spørsmålId: UUID,
-    ): Int = redisService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
+    ): Int = valkeyService.hente(Type.ANTALL_SVAR_FOR_SPØRSMÅL, "$spørreundersøkelseId-$spørsmålId")?.toInt() ?: 0
 
     fun hentResultater(
         spørreundersøkelseId: UUID,
         temaId: Int,
     ): TemaResultatDto {
         val resultater =
-            redisService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "$spørreundersøkelseId-$temaId")?.let {
+            valkeyService.hente(Type.SPØRREUNDERSØKELSE_RESULTAT, "$spørreundersøkelseId-$temaId")?.let {
                 Json.decodeFromString<TemaResultatDto>(it)
             } ?: throw Feil(
                 feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
@@ -158,20 +157,20 @@ class SpørreundersøkelseService(
         spørreundersøkelseId: UUID,
         temaId: Int,
     ) {
-        redisService.lagre(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId", "ja")
+        valkeyService.lagre(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId", "ja")
     }
 
     fun erTemaÅpent(
         spørreundersøkelseId: UUID,
         temaId: Int,
-    ) = redisService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
+    ) = valkeyService.hente(Type.ER_TEMA_ÅPENT, "$spørreundersøkelseId-$temaId") != null
 
     fun erSpørsmålÅpent(
         spørreundersøkelseId: UUID,
         temaId: Int,
         spørsmålId: UUID,
     ): Boolean =
-        redisService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
+        valkeyService.hente(Type.ER_SPØRSMÅL_ÅPENT, "$spørreundersøkelseId-$spørsmålId") != null ||
             erTemaÅpent(spørreundersøkelseId = spørreundersøkelseId, temaId = temaId)
 
     fun sendSvar(
@@ -198,7 +197,7 @@ class SpørreundersøkelseService(
                 temaId = temaId,
             ),
         )
-        redisService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
+        valkeyService.lagre(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId", TemaStatus.STENGT.name)
     }
 
     fun erTemaStengt(
@@ -210,7 +209,7 @@ class SpørreundersøkelseService(
         spørreundersøkelseId: UUID,
         temaId: Int,
     ): TemaStatus? =
-        redisService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
+        valkeyService.hente(Type.TEMA_STATUS, nøkkel = "$spørreundersøkelseId-$temaId")?.let {
             TemaStatus.valueOf(it)
         }
 

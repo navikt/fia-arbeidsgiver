@@ -49,7 +49,7 @@ class TestContainerHelper {
 
         val authServer = AuthContainer(network)
         val kafka = KafkaContainer(network)
-        val redis = RedisContainer(network)
+        val valkey = ValkeyContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
         const val VERT_NAV_IDENT = "Z12345"
@@ -65,12 +65,12 @@ class TestContainerHelper {
                     authServer.getEnv() +
                         altinnProxy.getEnv() +
                         kafka.getEnv() +
-                        redis.getEnv() +
+                        valkey.getEnv() +
                         mapOf(
                             "NAIS_CLUSTER_NAME" to "lokal",
                         ),
                 )
-                .dependsOn(authServer.container, kafka.container, redis.container)
+                .dependsOn(authServer.container, kafka.container, valkey.container)
                 .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
                 .apply {
                     start()

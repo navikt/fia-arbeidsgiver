@@ -5,6 +5,7 @@ val prometheusVersion = "1.14.4"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.4"
+val valkeyVersion = "5.3.0"
 
 plugins {
     kotlin("jvm") version "2.1.10"
@@ -49,8 +50,8 @@ dependencies {
     // Kafka
     implementation("org.apache.kafka:kafka-clients:3.9.0")
 
-    // Lettuce - Redis client
-    implementation("io.lettuce:lettuce-core:6.5.3.RELEASE")
+    // Valkey client
+    implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // altinn-klient
     implementation("com.github.navikt:altinn-rettigheter-proxy-klient:altinn-rettigheter-proxy-klient-5.0.0")

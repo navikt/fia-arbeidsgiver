@@ -1,12 +1,11 @@
 package no.nav.fia.arbeidsgiver.samarbeidsstatus.domene
 
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.redis.RedisService
-import no.nav.fia.arbeidsgiver.redis.Type
+import no.nav.fia.arbeidsgiver.valkey.Type
+import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 
 class SamarbeidsstatusService(
-    val redisService: RedisService,
+    val valkeyService: ValkeyService,
 ) {
     companion object {
         const val TO_ÅR = 2 * 365 * 24 * 60 * 60L
@@ -15,7 +14,7 @@ class SamarbeidsstatusService(
     fun lagre(iaSakStatus: IASakStatus) {
         val gammelStatus = henteSakStatus(iaSakStatus.orgnr)
         if (gammelStatus == null || gammelStatus.sistOppdatert <= iaSakStatus.sistOppdatert) {
-            redisService.lagre(
+            valkeyService.lagre(
                 type = Type.SAMARBEIDSSTATUS,
                 nøkkel = iaSakStatus.orgnr,
                 verdi = Json.encodeToString(iaSakStatus),
@@ -25,7 +24,7 @@ class SamarbeidsstatusService(
     }
 
     fun henteSakStatus(orgnr: String): IASakStatus? =
-        redisService.hente(Type.SAMARBEIDSSTATUS, orgnr)?.let {
+        valkeyService.hente(Type.SAMARBEIDSSTATUS, orgnr)?.let {
             Json.decodeFromString(it)
         }
 }

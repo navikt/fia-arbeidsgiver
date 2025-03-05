@@ -11,7 +11,6 @@ import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
-import no.nav.fia.arbeidsgiver.redis.RedisService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
@@ -19,12 +18,13 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltak
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
+import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 
 fun Application.configureRouting(
-    redisService: RedisService,
+    valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
 ) {
-    val spørreundersøkelseService = SpørreundersøkelseService(redisService)
+    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService)
     routing {
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 
@@ -42,7 +42,7 @@ fun Application.configureRouting(
         authenticate("tokenx") {
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
                 medVerifisertAltinnTilgang {
-                    samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(redisService = redisService))
+                    samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                 }
             }
         }
