@@ -41,7 +41,7 @@ spec:
       rules:
         - application: altinn-rettigheter-proxy
           namespace: arbeidsgiver
-  redis:
+  valkey:
     - instance: fia-samarbeidsstatus
       access: readwrite
   kafka:

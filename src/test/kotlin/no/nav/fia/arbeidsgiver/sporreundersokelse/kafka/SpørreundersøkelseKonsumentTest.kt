@@ -7,8 +7,8 @@ import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.redis
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.valkey
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
 import java.util.UUID
@@ -20,7 +20,7 @@ class SpørreundersøkelseKonsumentTest {
         val spørreundersøkelseId = UUID.randomUUID()
         val sendtEvaluering = kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
-        val evaluering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+        val evaluering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
         evaluering.id shouldBe spørreundersøkelseId
         evaluering.type shouldBe "Evaluering"
         evaluering.temaer.forEach {
@@ -41,7 +41,7 @@ class SpørreundersøkelseKonsumentTest {
                 "Mottok spørreundersøkelse med type: 'Evaluering'".toRegex(),
             )
 
-            val evaluering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            val evaluering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             evaluering.id shouldBe spørreundersøkelseId
             evaluering.type shouldBe "Evaluering"
             evaluering.temaer.forEach {
@@ -59,7 +59,7 @@ class SpørreundersøkelseKonsumentTest {
 
         runBlocking {
             fiaArbeidsgiverApi.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
-            val behovsvurdering = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
+            val behovsvurdering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             behovsvurdering.id shouldBe spørreundersøkelseId
             behovsvurdering.type shouldBe "Behovsvurdering"
             behovsvurdering.temaer.forEach {
@@ -80,7 +80,7 @@ class SpørreundersøkelseKonsumentTest {
         ) shouldNotBeEqual spørreundersøkelse
 
         runBlocking {
-            val result = redis.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
+            val result = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(id)
             result.id shouldBe id
         }
     }
@@ -91,13 +91,13 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
         val spørreundersøkelse =
-            redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
+            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
         spørreundersøkelse.id shouldBe id.toString()
 
         kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
         shouldThrow<Feil> {
-            redis.spørreundersøkelseService.henteSpørreundersøkelse(id)
+            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
         }
-        redis.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
+        valkey.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
     }
 }
