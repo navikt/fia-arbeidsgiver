@@ -1,10 +1,10 @@
-val ktorVersion = "3.1.0"
+val ktorVersion = "3.1.1"
 val kotlinVersion = "2.1.10"
-val logbackVersion = "1.5.16"
+val logbackVersion = "1.5.17"
 val prometheusVersion = "1.14.4"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.20.4"
+val testcontainersVersion = "1.20.6"
 val valkeyVersion = "5.3.0"
 
 plugins {
@@ -57,7 +57,7 @@ dependencies {
     implementation("com.github.navikt:altinn-rettigheter-proxy-klient:altinn-rettigheter-proxy-klient-5.0.0")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.0.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.0.2")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -70,13 +70,13 @@ dependencies {
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.12.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.12.1")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
         implementation("commons-codec:commons-codec") {
             version {
-                require("1.17.2")
+                require("1.18.0")
             }
             because(
                 "altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet",
@@ -92,7 +92,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.118.Final")
+                require("4.1.119.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
