@@ -74,9 +74,8 @@ class SpørreundersøkelseOppdateringKonsument(
                                     }
 
                                     ANTALL_SVAR -> {
-                                        val antallSvar =
-                                            json.decodeFromString<SpørreundersøkelseAntallSvarDto>(record.value())
-                                        logger.info(
+                                        val antallSvar = json.decodeFromString<SpørreundersøkelseAntallSvarDto>(record.value())
+                                        logger.debug(
                                             "Lagrer antall svar for spørsmål: ${antallSvar.spørsmålId} i spørreundersøkelse: ${antallSvar.spørreundersøkelseId}",
                                         )
                                         spørreundersøkelseService.lagre(antallSvar)
@@ -88,7 +87,7 @@ class SpørreundersøkelseOppdateringKonsument(
                         }
                         logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
-                        logger.info("Konsument for ${topic.navn} is shutting down",e)
+                        logger.info("Konsument for ${topic.navn} is shutting down", e)
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
