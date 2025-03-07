@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
@@ -12,7 +11,8 @@ import org.apache.kafka.clients.producer.ProducerRecord
 class SpørreundersøkelseHendelseProdusent(
     kafkaConfig: KafkaConfig,
 ) {
-    private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties())
+    private val topic: KafkaTopics = KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE
+    private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties(clientId = topic.konsumentGruppe))
 
     init {
         Runtime.getRuntime().addShutdownHook(
@@ -25,7 +25,7 @@ class SpørreundersøkelseHendelseProdusent(
     fun <T> sendHendelse(hendelse: SpørreundersøkelseHendelse<T>) {
         producer.send(
             ProducerRecord(
-                KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navnMedNamespace,
+                topic.navnMedNamespace,
                 hendelse.tilNøkkel(),
                 hendelse.tilMelding(),
             ),

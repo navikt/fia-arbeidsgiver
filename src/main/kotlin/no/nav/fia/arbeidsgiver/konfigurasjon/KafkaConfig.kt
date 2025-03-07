@@ -56,14 +56,14 @@ class KafkaConfig(
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
         ).toProperties()
 
-    fun producerProperties(): Map<String, Any> {
+    fun producerProperties(clientId: String): Map<String, Any> {
         val producerConfigs = mutableMapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to brokers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
             ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG to true, // Den sikrer rekkefølge
             ProducerConfig.ACKS_CONFIG to "all", // Den sikrer at data ikke mistes
-            ProducerConfig.CLIENT_ID_CONFIG to CLIENT_ID,
+            ProducerConfig.CLIENT_ID_CONFIG to clientId,
         )
         // For lokal kjøring
         if (truststoreLocation.isNotEmpty()) {
