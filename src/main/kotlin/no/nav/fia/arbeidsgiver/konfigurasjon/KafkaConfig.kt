@@ -50,7 +50,7 @@ class KafkaConfig(
         mapOf(
             CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to brokers,
             ConsumerConfig.GROUP_ID_CONFIG to konsumentGruppe,
-            ConsumerConfig.CLIENT_ID_CONFIG to CLIENT_ID,
+            ConsumerConfig.CLIENT_ID_CONFIG to konsumentGruppe,
             ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
             ConsumerConfig.MAX_POLL_RECORDS_CONFIG to "1000",
             ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to "false",
