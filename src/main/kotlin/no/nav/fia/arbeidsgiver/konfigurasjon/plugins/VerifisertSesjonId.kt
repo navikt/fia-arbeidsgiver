@@ -1,3 +1,5 @@
+package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
+
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
 import io.ktor.server.application.createRouteScopedPlugin

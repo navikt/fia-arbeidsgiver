@@ -5,6 +5,7 @@ val prometheusVersion = "1.14.4"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.6"
+val testMockServerVersion = "5.15.0"
 val valkeyVersion = "5.3.0"
 
 plugins {
@@ -41,6 +42,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
@@ -69,6 +71,7 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
+    testImplementation("org.mock-server:mockserver-client-java:$testMockServerVersion")
 
     testImplementation("org.wiremock:wiremock-standalone:3.12.1")
     // Mock-oauth2-server

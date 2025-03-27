@@ -14,8 +14,8 @@ private const val VALKEY_PORT = 6379
 class ValkeyContainer(
     network: Network,
 ) {
-    val networkAlias = "valkeyContainer"
-    val container = GenericContainer(
+    private val networkAlias = "valkeyContainer"
+    val container: GenericContainer<*> = GenericContainer(
         DockerImageName.parse("valkey/valkey"),
     )
         .withNetwork(network)
@@ -32,7 +32,7 @@ class ValkeyContainer(
             start()
         }
 
-    fun getEnv() =
+    fun envVars() =
         mapOf(
             "VALKEY_HOST_FIA_SAMARBEIDSSTATUS" to networkAlias,
             "VALKEY_PORT_FIA_SAMARBEIDSSTATUS" to "$VALKEY_PORT",

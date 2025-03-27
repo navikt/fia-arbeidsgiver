@@ -3,6 +3,7 @@ package no.nav.fia.arbeidsgiver
 import io.ktor.server.application.Application
 import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
+import no.nav.fia.arbeidsgiver.konfigurasjon.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.konfigurasjon.jedisPool
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureMonitoring
@@ -16,44 +17,50 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument
 import no.nav.fia.arbeidsgiver.valkey.ValkeyService
+import java.util.concurrent.TimeUnit
 
 fun main() {
     val applikasjonsHelse = ApplikasjonsHelse()
 
     val jedisPool = jedisPool()
     val valkeyService = ValkeyService(jedisPool)
+    val altinnTilgangerService = AltinnTilgangerService()
 
     FiaStatusKonsument(SamarbeidsstatusService(valkeyService), applikasjonsHelse).run()
     SpørreundersøkelseKonsument(SpørreundersøkelseService(valkeyService), applikasjonsHelse).run()
     SpørreundersøkelseOppdateringKonsument(SpørreundersøkelseService(valkeyService), applikasjonsHelse).run()
 
-    val applikasjonsServer = embeddedServer(
+    embeddedServer(
         factory = Netty,
         port = 8080,
         host = "0.0.0.0",
-        module = { fiaArbeidsgiver(valkeyService, applikasjonsHelse) },
-    )
-    applikasjonsHelse.ready = true
-
-    Runtime.getRuntime().addShutdownHook(
-        Thread {
-            applikasjonsHelse.ready = false
-            applikasjonsHelse.alive = false
-            jedisPool.close()
-            applikasjonsServer.stop(1000, 5000)
-        },
-    )
-
-    applikasjonsServer.start(wait = true)
+    ) {
+        configure(
+            valkeyService = valkeyService,
+            applikasjonsHelse = applikasjonsHelse,
+            altinnTilgangerService = altinnTilgangerService,
+        )
+    }.also {
+        applikasjonsHelse.ready = true
+        Runtime.getRuntime().addShutdownHook(
+            Thread {
+                applikasjonsHelse.ready = false
+                applikasjonsHelse.alive = false
+                jedisPool.close()
+                it.stop(3, 5, TimeUnit.SECONDS)
+            },
+        )
+    }.start(wait = true)
 }
 
-fun Application.fiaArbeidsgiver(
+fun Application.configure(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
+    altinnTilgangerService: AltinnTilgangerService,
 ) {
     configureMonitoring()
     configureSerialization()
     configureSecurity()
     configureStatusPages()
-    configureRouting(valkeyService = valkeyService, applikasjonsHelse = applikasjonsHelse)
+    configureRouting(valkeyService = valkeyService, applikasjonsHelse = applikasjonsHelse, altinnTilgangerService = altinnTilgangerService)
 }

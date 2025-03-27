@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
-import VerifisertSesjonId
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route
@@ -10,6 +9,7 @@ import io.ktor.server.routing.RoutingNode
 import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
+import no.nav.fia.arbeidsgiver.konfigurasjon.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
@@ -23,6 +23,7 @@ import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 fun Application.configureRouting(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
+    altinnTilgangerService: AltinnTilgangerService,
 ) {
     val spørreundersøkelseService = SpørreundersøkelseService(valkeyService)
     routing {
@@ -41,7 +42,9 @@ fun Application.configureRouting(
 
         authenticate("tokenx") {
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
-                medVerifisertAltinnTilgang {
+                medAltinnTilgang(
+                    altinnTilgangerService = altinnTilgangerService,
+                ) {
                     samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                 }
             }
@@ -59,11 +62,13 @@ fun Route.auditLogged(
     authorizedRoutes()
 }
 
-fun Route.medVerifisertAltinnTilgang(authorizedRoutes: Route.() -> Unit) =
-    (this as RoutingNode).createChild(selector).apply {
-        install(AuthorizationPlugin)
-        authorizedRoutes()
-    }
+fun Route.medAltinnTilgang(
+    altinnTilgangerService: AltinnTilgangerService,
+    authorizedRoutes: Route.() -> Unit,
+) = (this as RoutingNode).createChild(selector).apply {
+    install(AltinnAuthorizationPlugin(altinnTilgangerService = altinnTilgangerService))
+    authorizedRoutes()
+}
 
 fun Route.medVerifisertSesjonId(
     spørreundersøkelseService: SpørreundersøkelseService,

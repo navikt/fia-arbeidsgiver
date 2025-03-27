@@ -5,7 +5,7 @@ import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.valkey
@@ -37,9 +37,7 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog(
-                "Mottok spørreundersøkelse med type: 'Evaluering'".toRegex(),
-            )
+            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Evaluering'".toRegex())
 
             val evaluering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             evaluering.id shouldBe spørreundersøkelseId
@@ -58,7 +56,7 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, spørreundersøkelse = spørreundersøkelse)
 
         runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
+            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
             val behovsvurdering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             behovsvurdering.id shouldBe spørreundersøkelseId
             behovsvurdering.type shouldBe "Behovsvurdering"
@@ -90,14 +88,11 @@ class SpørreundersøkelseKonsumentTest {
         val id = UUID.randomUUID()
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
-        val spørreundersøkelse =
-            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
+        val spørreundersøkelse = valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
         spørreundersøkelse.id shouldBe id.toString()
 
         kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
-        shouldThrow<Feil> {
-            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
-        }
+        shouldThrow<Feil> { valkey.spørreundersøkelseService.henteSpørreundersøkelse(id) }
         valkey.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
     }
 }

@@ -9,8 +9,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
@@ -86,7 +86,7 @@ class KafkaContainer(
             kafkaProducer = producer()
         }
 
-    fun getEnv() =
+    fun envVars() =
         mapOf(
             "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
             "KAFKA_TRUSTSTORE_PATH" to "",
@@ -243,8 +243,8 @@ class KafkaContainer(
 
     fun enStandardSpørreundersøkelse(
         id: UUID,
-        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
-        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        orgnummer: String = ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn $ALTINN_ORGNR_1",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
         flervalg: Boolean = false,
@@ -300,8 +300,8 @@ class KafkaContainer(
 
     fun enStandardEvaluering(
         id: UUID,
-        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
-        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        orgnummer: String = ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn ${ALTINN_ORGNR_1}",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Arbeidsmiljø"),
         flervalg: Boolean = false,

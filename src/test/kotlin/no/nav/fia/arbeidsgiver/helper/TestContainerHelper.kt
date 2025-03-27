@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.helper
 
-import HEADER_SESJON_ID
 import io.kotest.assertions.fail
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
@@ -21,6 +20,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
@@ -45,36 +45,41 @@ import kotlin.io.path.Path
 class TestContainerHelper {
     companion object {
         val log: Logger = LoggerFactory.getLogger(TestContainerHelper::class.java)
-        val network = Network.newNetwork()
+        private val network: Network = Network.newNetwork()
 
-        val authServer = AuthContainer(network)
-        val kafka = KafkaContainer(network)
-        val valkey = ValkeyContainer(network)
-        val altinnProxy = AltinnProxyContainer()
+        val authServer = AuthContainer(network = network)
+        val kafka = KafkaContainer(network = network)
+        val valkey = ValkeyContainer(network = network)
+        val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network)
 
         const val VERT_NAV_IDENT = "Z12345"
 
-        val fiaArbeidsgiverApi =
-            GenericContainer(
-                ImageFromDockerfile().withDockerfile(Path("./Dockerfile")),
+        val applikasjon: GenericContainer<*> = GenericContainer(ImageFromDockerfile().withDockerfile(Path("./Dockerfile")))
+            .dependsOn(
+                altinnTilgangerContainerHelper.container,
+                authServer.container,
+                kafka.container,
+                valkey.container,
             )
-                .withNetwork(network)
-                .withExposedPorts(8080)
-                .withLogConsumer(Slf4jLogConsumer(log).withPrefix("fiaArbeidsgiver").withSeparateOutputStreams())
-                .withEnv(
-                    authServer.getEnv() +
-                        altinnProxy.getEnv() +
-                        kafka.getEnv() +
-                        valkey.getEnv() +
-                        mapOf(
-                            "NAIS_CLUSTER_NAME" to "lokal",
-                        ),
-                )
-                .dependsOn(authServer.container, kafka.container, valkey.container)
-                .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
-                .apply {
-                    start()
-                }
+            .withNetwork(network)
+            .withExposedPorts(8080)
+            .withCreateContainerCmdModifier { cmd -> cmd.withName("forebyggingsplan-${System.currentTimeMillis()}") }
+            .withLogConsumer(
+                Slf4jLogConsumer(log)
+                    .withPrefix("fiaArbeidsgiver")
+                    .withSeparateOutputStreams(),
+            )
+            .withEnv(
+                mapOf("NAIS_CLUSTER_NAME" to "lokal")
+                    .plus(authServer.envVars())
+                    .plus(kafka.envVars())
+                    .plus(valkey.envVars())
+                    .plus(altinnTilgangerContainerHelper.envVars()),
+            )
+            .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
+            .apply {
+                start()
+            }
 
         internal fun tokenXAccessToken(
             subject: String = "123",
@@ -95,7 +100,7 @@ class TestContainerHelper {
             audience: String = "azure:fia-arbeidsgiver",
             claims: Map<String, Any> = mapOf(
                 "NAVident" to VERT_NAV_IDENT,
-                "groups" to listOf(AuthContainer.saksbehandlerGroupId),
+                "groups" to listOf(AuthContainer.SAKSBHEANDLER_GROUP_ID),
             ),
         ) = authServer.issueToken(
             subject = subject,

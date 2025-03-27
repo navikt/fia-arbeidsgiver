@@ -13,7 +13,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
@@ -70,10 +70,8 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
-                url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
-            ) {
-            }.status shouldBe HttpStatusCode.Unauthorized
+            applikasjon.performGet(url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere")
+                .status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -82,7 +80,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
+            applikasjon.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
                 header(
@@ -107,7 +105,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
+            applikasjon.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
                 header(
@@ -127,7 +125,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.vertHenterVirksomhetsnavn(
+            applikasjon.vertHenterVirksomhetsnavn(
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe spørreundersøkelse.virksomhetsNavn
         }
@@ -139,7 +137,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+            val kontekst = applikasjon.vertHenterSpørreundersøkelseKontekst(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             kontekst.type shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().type
@@ -154,7 +152,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendEvaluering(spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+            val kontekst = applikasjon.vertHenterSpørreundersøkelseKontekst(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             kontekst.type shouldBe "Evaluering"
@@ -172,18 +170,12 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            ) shouldBe 0
+            applikasjon.vertHenterAntallDeltakere(spørreundersøkelseId = spørreundersøkelse.id) shouldBe 0
 
             val antallDeltakere = 5
-            repeat(antallDeltakere) {
-                fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            }
+            repeat(antallDeltakere) { applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId) }
 
-            fiaArbeidsgiverApi.vertHenterAntallDeltakere(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            ) shouldBe antallDeltakere
+            applikasjon.vertHenterAntallDeltakere(spørreundersøkelseId = spørreundersøkelse.id) shouldBe antallDeltakere
         }
     }
 
@@ -194,9 +186,7 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
@@ -224,14 +214,12 @@ class SpørreundersøkelseVertTest {
         )
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelseId,
             )
 
-            val temaer = fiaArbeidsgiverApi.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelseId,
-            )
+            val temaer = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelseId)
             temaer shouldHaveSize 2
             temaer.forEach { tema ->
                 tema.spørsmål.forAll { spm ->
@@ -247,11 +235,11 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -267,18 +255,16 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            fiaArbeidsgiverApi.stengTema(
+            applikasjon.stengTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
 
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList[0].status shouldBe TemaStatus.STENGT
             temaDtoList[1].status shouldBe TemaStatus.ÅPNET
@@ -289,20 +275,17 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål alle temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             spørreundersøkelse.temaer.forEach { tema ->
-                fiaArbeidsgiverApi.åpneTema(
+                applikasjon.åpneTema(
                     temaId = tema.id,
                     spørreundersøkelseId = spørreundersøkelse.id,
                 )
             }
 
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
@@ -321,14 +304,12 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne få ut oversikt over ett tema i en spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
-        val temaRedusereSykefravær =
-            spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
+        val temaRedusereSykefravær = spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
 
         runBlocking {
-            val temaDto = fiaArbeidsgiverApi.hentTemaDto(
+            val temaDto = applikasjon.hentTemaDto(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR,
             )
@@ -350,19 +331,19 @@ class SpørreundersøkelseVertTest {
                 spørsmålId = spørreundersøkelse.temaer.first().spørsmål.first().id.toString(),
             )
 
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = førsteSpørsmål.temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
 
-            fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+            applikasjon.hentAntallSvarForSpørsmål(
                 spørsmål = førsteSpørsmål,
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe 0
 
             (1..5).forEach { antallSvar ->
-                val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-                fiaArbeidsgiverApi.svarPåSpørsmål(
+                val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+                applikasjon.svarPåSpørsmål(
                     spørsmål = førsteSpørsmål,
                     svarIder = listOf(spørreundersøkelse.hentSpørsmålITema(førsteSpørsmål)?.svaralternativer?.first()?.id.toString()),
                     bliMedDTO = bliMedDTO,
@@ -373,8 +354,7 @@ class SpørreundersøkelseVertTest {
                         antallSvar = antallSvar,
                     )
                 }
-
-                fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+                applikasjon.hentAntallSvarForSpørsmål(
                     spørsmål = førsteSpørsmål,
                     spørreundersøkelseId = spørreundersøkelse.id,
                 ) shouldBe antallSvar
@@ -389,11 +369,10 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             val temaId = spørreundersøkelse.temaer.first().id
-            fiaArbeidsgiverApi.stengTema(
+            applikasjon.stengTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = temaId,
             )
-
             val stengTema = StengTema(spørreundersøkelseId.toString(), temaId)
             kafka.ventOgKonsumerKafkaMeldinger(stengTema.tilNøkkel(), spørreundersøkelseHendelseKonsument) { meldinger ->
                 meldinger.forAll {
@@ -411,12 +390,12 @@ class SpørreundersøkelseVertTest {
         val temaId = spørreundersøkelse.temaer.first().id
 
         runBlocking {
-            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+            val resultatRespons = applikasjon.hentResultater(
                 temaId = temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             resultatRespons.status shouldBe HttpStatusCode.Forbidden
-            fiaArbeidsgiverApi shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
+            applikasjon shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
         }
     }
 
@@ -432,9 +411,8 @@ class SpørreundersøkelseVertTest {
             antallSvarPerSpørsmål = svarPerSpørsmål,
             tema = spørreundersøkelse.temaer.first(),
         )
-
         runBlocking {
-            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+            val resultatRespons = applikasjon.hentResultater(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             ).body<TemaResultatDto>()
@@ -451,20 +429,18 @@ class SpørreundersøkelseVertTest {
     fun `vert skal kunne åpne ett tema`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
-
         runBlocking {
-            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val førsteSpørsmål = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO)
-            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+            val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val førsteSpørsmål = applikasjon.hentFørsteSpørsmål(bliMedDTO)
+            applikasjon.hentSpørsmålSomDeltaker(
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål,
             ) shouldBe null
-
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteSpørsmål.temaId,
             )
-            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+            applikasjon.hentSpørsmålSomDeltaker(
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål,
             )?.spørsmål?.tekst shouldBe spørreundersøkelse.hentSpørsmålITema(førsteSpørsmål)?.tekst
@@ -478,23 +454,20 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             val tema = spørreundersøkelse.temaer.first()
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = tema.id,
             )
-
             kafka.sendAntallSvar(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
                 spørsmålId = tema.spørsmål.first().id.toString(),
                 antallSvar = 5,
             )
-
-            var antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+            var antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             antallDeltakereSomHarFullførtTema shouldBe 0
-
             tema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -502,8 +475,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-
-            antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+            antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
@@ -520,12 +492,10 @@ class SpørreundersøkelseVertTest {
             val førsteTema = spørreundersøkelse.temaer[0]
             val andreTema = spørreundersøkelse.temaer[1]
             val tredjeTema = spørreundersøkelse.temaer[2]
-
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteTema.id,
             )
-
             førsteTema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -533,7 +503,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = andreTema.id,
             )
@@ -544,7 +514,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = tredjeTema.id,
             )
@@ -555,8 +525,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-
-            val antallDeltakereSomHarFullført = fiaArbeidsgiverApi.hentAntallSvarForSpørreundersøkelse(
+            val antallDeltakereSomHarFullført = applikasjon.hentAntallSvarForSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             antallDeltakereSomHarFullført shouldBe 1
@@ -566,16 +535,13 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne hente en avsluttet spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val pågåendeSpørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-
+        val pågåendeSpørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = AVSLUTTET),
         ).tilDomene()
-
         runBlocking {
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
