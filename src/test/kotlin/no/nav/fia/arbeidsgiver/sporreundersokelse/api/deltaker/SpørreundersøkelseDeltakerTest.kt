@@ -22,7 +22,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.åpneTema
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
@@ -36,18 +36,18 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
-    private val spørreundersøkelseSvarKonsument =
-        kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR)
+    private val topic = Topic.SPØRREUNDERSØKELSE_SVAR
+    private val konsument = kafka.nyKonsument(consumerGroupId = topic.konsumentGruppe)
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navnMedNamespace))
+        konsument.subscribe(mutableListOf(topic.navn))
     }
 
     @After
     fun tearDown() {
-        spørreundersøkelseSvarKonsument.unsubscribe()
-        spørreundersøkelseSvarKonsument.close()
+        konsument.unsubscribe()
+        konsument.close()
     }
 
     @Test
@@ -309,7 +309,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument,
+                konsument = konsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
@@ -433,7 +433,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument,
+                konsument = konsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)

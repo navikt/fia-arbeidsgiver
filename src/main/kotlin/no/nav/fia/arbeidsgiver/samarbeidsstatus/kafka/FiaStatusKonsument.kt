@@ -8,8 +8,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import org.apache.kafka.clients.consumer.KafkaConsumer
@@ -24,12 +24,12 @@ import kotlin.coroutines.CoroutineContext
 class FiaStatusKonsument(
     val samarbeidsstatusService: SamarbeidsstatusService,
     val applikasjonsHelse: ApplikasjonsHelse,
+    val kafka: Kafka,
 ) : CoroutineScope {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
-    private val topic = KafkaTopics.SAK_STATUS
+    private val topic = Topic.SAK_STATUS
     private val kafkaConsumer = KafkaConsumer(
-        KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
+        kafka.consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
         StringDeserializer(),
     )
@@ -44,8 +44,8 @@ class FiaStatusKonsument(
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf(topic.navnMedNamespace))
-                logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
+                consumer.subscribe(listOf(topic.navn))
+                logger.info("Kafka consumer subscribed to ${topic.navn}")
 
                 while (applikasjonsHelse.alive) {
                     try {
@@ -83,4 +83,8 @@ class FiaStatusKonsument(
             job.cancelAndJoin()
             logger.info("Stopped kafka consumer job for ${topic.navn}")
         }
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    }
 }

@@ -11,8 +11,8 @@ import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
@@ -40,18 +40,20 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
-import org.testcontainers.containers.KafkaContainer
+import org.slf4j.Logger
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import org.testcontainers.kafka.ConfluentKafkaContainer
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.LocalDateTime
 import java.util.TimeZone
 import java.util.UUID
 
-class KafkaContainer(
+class KafkaContainerHelper(
     network: Network,
+    log: Logger,
 ) {
     private val kafkaNetworkAlias = "kafkaContainer"
     private var adminClient: AdminClient
@@ -60,31 +62,31 @@ class KafkaContainer(
         ignoreUnknownKeys = true
     }
 
-    val container: KafkaContainer = KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.6.0"),
-    )
-        .withKraft()
-        .withNetwork(network)
-        .withNetworkAliases(kafkaNetworkAlias)
-        .withLogConsumer(
-            Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams(),
-        )
-        .withEnv(
-            mutableMapOf(
-                "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
-                "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
-                "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
-                "TZ" to TimeZone.getDefault().id,
-            ),
-        )
-        .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
-        .waitingFor(HostPortWaitStrategy())
-        .apply {
-            start()
-            adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
-            createTopics()
-            kafkaProducer = producer()
-        }
+    val container: ConfluentKafkaContainer =
+        ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
+            .withNetwork(network)
+            .withNetworkAliases(kafkaNetworkAlias)
+            .waitingFor(HostPortWaitStrategy())
+            .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
+            .withLogConsumer(
+                Slf4jLogConsumer(log)
+                    .withPrefix(kafkaNetworkAlias)
+                    .withSeparateOutputStreams(),
+            )
+            .withEnv(
+                mutableMapOf(
+                    "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
+                    "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
+                    "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
+                    "TZ" to TimeZone.getDefault().id,
+                ),
+            )
+            .apply {
+                start()
+                adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
+                createTopics()
+                kafkaProducer = producer()
+            }
 
     fun envVars() =
         mapOf(
@@ -105,10 +107,10 @@ class KafkaContainer(
             status = status,
             sistOppdatert = sistOppdatert.toKotlinLocalDateTime(),
         )
-        TestContainerHelper.kafka.sendOgVent(
+        sendOgVentTilKonsumert(
             nøkkel = orgnr,
             melding = json.encodeToString(iaStatusOppdatering),
-            topic = KafkaTopics.SAK_STATUS,
+            topic = Topic.SAK_STATUS,
         )
     }
 
@@ -125,10 +127,10 @@ class KafkaContainer(
                     .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
             }
 
-        sendOgVent(
+        sendOgVentTilKonsumert(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = KafkaTopics.SPØRREUNDERSØKELSE,
+            topic = Topic.SPØRREUNDERSØKELSE,
         )
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
@@ -155,10 +157,10 @@ class KafkaContainer(
                     .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
             }
 
-        sendOgVent(
+        sendOgVentTilKonsumert(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = KafkaTopics.SPØRREUNDERSØKELSE,
+            topic = Topic.SPØRREUNDERSØKELSE,
         )
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
@@ -173,7 +175,7 @@ class KafkaContainer(
             spørsmålId = spørsmålId,
             antallSvar = antallSvar,
         )
-        sendOgVent(
+        sendOgVentTilKonsumert(
             nøkkel = Json.encodeToString(
                 SpørreundersøkelseOppdateringNøkkel(
                     spørreundersøkelseId,
@@ -181,7 +183,7 @@ class KafkaContainer(
                 ),
             ),
             melding = json.encodeToString(antallSvarDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
+            topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return antallSvarDto
     }
@@ -224,10 +226,10 @@ class KafkaContainer(
 
         val temaResultatDto = tema.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
 
-        sendOgVent(
+        sendOgVentTilKonsumert(
             nøkkel = nøkkel,
             melding = json.encodeToString(temaResultatDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
+            topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return temaResultatDto
     }
@@ -357,29 +359,24 @@ class KafkaContainer(
         },
     )
 
-    private fun sendOgVent(
+    private fun sendOgVentTilKonsumert(
         nøkkel: String,
         melding: String,
-        topic: KafkaTopics,
+        topic: Topic,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord(topic.navnMedNamespace, nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord(topic.navn, nøkkel, melding)).get()
             delay(timeMillis = 30L)
         }
     }
 
     private fun createTopics() {
-        adminClient.createTopics(
-            listOf(
-                NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort()),
-            ),
-        )
+        val newTopics = Topic.entries
+            .map { topic -> NewTopic(topic.navn, 1, 1.toShort()) }
+        adminClient.createTopics(newTopics)
     }
 
-    private fun KafkaContainer.producer(): KafkaProducer<String, String> =
+    private fun ConfluentKafkaContainer.producer(): KafkaProducer<String, String> =
         KafkaProducer(
             mapOf(
                 CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers,
@@ -395,17 +392,15 @@ class KafkaContainer(
             StringSerializer(),
         )
 
-    fun nyKonsument(topic: KafkaTopics) =
-        KafkaConfig(
+    fun nyKonsument(consumerGroupId: String) =
+        Kafka(
             brokers = container.bootstrapServers,
             truststoreLocation = "",
             keystoreLocation = "",
             credstorePassword = "",
         )
-            .consumerProperties(konsumentGruppe = topic.konsumentGruppe)
-            .let { config ->
-                KafkaConsumer(config, StringDeserializer(), StringDeserializer())
-            }
+            .consumerProperties(konsumentGruppe = consumerGroupId)
+            .let { config -> KafkaConsumer(config, StringDeserializer(), StringDeserializer()) }
 
     suspend fun ventOgKonsumerKafkaMeldinger(
         key: String,

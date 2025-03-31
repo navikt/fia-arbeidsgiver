@@ -15,8 +15,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
@@ -36,12 +36,13 @@ import kotlin.coroutines.CoroutineContext
 class SpørreundersøkelseKonsument(
     val spørreundersøkelseService: SpørreundersøkelseService,
     val applikasjonsHelse: ApplikasjonsHelse,
+    val kafka: Kafka,
 ) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
-    private val topic = KafkaTopics.SPØRREUNDERSØKELSE
+    private val topic = Topic.SPØRREUNDERSØKELSE
     private val kafkaConsumer = KafkaConsumer(
-        KafkaConfig().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
+        kafka.consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
         StringDeserializer(),
     )
@@ -59,8 +60,8 @@ class SpørreundersøkelseKonsument(
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf(topic.navnMedNamespace))
-                logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
+                consumer.subscribe(listOf(topic.navn))
+                logger.info("Kafka consumer subscribed to ${topic.navn}")
 
                 while (applikasjonsHelse.alive) {
                     try {

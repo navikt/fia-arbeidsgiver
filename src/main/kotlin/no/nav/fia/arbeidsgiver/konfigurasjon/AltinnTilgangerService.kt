@@ -26,6 +26,13 @@ class AltinnTilgangerService {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
 
     companion object {
+        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN = "5934:1"
+
+        fun AltinnTilganger?.harEnkeltTilgang(
+            orgnr: String?,
+            altinn2Tilgang: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+        ) = this?.orgNrTilTilganger?.get(orgnr)?.contains(altinn2Tilgang) ?: false
+
         fun AltinnTilganger?.harTilgangTilOrgnr(orgnr: String?): Boolean =
             this?.virksomheterVedkommendeHarTilgangTil()?.contains(orgnr) ?: false
 

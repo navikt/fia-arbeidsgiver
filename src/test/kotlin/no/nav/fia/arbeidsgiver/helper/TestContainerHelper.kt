@@ -20,6 +20,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBHEANDLER_GROUP_ID
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
@@ -44,42 +45,44 @@ import kotlin.io.path.Path
 
 class TestContainerHelper {
     companion object {
-        val log: Logger = LoggerFactory.getLogger(TestContainerHelper::class.java)
+        private val log: Logger = LoggerFactory.getLogger(TestContainerHelper::class.java)
         private val network: Network = Network.newNetwork()
 
-        val authServer = AuthContainer(network = network)
-        val kafka = KafkaContainer(network = network)
-        val valkey = ValkeyContainer(network = network)
-        val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network)
+        val authContainerHelper = AuthContainerHelper(network = network, log = log)
+        val kafka = KafkaContainerHelper(network = network, log = log)
+        val valkey = ValkeyContainer(network = network, log = log)
+        val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network, log = log)
 
         const val VERT_NAV_IDENT = "Z12345"
 
-        val applikasjon: GenericContainer<*> = GenericContainer(ImageFromDockerfile().withDockerfile(Path("./Dockerfile")))
-            .dependsOn(
-                altinnTilgangerContainerHelper.container,
-                authServer.container,
-                kafka.container,
-                valkey.container,
-            )
-            .withNetwork(network)
-            .withExposedPorts(8080)
-            .withCreateContainerCmdModifier { cmd -> cmd.withName("forebyggingsplan-${System.currentTimeMillis()}") }
-            .withLogConsumer(
-                Slf4jLogConsumer(log)
-                    .withPrefix("fiaArbeidsgiver")
-                    .withSeparateOutputStreams(),
-            )
-            .withEnv(
-                mapOf("NAIS_CLUSTER_NAME" to "lokal")
-                    .plus(authServer.envVars())
-                    .plus(kafka.envVars())
-                    .plus(valkey.envVars())
-                    .plus(altinnTilgangerContainerHelper.envVars()),
-            )
-            .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
-            .apply {
-                start()
-            }
+        val applikasjon: GenericContainer<*> =
+            GenericContainer(ImageFromDockerfile().withDockerfile(Path("./Dockerfile")))
+                .dependsOn(
+                    altinnTilgangerContainerHelper.container,
+                    authContainerHelper.container,
+                    kafka.container,
+                    valkey.container,
+                )
+                .withNetwork(network)
+                .withExposedPorts(8080)
+                .waitingFor(HttpWaitStrategy().forPath("/internal/isalive").withStartupTimeout(Duration.ofSeconds(20)))
+                .withCreateContainerCmdModifier { cmd -> cmd.withName("forebyggingsplan-${System.currentTimeMillis()}") }
+                .withLogConsumer(
+                    Slf4jLogConsumer(log)
+                        .withPrefix("fiaArbeidsgiver")
+                        .withSeparateOutputStreams(),
+                )
+                .withEnv(
+                    mapOf(
+                        "CONSUMER_LOOP_DELAY" to "1",
+                        "NAIS_CLUSTER_NAME" to "lokal",
+                    )
+                        .plus(authContainerHelper.envVars())
+                        .plus(kafka.envVars())
+                        .plus(valkey.envVars())
+                        .plus(altinnTilgangerContainerHelper.envVars()),
+                )
+                .apply { start() }
 
         internal fun tokenXAccessToken(
             subject: String = "123",
@@ -88,7 +91,7 @@ class TestContainerHelper {
                 "acr" to "Level4",
                 "pid" to subject,
             ),
-        ) = authServer.issueToken(
+        ) = authContainerHelper.issueToken(
             subject = subject,
             audience = audience,
             claims = claims,
@@ -100,9 +103,9 @@ class TestContainerHelper {
             audience: String = "azure:fia-arbeidsgiver",
             claims: Map<String, Any> = mapOf(
                 "NAVident" to VERT_NAV_IDENT,
-                "groups" to listOf(AuthContainer.SAKSBHEANDLER_GROUP_ID),
+                "groups" to listOf(SAKSBHEANDLER_GROUP_ID),
             ),
-        ) = authServer.issueToken(
+        ) = authContainerHelper.issueToken(
             subject = subject,
             audience = audience,
             claims = claims,
@@ -162,9 +165,7 @@ internal suspend inline fun <reified T> GenericContainer<*>.performPost(
 }
 
 internal suspend fun GenericContainer<*>.hentFørsteSpørsmål(bliMedDTO: BliMedDto): IdentifiserbartSpørsmålDto {
-    val response = performGet(
-        url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}",
-    ) {
+    val response = performGet(url = "$DELTAKER_BASEPATH/${bliMedDTO.spørreundersøkelseId}") {
         header(HEADER_SESJON_ID, bliMedDTO.sesjonsId)
     }
 

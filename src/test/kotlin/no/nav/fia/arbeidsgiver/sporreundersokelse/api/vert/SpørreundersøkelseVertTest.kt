@@ -12,8 +12,8 @@ import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.authContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
@@ -32,7 +32,7 @@ import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
 import no.nav.fia.arbeidsgiver.helper.vertHenterSpørreundersøkelseKontekst
 import no.nav.fia.arbeidsgiver.helper.vertHenterVirksomhetsnavn
 import no.nav.fia.arbeidsgiver.helper.åpneTema
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
@@ -47,8 +47,8 @@ import java.util.UUID
 import kotlin.test.Test
 
 class SpørreundersøkelseVertTest {
-    private val spørreundersøkelseHendelseKonsument =
-        kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE)
+    private val topic = Topic.SPØRREUNDERSØKELSE_HENDELSE
+    private val konsument = kafka.nyKonsument(consumerGroupId = topic.konsumentGruppe)
 
     companion object {
         const val TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR = 1
@@ -56,13 +56,13 @@ class SpørreundersøkelseVertTest {
 
     @Before
     fun setUp() {
-        spørreundersøkelseHendelseKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navnMedNamespace))
+        konsument.subscribe(mutableListOf(topic.navn))
     }
 
     @After
     fun tearDown() {
-        spørreundersøkelseHendelseKonsument.unsubscribe()
-        spørreundersøkelseHendelseKonsument.close()
+        konsument.unsubscribe()
+        konsument.close()
     }
 
     @Test
@@ -85,7 +85,7 @@ class SpørreundersøkelseVertTest {
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authServer.issueToken(
+                    value = authContainerHelper.issueToken(
                         audience = "azure:fia-arbeidsgiver",
                         issuerId = "azure",
                         claims = mapOf(
@@ -110,7 +110,7 @@ class SpørreundersøkelseVertTest {
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authServer.issueToken(
+                    value = authContainerHelper.issueToken(
                         issuerId = "azure",
                         audience = "azure:fia-arbeidsgiver-frontend",
                     ).serialize(),
@@ -373,8 +373,9 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = temaId,
             )
+
             val stengTema = StengTema(spørreundersøkelseId.toString(), temaId)
-            kafka.ventOgKonsumerKafkaMeldinger(stengTema.tilNøkkel(), spørreundersøkelseHendelseKonsument) { meldinger ->
+            kafka.ventOgKonsumerKafkaMeldinger(stengTema.tilNøkkel(), konsument) { meldinger ->
                 meldinger.forAll {
                     it.toInt() shouldBe temaId
                 }
@@ -411,6 +412,7 @@ class SpørreundersøkelseVertTest {
             antallSvarPerSpørsmål = svarPerSpørsmål,
             tema = spørreundersøkelse.temaer.first(),
         )
+
         runBlocking {
             val resultatRespons = applikasjon.hentResultater(
                 temaId = spørreundersøkelse.temaer.first().id,
@@ -429,6 +431,7 @@ class SpørreundersøkelseVertTest {
     fun `vert skal kunne åpne ett tema`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+
         runBlocking {
             val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val førsteSpørsmål = applikasjon.hentFørsteSpørsmål(bliMedDTO)
@@ -458,16 +461,19 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = tema.id,
             )
+
             kafka.sendAntallSvar(
                 spørreundersøkelseId = spørreundersøkelseId.toString(),
                 spørsmålId = tema.spørsmål.first().id.toString(),
                 antallSvar = 5,
             )
+
             var antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             antallDeltakereSomHarFullførtTema shouldBe 0
+
             tema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -475,6 +481,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
+
             antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
@@ -496,6 +503,7 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteTema.id,
             )
+
             førsteTema.spørsmål.forEachIndexed { index, spørsmål ->
                 kafka.sendAntallSvar(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -525,6 +533,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
+
             val antallDeltakereSomHarFullført = applikasjon.hentAntallSvarForSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
@@ -540,6 +549,7 @@ class SpørreundersøkelseVertTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = AVSLUTTET),
         ).tilDomene()
+
         runBlocking {
             val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,

@@ -1,12 +1,10 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.log
 import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
 import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -15,7 +13,7 @@ import org.testcontainers.utility.DockerImageName
 
 class AltinnTilgangerContainerHelper(
     network: Network = Network.newNetwork(),
-    logger: Logger = LoggerFactory.getLogger(AltinnTilgangerContainerHelper::class.java),
+    private val log: Logger,
 ) {
     companion object {
         const val ALTINN_ORGNR_1 = "311111111"
@@ -31,7 +29,7 @@ class AltinnTilgangerContainerHelper(
         .withNetwork(network)
         .withNetworkAliases(networkAlias)
         .withExposedPorts(port)
-        .withLogConsumer(Slf4jLogConsumer(logger).withPrefix(networkAlias).withSeparateOutputStreams())
+        .withLogConsumer(Slf4jLogConsumer(log).withPrefix(networkAlias).withSeparateOutputStreams())
         .withEnv(
             mapOf(
                 "MOCKSERVER_LIVENESS_HTTP_GET_PATH" to "/isRunning",
@@ -43,7 +41,7 @@ class AltinnTilgangerContainerHelper(
         .apply {
             start()
         }.also {
-            logger.info("Startet (mock) altinnTilganger container for network '$network' og port '$port'")
+            log.info("Startet (mock) altinnTilganger container for network '$network' og port '$port'")
         }
 
     fun envVars() =

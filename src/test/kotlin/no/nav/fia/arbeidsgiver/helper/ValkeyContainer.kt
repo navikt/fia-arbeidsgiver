@@ -4,6 +4,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.jedisPool
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.valkey.ValkeyService
+import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -13,6 +14,7 @@ private const val VALKEY_PORT = 6379
 
 class ValkeyContainer(
     network: Network,
+    log: Logger,
 ) {
     private val networkAlias = "valkeyContainer"
     val container: GenericContainer<*> = GenericContainer(
@@ -20,7 +22,11 @@ class ValkeyContainer(
     )
         .withNetwork(network)
         .withNetworkAliases(networkAlias)
-        .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix(networkAlias).withSeparateOutputStreams())
+        .withLogConsumer(
+            Slf4jLogConsumer(log)
+                .withPrefix(networkAlias)
+                .withSeparateOutputStreams(),
+        )
         .withExposedPorts(VALKEY_PORT)
         .withEnv(
             mapOf(

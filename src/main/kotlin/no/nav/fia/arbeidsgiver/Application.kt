@@ -5,6 +5,7 @@ import io.ktor.server.engine.embeddedServer
 import io.ktor.server.netty.Netty
 import no.nav.fia.arbeidsgiver.konfigurasjon.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.konfigurasjon.jedisPool
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureMonitoring
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureRouting
@@ -22,13 +23,29 @@ import java.util.concurrent.TimeUnit
 fun main() {
     val applikasjonsHelse = ApplikasjonsHelse()
 
+    val kafka = Kafka()
     val jedisPool = jedisPool()
-    val valkeyService = ValkeyService(jedisPool)
     val altinnTilgangerService = AltinnTilgangerService()
+    val valkeyService = ValkeyService(jedisPool = jedisPool)
+    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService = valkeyService)
 
-    FiaStatusKonsument(SamarbeidsstatusService(valkeyService), applikasjonsHelse).run()
-    SpørreundersøkelseKonsument(SpørreundersøkelseService(valkeyService), applikasjonsHelse).run()
-    SpørreundersøkelseOppdateringKonsument(SpørreundersøkelseService(valkeyService), applikasjonsHelse).run()
+    SpørreundersøkelseKonsument(
+        spørreundersøkelseService = spørreundersøkelseService,
+        applikasjonsHelse = applikasjonsHelse,
+        kafka = kafka,
+    ).run()
+
+    SpørreundersøkelseOppdateringKonsument(
+        spørreundersøkelseService = spørreundersøkelseService,
+        applikasjonsHelse = applikasjonsHelse,
+        kafka = kafka,
+    ).run()
+
+    FiaStatusKonsument(
+        samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService),
+        applikasjonsHelse = applikasjonsHelse,
+        kafka = kafka,
+    ).run()
 
     embeddedServer(
         factory = Netty,
@@ -39,6 +56,7 @@ fun main() {
             valkeyService = valkeyService,
             applikasjonsHelse = applikasjonsHelse,
             altinnTilgangerService = altinnTilgangerService,
+            spørreundersøkelseService = spørreundersøkelseService,
         )
     }.also {
         applikasjonsHelse.ready = true
@@ -57,10 +75,16 @@ fun Application.configure(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
     altinnTilgangerService: AltinnTilgangerService,
+    spørreundersøkelseService: SpørreundersøkelseService,
 ) {
     configureMonitoring()
     configureSerialization()
     configureSecurity()
     configureStatusPages()
-    configureRouting(valkeyService = valkeyService, applikasjonsHelse = applikasjonsHelse, altinnTilgangerService = altinnTilgangerService)
+    configureRouting(
+        valkeyService = valkeyService,
+        applikasjonsHelse = applikasjonsHelse,
+        altinnTilgangerService = altinnTilgangerService,
+        spørreundersøkelseService = spørreundersøkelseService,
+    )
 }

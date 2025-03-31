@@ -24,8 +24,8 @@ fun Application.configureRouting(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
     altinnTilgangerService: AltinnTilgangerService,
+    spørreundersøkelseService: SpørreundersøkelseService,
 ) {
-    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService)
     routing {
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 
