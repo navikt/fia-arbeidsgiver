@@ -39,8 +39,8 @@ spec:
           namespace: pia
     outbound:
       rules:
-        - application: altinn-rettigheter-proxy
-          namespace: arbeidsgiver
+        - application: arbeidsgiver-altinn-tilganger
+          namespace: fager
   valkey:
     - instance: fia-samarbeidsstatus
       access: readwrite
