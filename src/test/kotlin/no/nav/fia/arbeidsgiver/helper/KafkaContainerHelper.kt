@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
+import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
@@ -41,10 +41,10 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
 import org.slf4j.Logger
-import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.HostPortWaitStrategy
+import org.testcontainers.kafka.ConfluentKafkaContainer
 import org.testcontainers.utility.DockerImageName
 import java.time.Duration
 import java.time.LocalDateTime
@@ -62,35 +62,37 @@ class KafkaContainerHelper(
         ignoreUnknownKeys = true
     }
 
-    val container: KafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
-        .withNetwork(network)
-        .withNetworkAliases(kafkaNetworkAlias)
-        .waitingFor(HostPortWaitStrategy())
-        .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
-        .withLogConsumer(
-            Slf4jLogConsumer(log)
-                .withPrefix(kafkaNetworkAlias)
-                .withSeparateOutputStreams(),
-        )
-        .withEnv(
-            mutableMapOf(
-                "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
-                "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
-                "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
-                "TZ" to TimeZone.getDefault().id,
-            ),
-        )
-        .withKraft()
-        .apply {
-            start()
-            adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
-            createTopics()
-            kafkaProducer = producer()
-        }
+    private val port = 9093
+
+    val container: ConfluentKafkaContainer =
+        ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
+            .withNetwork(network)
+            .withNetworkAliases(kafkaNetworkAlias)
+            .waitingFor(HostPortWaitStrategy())
+            .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
+            .withLogConsumer(
+                Slf4jLogConsumer(log)
+                    .withPrefix(kafkaNetworkAlias)
+                    .withSeparateOutputStreams(),
+            )
+            .withEnv(
+                mutableMapOf(
+                    "KAFKA_LOG4J_LOGGERS" to "org.apache.kafka.image.loader.MetadataLoader=WARN",
+                    "KAFKA_AUTO_LEADER_REBALANCE_ENABLE" to "false",
+                    "KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS" to "1",
+                    "TZ" to TimeZone.getDefault().id,
+                ),
+            )
+            .apply {
+                start()
+                adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
+                createTopics()
+                kafkaProducer = producer()
+            }
 
     fun envVars() =
         mapOf(
-            "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
+            "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:$port,PLAINTEXT://$kafkaNetworkAlias:$port",
             "KAFKA_TRUSTSTORE_PATH" to "",
             "KAFKA_KEYSTORE_PATH" to "",
             "KAFKA_CREDSTORE_PASSWORD" to "",
@@ -371,17 +373,12 @@ class KafkaContainerHelper(
     }
 
     private fun createTopics() {
-        adminClient.createTopics(
-            listOf(
-                NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort()),
-                NewTopic(Topic.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-                NewTopic(Topic.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
-                NewTopic(Topic.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort()),
-            ),
-        )
+        val newTopics = Topic.entries
+            .map { topic -> NewTopic(topic.navn, 1, 1.toShort()) }
+        adminClient.createTopics(newTopics)
     }
 
-    private fun KafkaContainer.producer(): KafkaProducer<String, String> =
+    private fun ConfluentKafkaContainer.producer(): KafkaProducer<String, String> =
         KafkaProducer(
             mapOf(
                 CommonClientConfigs.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers,
@@ -405,9 +402,7 @@ class KafkaContainerHelper(
             credstorePassword = "",
         )
             .consumerProperties(konsumentGruppe = consumerGroupId)
-            .let { config ->
-                KafkaConsumer(config, StringDeserializer(), StringDeserializer())
-            }
+            .let { config -> KafkaConsumer(config, StringDeserializer(), StringDeserializer()) }
 
     suspend fun ventOgKonsumerKafkaMeldinger(
         key: String,

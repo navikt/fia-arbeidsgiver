@@ -30,7 +30,5 @@ internal object Miljø {
     val saksbehandlerGruppe: String = System.getenv("FIA_SAKSBEHANDLER_GROUP_ID")
     val superbrukerGruppe: String = System.getenv("FIA_SUPERBRUKER_GROUP_ID")
 
-    // -- Altinn
-    val altinnProxyUrl: String = System.getenv("ALTINN_RETTIGHETER_PROXY_URL")
-    val altinnRettigheterProxyClientId: String = System.getenv("ALTINN_RETTIGHETER_PROXY_CLIENT_ID")
+    val altinnTilgangerProxyUrl: String by lazy { System.getenv("ALTINN_TILGANGER_PROXY_URL") }
 }
