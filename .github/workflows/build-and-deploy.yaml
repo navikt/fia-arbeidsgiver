@@ -70,7 +70,7 @@ jobs:
       id-token: write
     name: Deploy branch to dev
     needs: build
-    if: github.ref == 'refs/heads/valkey'
+    if: github.ref == 'refs/heads/ta-i-bruk-altinn-tilganger'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
