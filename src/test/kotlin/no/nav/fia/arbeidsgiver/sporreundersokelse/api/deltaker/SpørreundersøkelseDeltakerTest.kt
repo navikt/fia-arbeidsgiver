@@ -36,18 +36,18 @@ import kotlin.test.Test
 import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
-    private val spørreundersøkelseSvarKonsument =
-        kafka.nyKonsument(topic = Topic.SPØRREUNDERSØKELSE_SVAR)
+    private val topic = Topic.SPØRREUNDERSØKELSE_SVAR
+    private val konsument = kafka.nyKonsument(consumerGroupId = topic.konsumentGruppe)
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(Topic.SPØRREUNDERSØKELSE_SVAR.navn))
+        konsument.subscribe(mutableListOf(topic.navn))
     }
 
     @After
     fun tearDown() {
-        spørreundersøkelseSvarKonsument.unsubscribe()
-        spørreundersøkelseSvarKonsument.close()
+        konsument.unsubscribe()
+        konsument.close()
     }
 
     @Test
@@ -313,7 +313,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument,
+                konsument = konsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)
@@ -437,7 +437,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.ventOgKonsumerKafkaMeldinger(
                 key = "${bliMedDTO.sesjonsId}_${spørsmål?.id}",
-                konsument = spørreundersøkelseSvarKonsument,
+                konsument = konsument,
             ) { meldinger ->
                 val deserialiserteSvar = meldinger.map {
                     Json.decodeFromString<SpørreundersøkelseSvarDTO>(it)

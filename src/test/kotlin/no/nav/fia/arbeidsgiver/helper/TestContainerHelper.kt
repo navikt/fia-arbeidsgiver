@@ -48,7 +48,10 @@ class TestContainerHelper {
         val network = Network.newNetwork()
 
         val authServer = AuthContainer(network)
-        val kafka = KafkaContainer(network)
+        val kafka = KafkaContainerHelper(
+            network = network,
+            log = log,
+        )
         val valkey = ValkeyContainer(network)
         val altinnProxy = AltinnProxyContainer()
 
@@ -64,7 +67,7 @@ class TestContainerHelper {
                 .withEnv(
                     authServer.getEnv() +
                         altinnProxy.getEnv() +
-                        kafka.getEnv() +
+                        kafka.envVars() +
                         valkey.getEnv() +
                         mapOf(
                             "NAIS_CLUSTER_NAME" to "lokal",

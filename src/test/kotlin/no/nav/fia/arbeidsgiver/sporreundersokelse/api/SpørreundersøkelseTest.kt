@@ -22,7 +22,7 @@ import kotlin.test.Test
 
 class SpørreundersøkelseTest {
     private val topic = Topic.SPØRREUNDERSØKELSE_SVAR
-    private val konsument = TestContainerHelper.kafka.nyKonsument(topic = topic)
+    private val konsument = TestContainerHelper.kafka.nyKonsument(consumerGroupId = topic.konsumentGruppe)
 
     @Before
     fun setUp() {

@@ -48,7 +48,7 @@ import kotlin.test.Test
 
 class SpørreundersøkelseVertTest {
     private val topic = Topic.SPØRREUNDERSØKELSE_HENDELSE
-    private val konsument = kafka.nyKonsument(topic = topic)
+    private val konsument = kafka.nyKonsument(consumerGroupId = topic.konsumentGruppe)
 
     companion object {
         const val TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR = 1

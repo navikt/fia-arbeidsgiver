@@ -10,6 +10,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
@@ -39,6 +40,7 @@ import org.apache.kafka.clients.producer.ProducerRecord
 import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.kafka.common.serialization.StringSerializer
+import org.slf4j.Logger
 import org.testcontainers.containers.KafkaContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -49,8 +51,9 @@ import java.time.LocalDateTime
 import java.util.TimeZone
 import java.util.UUID
 
-class KafkaContainer(
+class KafkaContainerHelper(
     network: Network,
+    log: Logger,
 ) {
     private val kafkaNetworkAlias = "kafkaContainer"
     private var adminClient: AdminClient
@@ -59,14 +62,15 @@ class KafkaContainer(
         ignoreUnknownKeys = true
     }
 
-    val container: KafkaContainer = KafkaContainer(
-        DockerImageName.parse("confluentinc/cp-kafka:7.6.0"),
-    )
-        .withKraft()
+    val container: KafkaContainer = KafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
         .withNetwork(network)
         .withNetworkAliases(kafkaNetworkAlias)
+        .waitingFor(HostPortWaitStrategy())
+        .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
         .withLogConsumer(
-            Slf4jLogConsumer(TestContainerHelper.log).withPrefix(kafkaNetworkAlias).withSeparateOutputStreams(),
+            Slf4jLogConsumer(log)
+                .withPrefix(kafkaNetworkAlias)
+                .withSeparateOutputStreams(),
         )
         .withEnv(
             mutableMapOf(
@@ -76,8 +80,7 @@ class KafkaContainer(
                 "TZ" to TimeZone.getDefault().id,
             ),
         )
-        .withCreateContainerCmdModifier { cmd -> cmd.withName("$kafkaNetworkAlias-${System.currentTimeMillis()}") }
-        .waitingFor(HostPortWaitStrategy())
+        .withKraft()
         .apply {
             start()
             adminClient = AdminClient.create(mapOf(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG to this.bootstrapServers))
@@ -85,7 +88,7 @@ class KafkaContainer(
             kafkaProducer = producer()
         }
 
-    fun getEnv() =
+    fun envVars() =
         mapOf(
             "KAFKA_BROKERS" to "BROKER://$kafkaNetworkAlias:9092,PLAINTEXT://$kafkaNetworkAlias:9092",
             "KAFKA_TRUSTSTORE_PATH" to "",
@@ -104,7 +107,7 @@ class KafkaContainer(
             status = status,
             sistOppdatert = sistOppdatert.toKotlinLocalDateTime(),
         )
-        TestContainerHelper.kafka.sendOgVent(
+        sendOgVent(
             nøkkel = orgnr,
             melding = json.encodeToString(iaStatusOppdatering),
             topic = Topic.SAK_STATUS,
@@ -242,8 +245,8 @@ class KafkaContainer(
 
     fun enStandardSpørreundersøkelse(
         id: UUID,
-        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
-        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        orgnummer: String = ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn $ALTINN_ORGNR_1",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
         flervalg: Boolean = false,
@@ -299,8 +302,8 @@ class KafkaContainer(
 
     fun enStandardEvaluering(
         id: UUID,
-        orgnummer: String = AltinnProxyContainer.ALTINN_ORGNR_1,
-        virksomhetsNavn: String = "Navn ${AltinnProxyContainer.ALTINN_ORGNR_1}",
+        orgnummer: String = ALTINN_ORGNR_1,
+        virksomhetsNavn: String = "Navn $ALTINN_ORGNR_1",
         spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Arbeidsmiljø"),
         flervalg: Boolean = false,
@@ -394,14 +397,14 @@ class KafkaContainer(
             StringSerializer(),
         )
 
-    fun nyKonsument(topic: Topic) =
+    fun nyKonsument(consumerGroupId: String) =
         Kafka(
             brokers = container.bootstrapServers,
             truststoreLocation = "",
             keystoreLocation = "",
             credstorePassword = "",
         )
-            .consumerProperties(konsumentGruppe = topic.konsumentGruppe)
+            .consumerProperties(konsumentGruppe = consumerGroupId)
             .let { config ->
                 KafkaConsumer(config, StringDeserializer(), StringDeserializer())
             }
