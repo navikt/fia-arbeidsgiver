@@ -29,12 +29,13 @@ import kotlin.coroutines.CoroutineContext
 class SpørreundersøkelseOppdateringKonsument(
     val spørreundersøkelseService: SpørreundersøkelseService,
     val applikasjonsHelse: ApplikasjonsHelse,
+    val kafka: Kafka,
 ) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING
     private val kafkaConsumer = KafkaConsumer(
-        Kafka().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
+        kafka.consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
         StringDeserializer(),
     )

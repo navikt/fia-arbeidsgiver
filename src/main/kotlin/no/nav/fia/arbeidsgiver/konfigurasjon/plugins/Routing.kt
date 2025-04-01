@@ -22,8 +22,8 @@ import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 fun Application.configureRouting(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
+    spørreundersøkelseService: SpørreundersøkelseService,
 ) {
-    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService)
     routing {
         spørreundersøkelse(spørreundersøkelseService = spørreundersøkelseService)
 

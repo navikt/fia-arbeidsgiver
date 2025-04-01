@@ -24,12 +24,13 @@ import kotlin.coroutines.CoroutineContext
 class FiaStatusKonsument(
     val samarbeidsstatusService: SamarbeidsstatusService,
     val applikasjonsHelse: ApplikasjonsHelse,
+    val kafka: Kafka,
 ) : CoroutineScope {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = Topic.SAK_STATUS
     private val kafkaConsumer = KafkaConsumer(
-        Kafka().consumerProperties(konsumentGruppe = topic.konsumentGruppe),
+        kafka.consumerProperties(konsumentGruppe = topic.konsumentGruppe),
         StringDeserializer(),
         StringDeserializer(),
     )
