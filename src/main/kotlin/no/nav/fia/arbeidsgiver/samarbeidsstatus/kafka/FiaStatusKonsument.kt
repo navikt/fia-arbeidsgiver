@@ -51,7 +51,7 @@ class FiaStatusKonsument(
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
+                        logger.debug("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
                         records.forEach { record ->
                             try {
@@ -61,7 +61,7 @@ class FiaStatusKonsument(
                                 logger.error("Mottok feil formatert kafkamelding")
                             }
                         }
-                        logger.info("Lagret ${records.count()} meldinger i topic: ${topic.navn}")
+                        logger.debug("Lagret ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
                         logger.info("FiaStatusKonsument is shutting down")
                     } catch (e: RetriableException) {

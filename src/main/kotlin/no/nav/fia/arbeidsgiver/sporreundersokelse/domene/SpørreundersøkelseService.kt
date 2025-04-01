@@ -59,9 +59,8 @@ class SpørreundersøkelseService(
     }
 
     fun slett(spørreundersøkelse: SerializableSpørreundersøkelse) {
-        logger.info("Sletter spørreundersøkelse med id: '${spørreundersøkelse.id}'")
         listOf(Type.SPØRREUNDERSØKELSE, Type.ANTALL_DELTAKERE).forEach {
-            logger.info("Sletter type '$it' for spørreundersøkelse med id: '${spørreundersøkelse.id}'")
+            logger.debug("Sletter type '{}' for spørreundersøkelse med id: '{}'", it, spørreundersøkelse.id)
             valkeyService.slett(it, spørreundersøkelse.id)
         }
     }
@@ -88,7 +87,7 @@ class SpørreundersøkelseService(
             feilkode = HttpStatusCode.Forbidden,
         )
 
-        logger.info("Hentet spørreundersøkelse med id '${undersøkelse.id}' og status '${undersøkelse.status}'")
+        logger.debug("Hentet spørreundersøkelse med id '{}' og status '{}'", undersøkelse.id, undersøkelse.status)
         return undersøkelse
     }
 
@@ -149,7 +148,7 @@ class SpørreundersøkelseService(
                 feilmelding = "Ingen resultater for tema '$temaId' i spørreundersøkelse '$spørreundersøkelseId'",
                 feilkode = HttpStatusCode.Forbidden,
             )
-        logger.info("Hentet resultater for tema med id '$temaId med id '$spørreundersøkelseId'")
+        logger.debug("Hentet resultater for tema med id '{} med id '{}'", temaId, spørreundersøkelseId)
         return resultater
     }
 

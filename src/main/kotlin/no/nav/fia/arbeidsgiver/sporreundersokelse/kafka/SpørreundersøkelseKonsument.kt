@@ -67,7 +67,7 @@ class SpørreundersøkelseKonsument(
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
+                        logger.debug("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
                         records.forEach { record ->
                             try {
@@ -75,14 +75,14 @@ class SpørreundersøkelseKonsument(
                                     json.decodeFromString<SerializableSpørreundersøkelse>(
                                         record.value(),
                                     )
-                                logger.info("Mottok spørreundersøkelse med type: '${spørreundersøkelse.type}'")
+                                logger.debug("Mottok spørreundersøkelse med type: '${spørreundersøkelse.type}'")
                                 when (spørreundersøkelse.type) {
                                     "Evaluering", "Behovsvurdering" -> {
                                         if (spørreundersøkelse.status == SLETTET) {
                                             logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.id}")
                                             spørreundersøkelseService.slett(spørreundersøkelse)
                                         } else {
-                                            logger.info("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.id}")
+                                            logger.debug("Lagrer spørreundersøkelse med id: ${spørreundersøkelse.id}")
                                             spørreundersøkelseService.lagre(spørreundersøkelse)
                                         }
                                     }
@@ -94,7 +94,7 @@ class SpørreundersøkelseKonsument(
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
                         }
-                        logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
+                        logger.debug("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
                         logger.info("SpørreundersøkelseKonsument is shutting down")
                     } catch (e: RetriableException) {
