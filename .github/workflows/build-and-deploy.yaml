@@ -1,6 +1,10 @@
 name: Build and deploy fia-arbeidsgiver
 on: [ push ]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions: {}
 
 jobs:
@@ -17,7 +21,8 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-      - uses: gradle/actions/setup-gradle@v4
+      - name: Setup Gradle to generate and submit dependency graphs
+        uses: gradle/actions/setup-gradle@v4
         with:
           dependency-graph: generate-and-submit
       - name: Compile, run tests and build
@@ -33,7 +38,9 @@ jobs:
         id: docker-push
         with:
           team: pia
-          tag: latest
+          tag: ${{ github.ref == 'refs/heads/main' && 'latest' || 'branch_latest' }}
+          platforms: linux/amd64,linux/arm64
+          salsa: true
     outputs:
       image: ${{ steps.docker-push.outputs.image }}
 
@@ -53,27 +60,28 @@ jobs:
       - name: Deploy application to ${{ matrix.cluster }}
         uses: nais/deploy/actions/deploy@v2
         env:
+          IMAGE: ${{ needs.build.outputs.image }}
           CLUSTER: ${{ matrix.cluster }}-gcp
           RESOURCE: .nais/nais.yaml
           VARS: .nais/${{ matrix.cluster }}.yaml
-          VAR: image=${{ needs.build.outputs.image }}
 
-  deploy-dev:
+  deploy-branch-to-dev:
     permissions:
       id-token: write
-    name: Deploy app to dev
+    name: Deploy branch to dev
     needs: build
     if: github.ref == 'refs/heads/valkey'
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - name: Deploy application to dev
+      - name: Deploy app to dev
         uses: nais/deploy/actions/deploy@v2
         env:
+          IMAGE: ${{ needs.build.outputs.image }}
           CLUSTER: dev-gcp
           RESOURCE: .nais/nais.yaml
           VARS: .nais/dev.yaml
-          VAR: image=${{ needs.build.outputs.image }}
 
   trivy-scan:
     name: Scanner docker image med Trivy
