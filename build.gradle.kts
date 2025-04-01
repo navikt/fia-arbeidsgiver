@@ -1,10 +1,12 @@
 val ktorVersion = "3.1.1"
+val kafkClientVersion = "3.9.0"
 val kotlinVersion = "2.1.10"
 val logbackVersion = "1.5.17"
 val prometheusVersion = "1.14.4"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.20.6"
+val testMockServerVersion = "5.15.0"
 val valkeyVersion = "5.3.0"
 
 plugins {
@@ -41,6 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-apache:$ktorVersion")
+    implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
@@ -48,13 +51,10 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:3.9.0")
+    implementation("org.apache.kafka:kafka-clients:$kafkClientVersion")
 
     // Valkey client
     implementation("io.valkey:valkey-java:$valkeyVersion")
-
-    // altinn-klient
-    implementation("com.github.navikt:altinn-rettigheter-proxy-klient:altinn-rettigheter-proxy-klient-5.0.0")
 
     // JWT utilities
     implementation("com.nimbusds:nimbus-jose-jwt:10.0.2")
@@ -69,18 +69,36 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
+    testImplementation("org.testcontainers:mockserver:$testcontainersVersion")
+    testImplementation("org.mock-server:mockserver-client-java:$testMockServerVersion")
 
     testImplementation("org.wiremock:wiremock-standalone:3.12.1")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
-        implementation("commons-codec:commons-codec") {
+        testImplementation("com.google.guava:guava") {
             version {
-                require("1.18.0")
+                require("33.4.0-jre")
             }
-            because(
-                "altinn-rettigheter-proxy bruker codec 1.11 som har en sårbarhet",
-            )
+            because("Mockserver har sårbar guava versjon")
+        }
+        testImplementation("org.bouncycastle:bcprov-jdk18on") {
+            version {
+                require("1.80")
+            }
+            because("bcprov-jdk18on in Mockserver har sårbar versjon")
+        }
+        testImplementation("org.bouncycastle:bcpkix-jdk18on") {
+            version {
+                require("1.80")
+            }
+            because("bcpkix-jdk18on in Mockserver har sårbar versjon")
+        }
+        testImplementation("org.xmlunit:xmlunit-core") {
+            version {
+                require("2.10.0")
+            }
+            because("xmlunit-core in Mockserver har sårbar versjon")
         }
         implementation("net.minidev:json-smart") {
             version {
@@ -107,6 +125,17 @@ dependencies {
                 require("2.18.0")
             }
             because("testcontainers har sårbar versjon")
+        }
+        testImplementation("com.jayway.jsonpath:json-path") {
+            version {
+                require("2.9.0")
+            }
+            because(
+                """
+                json-path v2.8.0 was discovered to contain a stack overflow via the Criteria.parse() method.
+                introdusert gjennom io.kotest:kotest-assertions-json:5.8.0 (Mockserver)
+                """.trimIndent(),
+            )
         }
     }
 }

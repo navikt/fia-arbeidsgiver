@@ -60,10 +60,8 @@ spec:
         - id: loki
         - id: elastic
   env:
-    - name: ALTINN_RETTIGHETER_PROXY_CLIENT_ID
-      value: {{altinnRettigheterProxyClientId}}
-    - name: ALTINN_RETTIGHETER_PROXY_URL
-      value: "http://altinn-rettigheter-proxy.arbeidsgiver/altinn-rettigheter-proxy"
+    - name: ALTINN_TILGANGER_PROXY_URL
+      value: http://arbeidsgiver-altinn-tilganger.fager
     - name: BLI_MED_LIMIT
       value: "5"
     - name: GENERELL_LIMIT

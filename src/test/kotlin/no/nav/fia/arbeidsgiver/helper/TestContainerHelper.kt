@@ -51,13 +51,14 @@ class TestContainerHelper {
         val authContainerHelper = AuthContainerHelper(network = network, log = log)
         val kafka = KafkaContainerHelper(network = network, log = log)
         val valkey = ValkeyContainer(network = network, log = log)
-        val altinnProxy = AltinnProxyContainer()
+        val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network, log = log)
 
         const val VERT_NAV_IDENT = "Z12345"
 
         val applikasjon: GenericContainer<*> =
             GenericContainer(ImageFromDockerfile().withDockerfile(Path("./Dockerfile")))
                 .dependsOn(
+                    altinnTilgangerContainerHelper.container,
                     authContainerHelper.container,
                     kafka.container,
                     valkey.container,
@@ -77,7 +78,7 @@ class TestContainerHelper {
                         .plus(authContainerHelper.envVars())
                         .plus(kafka.envVars())
                         .plus(valkey.envVars())
-                        .plus(altinnProxy.envVars()),
+                        .plus(altinnTilgangerContainerHelper.envVars()),
                 )
                 .apply { start() }
 

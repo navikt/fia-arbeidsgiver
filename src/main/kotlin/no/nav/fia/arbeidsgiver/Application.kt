@@ -11,6 +11,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureRouting
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureSecurity
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureSerialization
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureStatusPages
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.kafka.FiaStatusKonsument
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
@@ -24,7 +25,7 @@ fun main() {
 
     val kafka = Kafka()
     val jedisPool = jedisPool()
-
+    val altinnTilgangerService = AltinnTilgangerService()
     val valkeyService = ValkeyService(jedisPool = jedisPool)
     val spørreundersøkelseService = SpørreundersøkelseService(valkeyService = valkeyService)
 
@@ -54,6 +55,7 @@ fun main() {
         configure(
             valkeyService = valkeyService,
             applikasjonsHelse = applikasjonsHelse,
+            altinnTilgangerService = altinnTilgangerService,
             spørreundersøkelseService = spørreundersøkelseService,
         )
     }.also {
@@ -72,6 +74,7 @@ fun main() {
 fun Application.configure(
     valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
+    altinnTilgangerService: AltinnTilgangerService,
     spørreundersøkelseService: SpørreundersøkelseService,
 ) {
     configureMonitoring()
@@ -81,6 +84,7 @@ fun Application.configure(
     configureRouting(
         valkeyService = valkeyService,
         applikasjonsHelse = applikasjonsHelse,
+        altinnTilgangerService = altinnTilgangerService,
         spørreundersøkelseService = spørreundersøkelseService,
     )
 }
