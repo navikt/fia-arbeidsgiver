@@ -11,6 +11,7 @@ import com.nimbusds.oauth2.sdk.id.ClientID
 import no.nav.security.mock.oauth2.OAuth2Config
 import no.nav.security.mock.oauth2.token.DefaultOAuth2TokenCallback
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
@@ -21,25 +22,26 @@ import java.util.UUID
 
 class AuthContainer(
     network: Network,
+    log: Logger,
 ) {
-    private val port = "6969"
+    private val port = 6969
     private val networkalias = "authserver"
     private val baseEndpointUrl = "http://$networkalias:$port"
     private val oAuth2Config = OAuth2Config()
 
     companion object {
-        val superbrukerGroupId = "ensuperbrukerGroupId"
-        val saksbehandlerGroupId = "ensaksbehandlerGroupId"
+        const val SUPERBRUKER_GROUP_ID = "ensuperbrukerGroupId"
+        const val SAKSBEHANDLER_GROUP_ID = "ensaksbehandlerGroupId"
     }
 
-    val container = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.2"))
+    val container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.2"))
         .withNetwork(network)
+        .withExposedPorts(port)
         .withNetworkAliases(networkalias)
-        .withLogConsumer(Slf4jLogConsumer(TestContainerHelper.log).withPrefix("authContainer").withSeparateOutputStreams())
-        .withExposedPorts(6969)
+        .withLogConsumer(Slf4jLogConsumer(log).withPrefix("authContainer").withSeparateOutputStreams())
         .withEnv(
             mapOf(
-                "SERVER_PORT" to port,
+                "SERVER_PORT" to "$port",
                 "TZ" to "Europe/Oslo",
             ),
         )
@@ -71,7 +73,7 @@ class AuthContainer(
         return oAuth2Config.tokenProvider.accessToken(tokenRequest, issuerUrl.toHttpUrl(), tokenCallback, null)
     }
 
-    fun getEnv() =
+    fun envVars() =
         mapOf(
             "TOKEN_X_CLIENT_ID" to "tokenx:fia-arbeidsgiver",
             "TOKEN_X_ISSUER" to "http://$networkalias:$port/tokenx",
@@ -97,7 +99,7 @@ class AuthContainer(
             "AZURE_APP_CLIENT_ID" to "azure:fia-arbeidsgiver",
             "AZURE_OPENID_CONFIG_ISSUER" to "http://$networkalias:$port/azure",
             "AZURE_OPENID_CONFIG_JWKS_URI" to "http://$networkalias:$port/azure/jwks",
-            "FIA_SUPERBRUKER_GROUP_ID" to superbrukerGroupId,
-            "FIA_SAKSBEHANDLER_GROUP_ID" to saksbehandlerGroupId,
+            "FIA_SUPERBRUKER_GROUP_ID" to SUPERBRUKER_GROUP_ID,
+            "FIA_SAKSBEHANDLER_GROUP_ID" to SAKSBEHANDLER_GROUP_ID,
         )
 }

@@ -24,8 +24,8 @@ fun main() {
     val kafka = Kafka()
     val jedisPool = jedisPool()
 
-    val valkeyService = ValkeyService(jedisPool)
-    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService)
+    val valkeyService = ValkeyService(jedisPool = jedisPool)
+    val spørreundersøkelseService = SpørreundersøkelseService(valkeyService = valkeyService)
 
     SpørreundersøkelseKonsument(
         spørreundersøkelseService = spørreundersøkelseService,

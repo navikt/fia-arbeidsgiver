@@ -52,7 +52,7 @@ class AltinnProxyContainer {
         Testcontainers.exposeHostPorts(it.port())
     }
 
-    fun getEnv() =
+    fun envVars() =
         mapOf(
             "ALTINN_RETTIGHETER_PROXY_URL" to "http://host.testcontainers.internal:${wireMock.port()}/altinn",
             "ALTINN_RETTIGHETER_PROXY_CLIENT_ID" to "hei",

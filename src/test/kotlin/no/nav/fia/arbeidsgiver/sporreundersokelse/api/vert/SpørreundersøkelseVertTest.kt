@@ -13,7 +13,7 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
@@ -70,7 +70,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
+            applikasjon.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
             }.status shouldBe HttpStatusCode.Unauthorized
@@ -82,12 +82,12 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
+            applikasjon.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authServer.issueToken(
+                    value = TestContainerHelper.authContainerHelper.issueToken(
                         audience = "azure:fia-arbeidsgiver",
                         issuerId = "azure",
                         claims = mapOf(
@@ -107,12 +107,12 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            fiaArbeidsgiverApi.performGet(
+            applikasjon.performGet(
                 url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authServer.issueToken(
+                    value = TestContainerHelper.authContainerHelper.issueToken(
                         issuerId = "azure",
                         audience = "azure:fia-arbeidsgiver-frontend",
                     ).serialize(),
@@ -127,7 +127,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.vertHenterVirksomhetsnavn(
+            applikasjon.vertHenterVirksomhetsnavn(
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe spørreundersøkelse.virksomhetsNavn
         }
@@ -139,7 +139,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+            val kontekst = applikasjon.vertHenterSpørreundersøkelseKontekst(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             kontekst.type shouldBe spørreundersøkelse.tilSpørreundersøkelseKontekstDto().type
@@ -154,7 +154,7 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendEvaluering(spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val kontekst = fiaArbeidsgiverApi.vertHenterSpørreundersøkelseKontekst(
+            val kontekst = applikasjon.vertHenterSpørreundersøkelseKontekst(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             kontekst.type shouldBe "Evaluering"
@@ -172,16 +172,16 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.vertHenterAntallDeltakere(
+            applikasjon.vertHenterAntallDeltakere(
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe 0
 
             val antallDeltakere = 5
             repeat(antallDeltakere) {
-                fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+                applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             }
 
-            fiaArbeidsgiverApi.vertHenterAntallDeltakere(
+            applikasjon.vertHenterAntallDeltakere(
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe antallDeltakere
         }
@@ -194,7 +194,7 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -224,12 +224,12 @@ class SpørreundersøkelseVertTest {
         )
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelseId,
             )
 
-            val temaer = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaer = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelseId,
             )
             temaer shouldHaveSize 2
@@ -247,11 +247,11 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -267,16 +267,16 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            fiaArbeidsgiverApi.stengTema(
+            applikasjon.stengTema(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
 
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -294,13 +294,13 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             spørreundersøkelse.temaer.forEach { tema ->
-                fiaArbeidsgiverApi.åpneTema(
+                applikasjon.åpneTema(
                     temaId = tema.id,
                     spørreundersøkelseId = spørreundersøkelse.id,
                 )
             }
 
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
@@ -328,7 +328,7 @@ class SpørreundersøkelseVertTest {
             spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
 
         runBlocking {
-            val temaDto = fiaArbeidsgiverApi.hentTemaDto(
+            val temaDto = applikasjon.hentTemaDto(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR,
             )
@@ -350,19 +350,19 @@ class SpørreundersøkelseVertTest {
                 spørsmålId = spørreundersøkelse.temaer.first().spørsmål.first().id.toString(),
             )
 
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 temaId = førsteSpørsmål.temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
 
-            fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+            applikasjon.hentAntallSvarForSpørsmål(
                 spørsmål = førsteSpørsmål,
                 spørreundersøkelseId = spørreundersøkelse.id,
             ) shouldBe 0
 
             (1..5).forEach { antallSvar ->
-                val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-                fiaArbeidsgiverApi.svarPåSpørsmål(
+                val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+                applikasjon.svarPåSpørsmål(
                     spørsmål = førsteSpørsmål,
                     svarIder = listOf(spørreundersøkelse.hentSpørsmålITema(førsteSpørsmål)?.svaralternativer?.first()?.id.toString()),
                     bliMedDTO = bliMedDTO,
@@ -374,7 +374,7 @@ class SpørreundersøkelseVertTest {
                     )
                 }
 
-                fiaArbeidsgiverApi.hentAntallSvarForSpørsmål(
+                applikasjon.hentAntallSvarForSpørsmål(
                     spørsmål = førsteSpørsmål,
                     spørreundersøkelseId = spørreundersøkelse.id,
                 ) shouldBe antallSvar
@@ -389,7 +389,7 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             val temaId = spørreundersøkelse.temaer.first().id
-            fiaArbeidsgiverApi.stengTema(
+            applikasjon.stengTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = temaId,
             )
@@ -411,12 +411,12 @@ class SpørreundersøkelseVertTest {
         val temaId = spørreundersøkelse.temaer.first().id
 
         runBlocking {
-            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+            val resultatRespons = applikasjon.hentResultater(
                 temaId = temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             resultatRespons.status shouldBe HttpStatusCode.Forbidden
-            fiaArbeidsgiverApi shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
+            applikasjon shouldContainLog "Ingen resultater for tema '$temaId'".toRegex()
         }
     }
 
@@ -434,7 +434,7 @@ class SpørreundersøkelseVertTest {
         )
 
         runBlocking {
-            val resultatRespons = fiaArbeidsgiverApi.hentResultater(
+            val resultatRespons = applikasjon.hentResultater(
                 temaId = spørreundersøkelse.temaer.first().id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             ).body<TemaResultatDto>()
@@ -453,18 +453,18 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            val førsteSpørsmål = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO)
-            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+            val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val førsteSpørsmål = applikasjon.hentFørsteSpørsmål(bliMedDTO)
+            applikasjon.hentSpørsmålSomDeltaker(
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål,
             ) shouldBe null
 
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteSpørsmål.temaId,
             )
-            fiaArbeidsgiverApi.hentSpørsmålSomDeltaker(
+            applikasjon.hentSpørsmålSomDeltaker(
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål,
             )?.spørsmål?.tekst shouldBe spørreundersøkelse.hentSpørsmålITema(førsteSpørsmål)?.tekst
@@ -478,7 +478,7 @@ class SpørreundersøkelseVertTest {
 
         runBlocking {
             val tema = spørreundersøkelse.temaer.first()
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = tema.id,
             )
@@ -489,7 +489,7 @@ class SpørreundersøkelseVertTest {
                 antallSvar = 5,
             )
 
-            var antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+            var antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
@@ -503,7 +503,7 @@ class SpørreundersøkelseVertTest {
                 )
             }
 
-            antallDeltakereSomHarFullførtTema = fiaArbeidsgiverApi.hentAntallSvarForTema(
+            antallDeltakereSomHarFullførtTema = applikasjon.hentAntallSvarForTema(
                 temaId = tema.id,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
@@ -521,7 +521,7 @@ class SpørreundersøkelseVertTest {
             val andreTema = spørreundersøkelse.temaer[1]
             val tredjeTema = spørreundersøkelse.temaer[2]
 
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteTema.id,
             )
@@ -533,7 +533,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = andreTema.id,
             )
@@ -544,7 +544,7 @@ class SpørreundersøkelseVertTest {
                     antallSvar = if (index == 1) 5 else 1,
                 )
             }
-            fiaArbeidsgiverApi.åpneTema(
+            applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = tredjeTema.id,
             )
@@ -556,7 +556,7 @@ class SpørreundersøkelseVertTest {
                 )
             }
 
-            val antallDeltakereSomHarFullført = fiaArbeidsgiverApi.hentAntallSvarForSpørreundersøkelse(
+            val antallDeltakereSomHarFullført = applikasjon.hentAntallSvarForSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             antallDeltakereSomHarFullført shouldBe 1
@@ -575,7 +575,7 @@ class SpørreundersøkelseVertTest {
         ).tilDomene()
 
         runBlocking {
-            val temaDtoList = fiaArbeidsgiverApi.vertHentOversikt(
+            val temaDtoList = applikasjon.vertHentOversikt(
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size

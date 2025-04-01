@@ -5,7 +5,7 @@ import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.valkey
@@ -37,7 +37,7 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog(
+            applikasjon.shouldContainLog(
                 "Mottok spørreundersøkelse med type: 'Evaluering'".toRegex(),
             )
 
@@ -58,7 +58,7 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, spørreundersøkelse = spørreundersøkelse)
 
         runBlocking {
-            fiaArbeidsgiverApi.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
+            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
             val behovsvurdering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             behovsvurdering.id shouldBe spørreundersøkelseId
             behovsvurdering.type shouldBe "Behovsvurdering"

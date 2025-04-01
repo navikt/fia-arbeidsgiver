@@ -26,7 +26,6 @@ class FiaStatusKonsument(
     val applikasjonsHelse: ApplikasjonsHelse,
     val kafka: Kafka,
 ) : CoroutineScope {
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val job: Job = Job()
     private val topic = Topic.SAK_STATUS
     private val kafkaConsumer = KafkaConsumer(
@@ -84,4 +83,8 @@ class FiaStatusKonsument(
             job.cancelAndJoin()
             logger.info("Stopped kafka consumer job for ${topic.navn}")
         }
+
+    companion object {
+        private val logger: Logger = LoggerFactory.getLogger(this::class.java)
+    }
 }

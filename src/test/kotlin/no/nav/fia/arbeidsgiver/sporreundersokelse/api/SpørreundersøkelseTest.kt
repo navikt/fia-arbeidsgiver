@@ -9,7 +9,7 @@ import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
@@ -41,7 +41,7 @@ class SpørreundersøkelseTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
+            val bliMedDTO = applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             bliMedDTO.spørreundersøkelseId shouldBe spørreundersøkelseId.toString()
             bliMedDTO.sesjonsId shouldHaveLength UUID.randomUUID().toString().length
         }
@@ -53,7 +53,7 @@ class SpørreundersøkelseTest {
         TestContainerHelper.kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            val response = fiaArbeidsgiverApi.performPost(
+            val response = applikasjon.performPost(
                 url = BLI_MED_PATH,
                 body = BliMedRequestMedUkjentFelt(
                     spørreundersøkelseId = spørreundersøkelseId.toString(),
@@ -74,12 +74,12 @@ class SpørreundersøkelseTest {
     @Test
     fun `returnerer BAD_REQUEST dersom UUID er feil formatert`() {
         runBlocking {
-            val response = fiaArbeidsgiverApi.performPost(
+            val response = applikasjon.performPost(
                 url = BLI_MED_PATH,
                 body = BliMedRequest(spørreundersøkelseId = "tullogtøys"),
             )
             response.status shouldBe HttpStatusCode.BadRequest
-            fiaArbeidsgiverApi shouldContainLog "Ugyldig formatert UUID".toRegex()
+            applikasjon shouldContainLog "Ugyldig formatert UUID".toRegex()
             val body = response.bodyAsText()
 
             body shouldBe ""
@@ -98,12 +98,12 @@ class SpørreundersøkelseTest {
         )
 
         runBlocking {
-            val bliMedRespons = fiaArbeidsgiverApi.performPost(
+            val bliMedRespons = applikasjon.performPost(
                 url = BLI_MED_PATH,
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             bliMedRespons.status shouldBe HttpStatusCode.Gone
-            fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
+            applikasjon shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
 
@@ -119,12 +119,12 @@ class SpørreundersøkelseTest {
         )
 
         runBlocking {
-            val bliMedRespons = fiaArbeidsgiverApi.performPost(
+            val bliMedRespons = applikasjon.performPost(
                 url = BLI_MED_PATH,
                 body = BliMedRequest(spørreundersøkelseId = spørreundersøkelseId.toString()),
             )
             bliMedRespons.status shouldBe HttpStatusCode.Forbidden
-            fiaArbeidsgiverApi shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
+            applikasjon shouldContainLog "Spørreundersøkelse med id '$spørreundersøkelseId'".toRegex()
         }
     }
 }

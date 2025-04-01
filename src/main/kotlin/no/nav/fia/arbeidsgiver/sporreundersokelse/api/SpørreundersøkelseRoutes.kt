@@ -2,7 +2,6 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.ApplicationCall
-import io.ktor.server.application.call
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
@@ -48,16 +47,13 @@ internal fun String.tilUUID(hvaErJeg: String) =
     }
 
 internal val ApplicationCall.spørreundersøkelseId
-    get() =
-        parameters["spørreundersøkelseId"]?.tilUUID("spørreundersøkelseId")
-            ?: throw Feil(feilmelding = "Mangler spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
+    get() = parameters["spørreundersøkelseId"]?.tilUUID("spørreundersøkelseId")
+        ?: throw Feil(feilmelding = "Mangler spørreundersøkelseId", feilkode = HttpStatusCode.BadRequest)
 
 internal val ApplicationCall.temaId
-    get() =
-        parameters["temaId"]?.toInt()
-            ?: throw Feil(feilmelding = "Mangler temaId", feilkode = HttpStatusCode.BadRequest)
+    get() = parameters["temaId"]?.toInt()
+        ?: throw Feil(feilmelding = "Mangler temaId", feilkode = HttpStatusCode.BadRequest)
 
 internal val ApplicationCall.spørsmålId
-    get() =
-        parameters["spørsmålId"]?.tilUUID("spørsmålId")
-            ?: throw Feil(feilmelding = "Mangler spørsmålId", feilkode = HttpStatusCode.BadRequest)
+    get() = parameters["spørsmålId"]?.tilUUID("spørsmålId")
+        ?: throw Feil(feilmelding = "Mangler spørsmålId", feilkode = HttpStatusCode.BadRequest)

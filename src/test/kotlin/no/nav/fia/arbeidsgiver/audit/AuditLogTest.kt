@@ -1,10 +1,10 @@
 package no.nav.fia.arbeidsgiver.audit
 
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGNR_1
+import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgiverApi
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.performGet
@@ -19,13 +19,12 @@ class AuditLogTest {
     @Test
     fun `det skal auditlogges (Permit) dersom man går mot status med gyldig token og altinn tilgang`() {
         runBlocking {
-            val orgnr = ALTINN_ORGNR_1
-            fiaArbeidsgiverApi.performGet("$SAMARBEIDSSTATUS_PATH/$orgnr", withTokenXToken())
-            fiaArbeidsgiverApi shouldContainLog auditLog(
+            applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1", withTokenXToken())
+            applikasjon shouldContainLog auditLog(
                 fnr = "123",
-                orgnummer = orgnr,
+                orgnummer = ALTINN_ORGNR_1,
                 tillat = "Permit",
-                uri = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                uri = "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1",
             )
         }
     }
@@ -33,16 +32,15 @@ class AuditLogTest {
     @Test
     fun `det skal auditlogges (Deny) dersom man går mot status med gyldig token uten altinn tilgang`() {
         runBlocking {
-            val orgnr = AltinnProxyContainer.ORGNR_UTEN_TILKNYTNING
-            fiaArbeidsgiverApi.performGet(
-                "$SAMARBEIDSSTATUS_PATH/$orgnr",
+            applikasjon.performGet(
+                "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING",
                 withTokenXToken(),
             )
-            fiaArbeidsgiverApi shouldContainLog auditLog(
+            applikasjon shouldContainLog auditLog(
                 fnr = "123",
-                orgnummer = orgnr,
+                orgnummer = ORGNR_UTEN_TILKNYTNING,
                 tillat = "Deny",
-                uri = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                uri = "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING",
             )
         }
     }
@@ -53,11 +51,11 @@ class AuditLogTest {
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
         val temaId = spørreundersøkelse.temaer.first().id
         runBlocking {
-            fiaArbeidsgiverApi.stengTema(
+            applikasjon.stengTema(
                 temaId = temaId,
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
-            fiaArbeidsgiverApi shouldContainLog auditLog(
+            applikasjon shouldContainLog auditLog(
                 fnr = TestContainerHelper.VERT_NAV_IDENT,
                 orgnummer = ALTINN_ORGNR_1,
                 tillat = "Permit",
