@@ -6,7 +6,7 @@ import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.Spørreunders
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument.SerializableSpørreundersøkelse
@@ -25,10 +25,10 @@ class SpørreundersøkelseService(
 ) {
     private val logger: Logger = LoggerFactory.getLogger(this::class.java)
     private val spørreundersøkelseSvarProdusent by lazy {
-        SpørreundersøkelseSvarProdusent(kafkaConfig = KafkaConfig())
+        SpørreundersøkelseSvarProdusent(kafka = Kafka())
     }
     private val spørreundersøkelseHendelseProdusent by lazy {
-        SpørreundersøkelseHendelseProdusent(kafkaConfig = KafkaConfig())
+        SpørreundersøkelseHendelseProdusent(kafka = Kafka())
     }
 
     fun lagre(spørreundersøkelse: SerializableSpørreundersøkelse) {

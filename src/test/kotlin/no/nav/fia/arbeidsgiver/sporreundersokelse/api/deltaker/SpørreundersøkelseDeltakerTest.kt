@@ -22,7 +22,7 @@ import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.åpneTema
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
@@ -37,11 +37,11 @@ import kotlin.test.assertNotNull
 
 class SpørreundersøkelseDeltakerTest {
     private val spørreundersøkelseSvarKonsument =
-        kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR)
+        kafka.nyKonsument(topic = Topic.SPØRREUNDERSØKELSE_SVAR)
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn))
+        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(Topic.SPØRREUNDERSØKELSE_SVAR.navn))
     }
 
     @After

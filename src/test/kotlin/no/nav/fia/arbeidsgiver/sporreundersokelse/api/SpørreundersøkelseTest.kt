@@ -13,7 +13,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.fiaArbeidsgi
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
 import org.junit.After
 import org.junit.Before
@@ -21,18 +21,18 @@ import java.util.UUID
 import kotlin.test.Test
 
 class SpørreundersøkelseTest {
-    private val spørreundersøkelseSvarKonsument =
-        TestContainerHelper.kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_SVAR)
+    private val topic = Topic.SPØRREUNDERSØKELSE_SVAR
+    private val konsument = TestContainerHelper.kafka.nyKonsument(topic = topic)
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn))
+        konsument.subscribe(mutableListOf(topic.navn))
     }
 
     @After
     fun tearDown() {
-        spørreundersøkelseSvarKonsument.unsubscribe()
-        spørreundersøkelseSvarKonsument.close()
+        konsument.unsubscribe()
+        konsument.close()
     }
 
     @Test

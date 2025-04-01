@@ -10,8 +10,8 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
@@ -107,7 +107,7 @@ class KafkaContainer(
         TestContainerHelper.kafka.sendOgVent(
             nøkkel = orgnr,
             melding = json.encodeToString(iaStatusOppdatering),
-            topic = KafkaTopics.SAK_STATUS,
+            topic = Topic.SAK_STATUS,
         )
     }
 
@@ -127,7 +127,7 @@ class KafkaContainer(
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = KafkaTopics.SPØRREUNDERSØKELSE,
+            topic = Topic.SPØRREUNDERSØKELSE,
         )
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
@@ -157,7 +157,7 @@ class KafkaContainer(
         sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
-            topic = KafkaTopics.SPØRREUNDERSØKELSE,
+            topic = Topic.SPØRREUNDERSØKELSE,
         )
         return json.decodeFromString<SerializableSpørreundersøkelse>(spørreundersøkelsesStreng)
     }
@@ -180,7 +180,7 @@ class KafkaContainer(
                 ),
             ),
             melding = json.encodeToString(antallSvarDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
+            topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return antallSvarDto
     }
@@ -226,7 +226,7 @@ class KafkaContainer(
         sendOgVent(
             nøkkel = nøkkel,
             melding = json.encodeToString(temaResultatDto),
-            topic = KafkaTopics.SPØRREUNDERSØKELSE_OPPDATERING,
+            topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING,
         )
         return temaResultatDto
     }
@@ -359,7 +359,7 @@ class KafkaContainer(
     private fun sendOgVent(
         nøkkel: String,
         melding: String,
-        topic: KafkaTopics,
+        topic: Topic,
     ) {
         runBlocking {
             kafkaProducer.send(ProducerRecord(topic.navn, nøkkel, melding)).get()
@@ -370,10 +370,10 @@ class KafkaContainer(
     private fun createTopics() {
         adminClient.createTopics(
             listOf(
-                NewTopic(KafkaTopics.SAK_STATUS.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
-                NewTopic(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort()),
+                NewTopic(Topic.SAK_STATUS.navn, 1, 1.toShort()),
+                NewTopic(Topic.SPØRREUNDERSØKELSE.navn, 1, 1.toShort()),
+                NewTopic(Topic.SPØRREUNDERSØKELSE_SVAR.navn, 1, 1.toShort()),
+                NewTopic(Topic.SPØRREUNDERSØKELSE_HENDELSE.navn, 1, 1.toShort()),
             ),
         )
     }
@@ -394,8 +394,8 @@ class KafkaContainer(
             StringSerializer(),
         )
 
-    fun nyKonsument(topic: KafkaTopics) =
-        KafkaConfig(
+    fun nyKonsument(topic: Topic) =
+        Kafka(
             brokers = container.bootstrapServers,
             truststoreLocation = "",
             keystoreLocation = "",

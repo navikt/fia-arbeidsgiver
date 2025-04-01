@@ -7,15 +7,13 @@ import org.apache.kafka.common.config.SaslConfigs
 import org.apache.kafka.common.config.SslConfigs
 import org.apache.kafka.common.serialization.StringSerializer
 
-class KafkaConfig(
+class Kafka(
     val brokers: String = getEnvVar("KAFKA_BROKERS"),
     val truststoreLocation: String = getEnvVar("KAFKA_TRUSTSTORE_PATH"),
     val keystoreLocation: String = getEnvVar("KAFKA_KEYSTORE_PATH"),
     val credstorePassword: String = getEnvVar("KAFKA_CREDSTORE_PASSWORD"),
 ) {
     companion object {
-        const val CLIENT_ID: String = "fia-arbeidsgiver"
-
         private fun getEnvVar(
             varName: String,
             defaultValue: String? = null,

@@ -32,7 +32,7 @@ import no.nav.fia.arbeidsgiver.helper.vertHenterAntallDeltakere
 import no.nav.fia.arbeidsgiver.helper.vertHenterSpørreundersøkelseKontekst
 import no.nav.fia.arbeidsgiver.helper.vertHenterVirksomhetsnavn
 import no.nav.fia.arbeidsgiver.helper.åpneTema
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
@@ -47,8 +47,8 @@ import java.util.UUID
 import kotlin.test.Test
 
 class SpørreundersøkelseVertTest {
-    private val spørreundersøkelseHendelseKonsument =
-        kafka.nyKonsument(topic = KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE)
+    private val topic = Topic.SPØRREUNDERSØKELSE_HENDELSE
+    private val konsument = kafka.nyKonsument(topic = topic)
 
     companion object {
         const val TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR = 1
@@ -56,13 +56,13 @@ class SpørreundersøkelseVertTest {
 
     @Before
     fun setUp() {
-        spørreundersøkelseHendelseKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE.navn))
+        konsument.subscribe(mutableListOf(topic.navn))
     }
 
     @After
     fun tearDown() {
-        spørreundersøkelseHendelseKonsument.unsubscribe()
-        spørreundersøkelseHendelseKonsument.close()
+        konsument.unsubscribe()
+        konsument.close()
     }
 
     @Test
@@ -395,7 +395,7 @@ class SpørreundersøkelseVertTest {
             )
 
             val stengTema = StengTema(spørreundersøkelseId.toString(), temaId)
-            kafka.ventOgKonsumerKafkaMeldinger(stengTema.tilNøkkel(), spørreundersøkelseHendelseKonsument) { meldinger ->
+            kafka.ventOgKonsumerKafkaMeldinger(stengTema.tilNøkkel(), konsument) { meldinger ->
                 meldinger.forAll {
                     it.toInt() shouldBe temaId
                 }

@@ -2,17 +2,17 @@ package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
-import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
+import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseSvarProdusent.SpørreundersøkelseSvarDTO
 import org.apache.kafka.clients.producer.KafkaProducer
 import org.apache.kafka.clients.producer.ProducerRecord
 
 class SpørreundersøkelseHendelseProdusent(
-    kafkaConfig: KafkaConfig,
+    kafka: Kafka,
 ) {
-    private val topic: KafkaTopics = KafkaTopics.SPØRREUNDERSØKELSE_HENDELSE
-    private val producer: KafkaProducer<String, String> = KafkaProducer(kafkaConfig.producerProperties(clientId = topic.konsumentGruppe))
+    private val topic: Topic = Topic.SPØRREUNDERSØKELSE_HENDELSE
+    private val producer: KafkaProducer<String, String> = KafkaProducer(kafka.producerProperties(clientId = topic.konsumentGruppe))
 
     init {
         Runtime.getRuntime().addShutdownHook(
