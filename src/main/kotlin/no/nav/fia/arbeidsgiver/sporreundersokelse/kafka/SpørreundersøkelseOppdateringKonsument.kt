@@ -60,7 +60,7 @@ class SpørreundersøkelseOppdateringKonsument(
                     try {
                         val records = consumer.poll(Duration.ofSeconds(1))
                         if (records.count() < 1) continue
-                        logger.info("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
+                        logger.debug("Fant ${records.count()} nye meldinger i topic: ${topic.navn}")
 
                         records.forEach { record ->
                             try {
@@ -68,7 +68,7 @@ class SpørreundersøkelseOppdateringKonsument(
                                 when (nøkkel.oppdateringsType) {
                                     RESULTATER_FOR_TEMA -> {
                                         val temaResultat = json.decodeFromString<TemaResultatDto>(record.value())
-                                        logger.info(
+                                        logger.debug(
                                             "Lagrer resultat for spørreundersøkelse: ${nøkkel.spørreundersøkelseId} for tema ${temaResultat.id}",
                                         )
                                         spørreundersøkelseService.lagre(nøkkel.spørreundersøkelseId, temaResultat)
@@ -86,7 +86,7 @@ class SpørreundersøkelseOppdateringKonsument(
                                 logger.error("Mottok feil formatert kafkamelding i topic: ${topic.navn}", e)
                             }
                         }
-                        logger.info("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
+                        logger.debug("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
                         logger.info("Konsument for ${topic.navn} is shutting down", e)
                     } catch (e: RetriableException) {

@@ -5,9 +5,7 @@ import io.kotest.matchers.equals.shouldNotBeEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.valkey
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
@@ -32,13 +30,11 @@ class SpørreundersøkelseKonsumentTest {
     }
 
     @Test
-    fun `skal kunne konsumere evaluering og logge`() {
+    fun `skal kunne konsumere evalueringer`() {
         val spørreundersøkelseId = UUID.randomUUID()
         kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Evaluering'".toRegex())
-
             val evaluering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             evaluering.id shouldBe spørreundersøkelseId
             evaluering.type shouldBe "Evaluering"
@@ -50,13 +46,12 @@ class SpørreundersøkelseKonsumentTest {
     }
 
     @Test
-    fun `skal kunne konsumere nye meldinger med type og lagre dem i Redis`() {
+    fun `skal kunne konsumere nye meldinger med type og lagre dem`() {
         val spørreundersøkelseId = UUID.randomUUID()
         val spørreundersøkelse = kafka.enStandardSpørreundersøkelse(spørreundersøkelseId, type = "Behovsvurdering")
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId, spørreundersøkelse = spørreundersøkelse)
 
         runBlocking {
-            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Behovsvurdering'".toRegex())
             val behovsvurdering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             behovsvurdering.id shouldBe spørreundersøkelseId
             behovsvurdering.type shouldBe "Behovsvurdering"
