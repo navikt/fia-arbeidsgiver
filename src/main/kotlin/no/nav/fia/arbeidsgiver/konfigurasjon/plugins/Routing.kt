@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.konfigurasjon.plugins
 
-import VerifisertSesjonId
 import io.ktor.server.application.Application
 import io.ktor.server.auth.authenticate
 import io.ktor.server.routing.Route

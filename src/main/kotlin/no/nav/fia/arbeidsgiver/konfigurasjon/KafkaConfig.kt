@@ -37,7 +37,6 @@ class KafkaConfig(
 
     fun consumerProperties(konsumentGruppe: String) =
         baseConsumerProperties(konsumentGruppe).apply {
-            // TODO: Finn smidigere måte å få tester til å kjøre
             if (truststoreLocation.isBlank()) {
                 put(CommonClientConfigs.SECURITY_PROTOCOL_CONFIG, "PLAINTEXT")
                 put(SaslConfigs.SASL_MECHANISM, "PLAIN")

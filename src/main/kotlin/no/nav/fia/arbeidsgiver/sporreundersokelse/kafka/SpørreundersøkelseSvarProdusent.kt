@@ -22,7 +22,7 @@ class SpørreundersøkelseSvarProdusent(
     }
 
     fun sendSvar(svar: SpørreundersøkelseSvarDTO) {
-        producer.send(ProducerRecord(topic.navnMedNamespace, svar.tilNøkkel(), svar.tilMelding()))
+        producer.send(ProducerRecord(topic.navn, svar.tilNøkkel(), svar.tilMelding()))
     }
 
     @Serializable

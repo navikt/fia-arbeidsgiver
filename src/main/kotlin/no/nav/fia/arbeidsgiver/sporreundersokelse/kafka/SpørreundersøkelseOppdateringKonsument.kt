@@ -52,8 +52,8 @@ class SpørreundersøkelseOppdateringKonsument(
     fun run() {
         launch {
             kafkaConsumer.use { consumer ->
-                consumer.subscribe(listOf(topic.navnMedNamespace))
-                logger.info("Kafka consumer subscribed to ${topic.navnMedNamespace}")
+                consumer.subscribe(listOf(topic.navn))
+                logger.info("Kafka consumer subscribed to ${topic.navn}")
 
                 while (applikasjonsHelse.alive) {
                     try {

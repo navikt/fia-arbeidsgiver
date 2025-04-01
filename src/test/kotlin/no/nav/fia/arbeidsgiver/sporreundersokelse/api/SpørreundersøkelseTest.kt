@@ -26,7 +26,7 @@ class SpørreundersøkelseTest {
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navnMedNamespace))
+        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn))
     }
 
     @After

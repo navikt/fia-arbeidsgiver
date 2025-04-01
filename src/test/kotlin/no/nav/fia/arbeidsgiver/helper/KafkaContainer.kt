@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.time.withTimeout
 import kotlinx.datetime.toKotlinLocalDateTime
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaConfig
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
@@ -363,7 +362,7 @@ class KafkaContainer(
         topic: KafkaTopics,
     ) {
         runBlocking {
-            kafkaProducer.send(ProducerRecord(topic.navnMedNamespace, nøkkel, melding)).get()
+            kafkaProducer.send(ProducerRecord(topic.navn, nøkkel, melding)).get()
             delay(timeMillis = 30L)
         }
     }

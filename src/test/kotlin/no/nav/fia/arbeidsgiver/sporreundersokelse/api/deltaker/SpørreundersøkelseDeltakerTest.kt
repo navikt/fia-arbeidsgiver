@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
-import HEADER_SESJON_ID
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.assertions.shouldFail
@@ -24,6 +23,7 @@ import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.svarPåSpørsmål
 import no.nav.fia.arbeidsgiver.helper.åpneTema
 import no.nav.fia.arbeidsgiver.konfigurasjon.KafkaTopics
+import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
@@ -41,7 +41,7 @@ class SpørreundersøkelseDeltakerTest {
 
     @Before
     fun setUp() {
-        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navnMedNamespace))
+        spørreundersøkelseSvarKonsument.subscribe(mutableListOf(KafkaTopics.SPØRREUNDERSØKELSE_SVAR.navn))
     }
 
     @After
@@ -58,7 +58,6 @@ class SpørreundersøkelseDeltakerTest {
         runBlocking {
             val bliMedDTO = fiaArbeidsgiverApi.bliMed(spørreundersøkelseId = spørreundersøkelseId)
             val startDto = fiaArbeidsgiverApi.hentFørsteSpørsmål(bliMedDTO)
-
 
             spørreundersøkelse.åpneSpørsmålOgHentSomDeltaker(
                 spørsmål = IdentifiserbartSpørsmålDto(temaId = startDto.temaId, spørsmålId = startDto.spørsmålId),

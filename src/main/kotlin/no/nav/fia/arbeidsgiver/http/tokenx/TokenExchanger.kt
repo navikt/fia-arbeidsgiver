@@ -3,16 +3,12 @@ package no.nav.fia.arbeidsgiver.http.tokenx
 import com.auth0.jwt.JWT
 import com.auth0.jwt.algorithms.Algorithm
 import com.nimbusds.jose.jwk.RSAKey
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Parameters
-import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.http.HttpCLient.client
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø
 import java.net.URI
 import java.time.Instant
@@ -21,21 +17,6 @@ import java.util.UUID
 
 object TokenExchanger {
     private val privateKey = RSAKey.parse(Miljø.tokenxPrivateJwk).toRSAPrivateKey()
-    private val client = HttpClient(CIO) {
-        install(ContentNegotiation) {
-            json(
-                Json {
-                    ignoreUnknownKeys = true
-                    encodeDefaults = true
-                    isLenient = true
-                    allowSpecialFloatingPointValues = true
-                    allowStructuredMapKeys = true
-                    prettyPrint = false
-                    useArrayPolymorphism = false
-                },
-            )
-        }
-    }
 
     internal suspend fun exchangeToken(
         token: String,

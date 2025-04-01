@@ -25,7 +25,7 @@ class SpørreundersøkelseHendelseProdusent(
     fun <T> sendHendelse(hendelse: SpørreundersøkelseHendelse<T>) {
         producer.send(
             ProducerRecord(
-                topic.navnMedNamespace,
+                topic.navn,
                 hendelse.tilNøkkel(),
                 hendelse.tilMelding(),
             ),
