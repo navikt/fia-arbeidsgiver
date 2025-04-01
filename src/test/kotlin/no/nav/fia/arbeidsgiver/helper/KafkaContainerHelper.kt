@@ -107,7 +107,7 @@ class KafkaContainerHelper(
             status = status,
             sistOppdatert = sistOppdatert.toKotlinLocalDateTime(),
         )
-        sendOgVentTilKonsumert(
+        sendOgVent(
             nøkkel = orgnr,
             melding = json.encodeToString(iaStatusOppdatering),
             topic = Topic.SAK_STATUS,
@@ -127,7 +127,7 @@ class KafkaContainerHelper(
                     .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
             }
 
-        sendOgVentTilKonsumert(
+        sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
             topic = Topic.SPØRREUNDERSØKELSE,
@@ -157,7 +157,7 @@ class KafkaContainerHelper(
                     .replace("\"temanavn\"", "\"ukjentFelt\":\"X\",\"temanavn\"")
             }
 
-        sendOgVentTilKonsumert(
+        sendOgVent(
             nøkkel = spørreundersøkelseId.toString(),
             melding = spørreundersøkelsesStreng,
             topic = Topic.SPØRREUNDERSØKELSE,
@@ -175,7 +175,7 @@ class KafkaContainerHelper(
             spørsmålId = spørsmålId,
             antallSvar = antallSvar,
         )
-        sendOgVentTilKonsumert(
+        sendOgVent(
             nøkkel = Json.encodeToString(
                 SpørreundersøkelseOppdateringNøkkel(
                     spørreundersøkelseId,
@@ -226,7 +226,7 @@ class KafkaContainerHelper(
 
         val temaResultatDto = tema.tilKafkaResultatMelding(antallSvar = antallSvarPerSpørsmål)
 
-        sendOgVentTilKonsumert(
+        sendOgVent(
             nøkkel = nøkkel,
             melding = json.encodeToString(temaResultatDto),
             topic = Topic.SPØRREUNDERSØKELSE_OPPDATERING,
@@ -359,7 +359,7 @@ class KafkaContainerHelper(
         },
     )
 
-    private fun sendOgVentTilKonsumert(
+    private fun sendOgVent(
         nøkkel: String,
         melding: String,
         topic: Topic,
