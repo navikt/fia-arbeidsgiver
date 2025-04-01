@@ -12,6 +12,7 @@ import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ALTINN_ORGN
 import no.nav.fia.arbeidsgiver.helper.AltinnProxyContainer.Companion.ORGNR_UTEN_TILKNYTNING
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
@@ -133,31 +134,30 @@ class SamarbeidsstatusTest {
     @Test
     fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
         runBlocking {
-            val orgnr = ALTINN_ORGNR_1
-            TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VURDERES")
+            kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VURDERES")
 
             val responsSomTekst = applikasjon.performGet(
-                url = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                url = "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1",
                 config = withTokenXToken(),
             ).bodyAsText()
 
             Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe
-                SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.IKKE_I_SAMARBEID)
+                SamarbeidsstatusDTO(ALTINN_ORGNR_1, Samarbeidsstaus.IKKE_I_SAMARBEID)
         }
     }
 
     @Test
     fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
         runBlocking {
-            val orgnr = ALTINN_ORGNR_1
-            TestContainerHelper.kafka.sendStatusOppdateringForVirksomhet(orgnr, "VI_BISTÅR")
+            kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VI_BISTÅR")
 
             val responsSomTekst = applikasjon.performGet(
-                url = "$SAMARBEIDSSTATUS_PATH/$orgnr",
+                url = "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1",
                 config = withTokenXToken(),
             ).bodyAsText()
 
-            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe SamarbeidsstatusDTO(orgnr, Samarbeidsstaus.I_SAMARBEID)
+            Json.decodeFromString<SamarbeidsstatusDTO>(responsSomTekst) shouldBe
+                SamarbeidsstatusDTO(ALTINN_ORGNR_1, Samarbeidsstaus.I_SAMARBEID)
         }
     }
 

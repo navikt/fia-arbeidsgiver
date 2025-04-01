@@ -12,8 +12,8 @@ import io.ktor.client.request.header
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import kotlinx.coroutines.runBlocking
-import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.authContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.bliMed
@@ -70,10 +70,8 @@ class SpørreundersøkelseVertTest {
         val spørreundersøkelseId = UUID.randomUUID()
 
         runBlocking {
-            applikasjon.performGet(
-                url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere",
-            ) {
-            }.status shouldBe HttpStatusCode.Unauthorized
+            applikasjon.performGet(url = "$VERT_BASEPATH/$spørreundersøkelseId/antall-deltakere")
+                .status shouldBe HttpStatusCode.Unauthorized
         }
     }
 
@@ -87,7 +85,7 @@ class SpørreundersøkelseVertTest {
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authContainerHelper.issueToken(
+                    value = authContainerHelper.issueToken(
                         audience = "azure:fia-arbeidsgiver",
                         issuerId = "azure",
                         claims = mapOf(
@@ -112,7 +110,7 @@ class SpørreundersøkelseVertTest {
             ) {
                 header(
                     key = HttpHeaders.Authorization,
-                    value = TestContainerHelper.authContainerHelper.issueToken(
+                    value = authContainerHelper.issueToken(
                         issuerId = "azure",
                         audience = "azure:fia-arbeidsgiver-frontend",
                     ).serialize(),
@@ -172,18 +170,12 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            applikasjon.vertHenterAntallDeltakere(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            ) shouldBe 0
+            applikasjon.vertHenterAntallDeltakere(spørreundersøkelseId = spørreundersøkelse.id) shouldBe 0
 
             val antallDeltakere = 5
-            repeat(antallDeltakere) {
-                applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId)
-            }
+            repeat(antallDeltakere) { applikasjon.bliMed(spørreundersøkelseId = spørreundersøkelseId) }
 
-            applikasjon.vertHenterAntallDeltakere(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            ) shouldBe antallDeltakere
+            applikasjon.vertHenterAntallDeltakere(spørreundersøkelseId = spørreundersøkelse.id) shouldBe antallDeltakere
         }
     }
 
@@ -194,9 +186,7 @@ class SpørreundersøkelseVertTest {
             kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
-            val temaDtoList = applikasjon.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
@@ -229,9 +219,7 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelseId,
             )
 
-            val temaer = applikasjon.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelseId,
-            )
+            val temaer = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelseId)
             temaer shouldHaveSize 2
             temaer.forEach { tema ->
                 tema.spørsmål.forAll { spm ->
@@ -276,9 +264,7 @@ class SpørreundersøkelseVertTest {
                 spørreundersøkelseId = spørreundersøkelse.id,
             )
 
-            val temaDtoList = applikasjon.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList[0].status shouldBe TemaStatus.STENGT
             temaDtoList[1].status shouldBe TemaStatus.ÅPNET
@@ -289,8 +275,7 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne hente riktig temastatus når man har åpnet alle spørsmål alle temaer`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
         runBlocking {
             spørreundersøkelse.temaer.forEach { tema ->
@@ -300,9 +285,7 @@ class SpørreundersøkelseVertTest {
                 )
             }
 
-            val temaDtoList = applikasjon.vertHentOversikt(
-                spørreundersøkelseId = spørreundersøkelse.id,
-            )
+            val temaDtoList = applikasjon.vertHentOversikt(spørreundersøkelseId = spørreundersøkelse.id)
             temaDtoList shouldHaveSize spørreundersøkelse.temaer.size
             temaDtoList shouldContainInOrder spørreundersøkelse.temaer.mapIndexed { index, it ->
                 TemaDto(
@@ -321,11 +304,9 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne få ut oversikt over ett tema i en spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val spørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
+        val spørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId).tilDomene()
 
-        val temaRedusereSykefravær =
-            spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
+        val temaRedusereSykefravær = spørreundersøkelse.temaer.first { it.id == TEMA_ID_FOR_REDUSERE_SYKEFRAVÆR }
 
         runBlocking {
             val temaDto = applikasjon.hentTemaDto(
@@ -373,7 +354,6 @@ class SpørreundersøkelseVertTest {
                         antallSvar = antallSvar,
                     )
                 }
-
                 applikasjon.hentAntallSvarForSpørsmål(
                     spørsmål = førsteSpørsmål,
                     spørreundersøkelseId = spørreundersøkelse.id,
@@ -459,7 +439,6 @@ class SpørreundersøkelseVertTest {
                 bliMedDTO = bliMedDTO,
                 spørsmål = førsteSpørsmål,
             ) shouldBe null
-
             applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteSpørsmål.temaId,
@@ -520,7 +499,6 @@ class SpørreundersøkelseVertTest {
             val førsteTema = spørreundersøkelse.temaer[0]
             val andreTema = spørreundersøkelse.temaer[1]
             val tredjeTema = spørreundersøkelse.temaer[2]
-
             applikasjon.åpneTema(
                 spørreundersøkelseId = spørreundersøkelse.id,
                 temaId = førsteTema.id,
@@ -566,9 +544,7 @@ class SpørreundersøkelseVertTest {
     @Test
     fun `vert skal kunne hente en avsluttet spørreundersøkelse`() {
         val spørreundersøkelseId = UUID.randomUUID()
-        val pågåendeSpørreundersøkelse =
-            kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
-
+        val pågåendeSpørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = AVSLUTTET),

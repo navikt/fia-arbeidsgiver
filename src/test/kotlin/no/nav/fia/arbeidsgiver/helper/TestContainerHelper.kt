@@ -20,7 +20,7 @@ import io.ktor.http.URLProtocol
 import io.ktor.http.path
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.helper.AuthContainer.Companion.SAKSBEHANDLER_GROUP_ID
+import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBEHANDLER_GROUP_ID
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
@@ -46,9 +46,9 @@ import kotlin.io.path.Path
 class TestContainerHelper {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(TestContainerHelper::class.java)
-        private val network = Network.newNetwork()
+        private val network: Network = Network.newNetwork()
 
-        val authContainerHelper = AuthContainer(network = network, log = log)
+        val authContainerHelper = AuthContainerHelper(network = network, log = log)
         val kafka = KafkaContainerHelper(network = network, log = log)
         val valkey = ValkeyContainer(network = network, log = log)
         val altinnProxy = AltinnProxyContainer()
@@ -75,9 +75,9 @@ class TestContainerHelper {
                         "NAIS_CLUSTER_NAME" to "lokal",
                     )
                         .plus(authContainerHelper.envVars())
-                        .plus(altinnProxy.envVars())
                         .plus(kafka.envVars())
-                        .plus(valkey.envVars()),
+                        .plus(valkey.envVars())
+                        .plus(altinnProxy.envVars()),
                 )
                 .apply { start() }
 

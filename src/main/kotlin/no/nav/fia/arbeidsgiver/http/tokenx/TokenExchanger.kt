@@ -8,7 +8,7 @@ import io.ktor.client.request.forms.FormDataContent
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.Parameters
-import no.nav.fia.arbeidsgiver.http.HttpCLient.client
+import no.nav.fia.arbeidsgiver.http.HttpClient.client
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø
 import java.net.URI
 import java.time.Instant

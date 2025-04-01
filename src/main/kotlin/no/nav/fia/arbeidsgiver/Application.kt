@@ -17,6 +17,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseSer
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument
 import no.nav.fia.arbeidsgiver.valkey.ValkeyService
+import java.util.concurrent.TimeUnit
 
 fun main() {
     val applikasjonsHelse = ApplikasjonsHelse()
@@ -40,7 +41,7 @@ fun main() {
     ).run()
 
     FiaStatusKonsument(
-        samarbeidsstatusService = SamarbeidsstatusService(valkeyService),
+        samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService),
         applikasjonsHelse = applikasjonsHelse,
         kafka = kafka,
     ).run()
@@ -57,13 +58,12 @@ fun main() {
         )
     }.also {
         applikasjonsHelse.ready = true
-
         Runtime.getRuntime().addShutdownHook(
             Thread {
                 applikasjonsHelse.ready = false
                 applikasjonsHelse.alive = false
                 jedisPool.close()
-                it.stop(1000, 5000)
+                it.stop(3, 5, TimeUnit.SECONDS)
             },
         )
     }.start(wait = true)

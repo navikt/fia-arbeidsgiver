@@ -37,9 +37,7 @@ class SpørreundersøkelseKonsumentTest {
         kafka.sendEvaluering(spørreundersøkelseId = spørreundersøkelseId)
 
         runBlocking {
-            applikasjon.shouldContainLog(
-                "Mottok spørreundersøkelse med type: 'Evaluering'".toRegex(),
-            )
+            applikasjon.shouldContainLog("Mottok spørreundersøkelse med type: 'Evaluering'".toRegex())
 
             val evaluering = valkey.spørreundersøkelseService.hentePågåendeSpørreundersøkelse(spørreundersøkelseId)
             evaluering.id shouldBe spørreundersøkelseId
@@ -90,14 +88,11 @@ class SpørreundersøkelseKonsumentTest {
         val id = UUID.randomUUID()
         kafka.sendSpørreundersøkelse(spørreundersøkelseId = id)
 
-        val spørreundersøkelse =
-            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
+        val spørreundersøkelse = valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
         spørreundersøkelse.id shouldBe id.toString()
 
         kafka.sendSlettemeldingForSpørreundersøkelse(spørreundersøkelseId = id)
-        shouldThrow<Feil> {
-            valkey.spørreundersøkelseService.henteSpørreundersøkelse(id)
-        }
+        shouldThrow<Feil> { valkey.spørreundersøkelseService.henteSpørreundersøkelse(id) }
         valkey.spørreundersøkelseService.hentAntallDeltakere(id) shouldBe 0
     }
 }

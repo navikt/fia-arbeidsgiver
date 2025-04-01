@@ -94,11 +94,7 @@ class SpørreundersøkelseDeltakerTest {
             ),
         )
 
-        runBlocking {
-            shouldFail {
-                applikasjon.bliMed(spørreundersøkelseId)
-            }
-        }
+        runBlocking { shouldFail { applikasjon.bliMed(spørreundersøkelseId) } }
     }
 
     @Test

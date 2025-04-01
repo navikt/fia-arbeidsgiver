@@ -20,32 +20,37 @@ import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import java.util.UUID
 
-class AuthContainer(
+class AuthContainerHelper(
     network: Network,
     log: Logger,
 ) {
     private val port = 6969
     private val networkalias = "authserver"
     private val baseEndpointUrl = "http://$networkalias:$port"
-    private val oAuth2Config = OAuth2Config()
+    private val config = OAuth2Config()
 
     companion object {
         const val SUPERBRUKER_GROUP_ID = "ensuperbrukerGroupId"
         const val SAKSBEHANDLER_GROUP_ID = "ensaksbehandlerGroupId"
+        const val FNR = "12345678901"
     }
 
-    val container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.2"))
+    val container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.10"))
         .withNetwork(network)
+        .waitingFor(Wait.forHttp("/default/.well-known/openid-configuration").forStatusCode(200))
         .withExposedPorts(port)
         .withNetworkAliases(networkalias)
-        .withLogConsumer(Slf4jLogConsumer(log).withPrefix("authContainer").withSeparateOutputStreams())
+        .withLogConsumer(
+            Slf4jLogConsumer(log)
+                .withPrefix("authContainer")
+                .withSeparateOutputStreams(),
+        )
         .withEnv(
             mapOf(
                 "SERVER_PORT" to "$port",
                 "TZ" to "Europe/Oslo",
             ),
         )
-        .waitingFor(Wait.forHttp("/default/.well-known/openid-configuration").forStatusCode(200))
         .apply { start() }
 
     internal fun issueToken(
@@ -68,9 +73,9 @@ class AuthContainer(
         val tokenRequest = TokenRequest(
             URI.create(baseEndpointUrl),
             ClientSecretBasic(ClientID(issuerId), Secret("secret")),
-            AuthorizationCodeGrant(AuthorizationCode("123"), URI.create("http://localhost")),
+            AuthorizationCodeGrant(AuthorizationCode(FNR), URI.create("http://localhost")),
         )
-        return oAuth2Config.tokenProvider.accessToken(tokenRequest, issuerUrl.toHttpUrl(), tokenCallback, null)
+        return config.tokenProvider.accessToken(tokenRequest, issuerUrl.toHttpUrl(), tokenCallback, null)
     }
 
     fun envVars() =
