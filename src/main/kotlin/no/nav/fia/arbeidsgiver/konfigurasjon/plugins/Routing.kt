@@ -42,7 +42,7 @@ fun Application.configureRouting(
 
         authenticate("tokenx") {
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
-                medAltinnTilgang(
+                medVerifisertAltinnEnkeltrettighet(
                     altinnTilgangerService = altinnTilgangerService,
                 ) {
                     samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
@@ -62,7 +62,7 @@ fun Route.auditLogged(
     authorizedRoutes()
 }
 
-fun Route.medAltinnTilgang(
+fun Route.medVerifisertAltinnEnkeltrettighet(
     altinnTilgangerService: AltinnTilgangerService,
     authorizedRoutes: Route.() -> Unit,
 ) = (this as RoutingNode).createChild(selector).apply {
