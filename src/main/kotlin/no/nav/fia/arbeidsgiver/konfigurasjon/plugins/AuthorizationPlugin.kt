@@ -23,7 +23,7 @@ fun AltinnAuthorizationPlugin(altinnTilgangerService: AltinnTilgangerService) =
                 val orgnr = call.orgnr ?: return@on call.respond(HttpStatusCode.BadRequest)
 
                 if (!altinnTilganger.harTilgangTilOrgnr(orgnr)) {
-                    logger.info("Ikke tilgang til orgnummer: $orgnr")
+                    logger.info("Ikke tilgang til orgnummer")
                     call.respond(
                         status = HttpStatusCode.Forbidden,
                         message = ResponseIError(message = "Ikke tilgang til orgnummer"),
@@ -32,7 +32,7 @@ fun AltinnAuthorizationPlugin(altinnTilgangerService: AltinnTilgangerService) =
                 }
 
                 if (!altinnTilganger.harEnkeltRettighet(orgnr)) {
-                    logger.info("Ikke tilgang til enkeltrettighet for orgnummer: $orgnr")
+                    logger.info("Ikke tilgang til enkeltrettighet")
                     call.respond(
                         status = HttpStatusCode.Forbidden,
                         message = ResponseIError(message = "Ikke tilgang til orgnummer"),

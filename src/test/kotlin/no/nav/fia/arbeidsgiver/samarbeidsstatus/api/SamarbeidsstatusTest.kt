@@ -165,7 +165,7 @@ class SamarbeidsstatusTest {
             )
             response.status shouldBe HttpStatusCode.Forbidden
             response.bodyAsText() shouldContain "Ikke tilgang til orgnummer".toRegex()
-            applikasjon.shouldContainLog("Ikke tilgang til orgnummer: $ORGNR_UTEN_TILKNYTNING".toRegex())
+            applikasjon.shouldContainLog("Ikke tilgang til orgnummer".toRegex())
         }
     }
 
@@ -182,7 +182,7 @@ class SamarbeidsstatusTest {
 
             response.status shouldBe HttpStatusCode.Forbidden
             response.bodyAsText() shouldContain "Ikke tilgang til orgnummer".toRegex()
-            applikasjon.shouldContainLog("Ikke tilgang til enkeltrettighet for orgnummer: $ORGNR_UTEN_TILKNYTNING".toRegex())
+            applikasjon.shouldContainLog("Ikke tilgang til enkeltrettighet".toRegex())
         }
     }
 
