@@ -1,6 +1,7 @@
 package no.nav.fia.arbeidsgiver.samarbeidsstatus.api
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.HttpHeaders
@@ -14,9 +15,11 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgangerContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.applikasjon
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
+import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
 import org.junit.Before
@@ -80,10 +83,24 @@ class SamarbeidsstatusTest {
     }
 
     @Test
-    fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn tilgang`() {
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn2 tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2,
+        )
+        runBlocking {
+            applikasjon.performGet(
+                "$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1",
+                withTokenXToken(),
+            ).status shouldBe HttpStatusCode.OK
+        }
+    }
+
+    @Test
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn3 tilgang`() {
+        altinnTilgangerContainerHelper.leggTilRettigheter(
+            underenhet = ALTINN_ORGNR_1,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             applikasjon.performGet(
@@ -97,7 +114,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, gammel acr og altinn tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -120,7 +137,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, ny acr og altinn tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -140,12 +157,32 @@ class SamarbeidsstatusTest {
     }
 
     @Test
-    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilgang`() {
+    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn tilknytning`() {
         runBlocking {
-            applikasjon.performGet(
+            val response = applikasjon.performGet(
                 "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING",
                 withTokenXToken(),
-            ).status shouldBe HttpStatusCode.Forbidden
+            )
+            response.status shouldBe HttpStatusCode.Forbidden
+            response.bodyAsText() shouldContain "Ikke tilgang til orgnummer".toRegex()
+            applikasjon.shouldContainLog("Ikke tilgang til orgnummer: $ORGNR_UTEN_TILKNYTNING".toRegex())
+        }
+    }
+
+    @Test
+    fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn enkelrettighet`() {
+        altinnTilgangerContainerHelper.leggTilRettigheter(
+            underenhet = ORGNR_UTEN_TILKNYTNING,
+        )
+        runBlocking {
+            val response = applikasjon.performGet(
+                "$SAMARBEIDSSTATUS_PATH/$ORGNR_UTEN_TILKNYTNING",
+                withTokenXToken(),
+            )
+
+            response.status shouldBe HttpStatusCode.Forbidden
+            response.bodyAsText() shouldContain "Ikke tilgang til orgnummer".toRegex()
+            applikasjon.shouldContainLog("Ikke tilgang til enkeltrettighet for orgnummer: $ORGNR_UTEN_TILKNYTNING".toRegex())
         }
     }
 
@@ -153,7 +190,7 @@ class SamarbeidsstatusTest {
     fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VURDERES")
@@ -172,7 +209,7 @@ class SamarbeidsstatusTest {
     fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VI_BISTÅR")
@@ -191,7 +228,7 @@ class SamarbeidsstatusTest {
     fun `skal få samarbeidsstatus IKKE_I_SAMARBEID dersom vi ikke har noen data for virksomhet`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_2,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_I_ALTINN,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             val orgnr = ALTINN_ORGNR_2
