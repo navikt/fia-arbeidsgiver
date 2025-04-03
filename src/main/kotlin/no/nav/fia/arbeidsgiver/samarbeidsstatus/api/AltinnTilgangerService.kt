@@ -27,7 +27,7 @@ class AltinnTilgangerService {
 
     companion object {
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2 = "5934:1"
-        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3 = "nav_forebygge-og-redusere-sykefravær_samarbeid"
+        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3 = "nav_forebygge-og-redusere-sykefravar_samarbeid"
 
         fun AltinnTilganger?.harTilgangTilOrgnr(orgnr: String?): Boolean =
             this?.virksomheterVedkommendeHarTilgangTil()?.contains(orgnr) ?: false
