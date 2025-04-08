@@ -22,25 +22,23 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class AltinnTilgangerService {
-    private val altinnTilgangerUrl: String = "$altinnTilgangerProxyUrl/altinn-tilganger"
-    private val logger: Logger = LoggerFactory.getLogger(this::class.java)
-
     companion object {
+        private val altinnTilgangerUrl: String = "$altinnTilgangerProxyUrl/altinn-tilganger"
+        private val log: Logger = LoggerFactory.getLogger(this::class.java)
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2 = "5934:1"
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3 = "nav_forebygge-og-redusere-sykefravar_samarbeid"
 
         fun AltinnTilganger?.harTilgangTilOrgnr(orgnr: String?): Boolean =
             this?.virksomheterVedkommendeHarTilgangTil()?.contains(orgnr) ?: false
 
-        fun AltinnTilganger?.harEnkeltRettighet(
-            orgnr: String?,
-            enkeltrettighetIAltinn2: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2,
-            enkeltrettighetIAltinn3: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
-        ): Boolean {
-            val harAltinn2Enkeltrettighet = this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighetIAltinn2) ?: false
-            val harAltinn3Enkeltrettighet = this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighetIAltinn3) ?: false
-            return harAltinn2Enkeltrettighet || harAltinn3Enkeltrettighet
-        }
+        fun AltinnTilganger?.harEnkeltrettighet(orgnr: String?): Boolean =
+            harAltinn3Enkeltrettighet(orgnr) || harAltinn2Enkeltrettighet(orgnr)
+
+        private fun AltinnTilganger?.harAltinn3Enkeltrettighet(orgnr: String?): Boolean =
+            this?.orgNrTilTilganger?.get(orgnr)?.contains(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3) ?: false
+
+        private fun AltinnTilganger?.harAltinn2Enkeltrettighet(orgnr: String?) =
+            this?.orgNrTilTilganger?.get(orgnr)?.contains(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2) ?: false
 
         private fun AltinnTilganger?.virksomheterVedkommendeHarTilgangTil(): List<String> =
             this?.hierarki?.flatMap {
@@ -75,7 +73,7 @@ class AltinnTilgangerService {
 
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger? =
         try {
-            logger.debug("henter Altinn tilganger på URL $altinnTilgangerUrl")
+            log.debug("henter Altinn tilganger på URL $altinnTilgangerUrl")
             val client = getHttpClient(token)
             val response: HttpResponse = client.post {
                 url(altinnTilgangerUrl)
@@ -85,7 +83,7 @@ class AltinnTilgangerService {
             }
             Json.decodeFromString<AltinnTilganger>(response.body())
         } catch (e: Exception) {
-            logger.error("Feil ved kall til Altinn tilganger", e)
+            log.error("Feil ved kall til Altinn tilganger", e)
             null
         }
 

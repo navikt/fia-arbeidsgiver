@@ -8,7 +8,7 @@ import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.http.hentToken
 import no.nav.fia.arbeidsgiver.http.orgnr
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.harEnkeltRettighet
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.harEnkeltrettighet
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.harTilgangTilOrgnr
 import org.slf4j.LoggerFactory
 
@@ -31,7 +31,7 @@ fun AltinnAuthorizationPlugin(altinnTilgangerService: AltinnTilgangerService) =
                     return@on
                 }
 
-                if (!altinnTilganger.harEnkeltRettighet(orgnr)) {
+                if (!altinnTilganger.harEnkeltrettighet(orgnr)) {
                     logger.info("Ikke tilgang til enkeltrettighet")
                     call.respond(
                         status = HttpStatusCode.Forbidden,
