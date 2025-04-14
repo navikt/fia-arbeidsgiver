@@ -32,7 +32,7 @@ fun AltinnAuthorizationPlugin(altinnTilgangerService: AltinnTilgangerService) =
                 }
 
                 if (!altinnTilganger.harEnkeltrettighet(orgnr)) {
-                    logger.info("Ikke tilgang til enkeltrettighet")
+                    logger.debug("Ikke tilgang til enkeltrettighet")
                     call.respond(
                         status = HttpStatusCode.Forbidden,
                         message = ResponseIError(message = "Ikke tilgang til orgnummer"),
