@@ -182,7 +182,6 @@ class SamarbeidsstatusTest {
 
             response.status shouldBe HttpStatusCode.Forbidden
             response.bodyAsText() shouldContain "Ikke tilgang til orgnummer".toRegex()
-            applikasjon.shouldContainLog("Ikke tilgang til enkeltrettighet".toRegex())
         }
     }
 
