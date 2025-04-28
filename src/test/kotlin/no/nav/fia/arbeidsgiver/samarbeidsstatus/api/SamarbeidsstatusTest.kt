@@ -18,7 +18,6 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
@@ -86,7 +85,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn2 tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn2Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_2,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
         )
         runBlocking {
             applikasjon.performGet(
