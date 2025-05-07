@@ -1,17 +1,17 @@
-val ktorVersion = "3.1.1"
+val ktorVersion = "3.1.3"
 val kafkClientVersion = "3.9.0"
-val kotlinVersion = "2.1.10"
-val logbackVersion = "1.5.17"
-val prometheusVersion = "1.14.4"
+val kotlinVersion = "2.1.20"
+val logbackVersion = "1.5.18"
+val prometheusVersion = "1.14.6"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.20.6"
+val testcontainersVersion = "1.21.0"
 val testMockServerVersion = "5.15.0"
 val valkeyVersion = "5.3.0"
 
 plugins {
-    kotlin("jvm") version "2.1.10"
-    kotlin("plugin.serialization") version "2.1.10"
+    kotlin("jvm") version "2.1.20"
+    kotlin("plugin.serialization") version "2.1.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -47,7 +47,7 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
     implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("net.logstash.logback:logstash-logback-encoder:8.0")
+    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
@@ -57,7 +57,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.0.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.2")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -72,7 +72,7 @@ dependencies {
     testImplementation("org.testcontainers:mockserver:$testcontainersVersion")
     testImplementation("org.mock-server:mockserver-client-java:$testMockServerVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.12.1")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.0")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
     constraints {
@@ -110,7 +110,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.1.119.Final")
+                require("4.2.0.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
@@ -122,7 +122,7 @@ dependencies {
         }
         testImplementation("commons-io:commons-io") {
             version {
-                require("2.18.0")
+                require("2.19.0")
             }
             because("testcontainers har sårbar versjon")
         }
