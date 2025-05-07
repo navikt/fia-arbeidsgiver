@@ -65,7 +65,7 @@ class KafkaContainerHelper(
     private val port = 9093
 
     val container: ConfluentKafkaContainer =
-        ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.6.0"))
+        ConfluentKafkaContainer(DockerImageName.parse("confluentinc/cp-kafka:7.8.2"))
             .withNetwork(network)
             .withNetworkAliases(kafkaNetworkAlias)
             .waitingFor(HostPortWaitStrategy())
