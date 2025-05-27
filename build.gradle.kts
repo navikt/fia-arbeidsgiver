@@ -2,6 +2,8 @@ val ktorVersion = "3.1.3"
 val kafkClientVersion = "3.9.0"
 val kotlinVersion = "2.1.20"
 val logbackVersion = "1.5.18"
+val logstashLogbackEncoderVersion = "8.1"
+val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
 val prometheusVersion = "1.14.6"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
@@ -46,8 +48,6 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
-    implementation("ch.qos.logback:logback-classic:$logbackVersion")
-    implementation("net.logstash.logback:logstash-logback-encoder:8.1")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
@@ -61,6 +61,11 @@ dependencies {
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
+    // logger
+
+    implementation("ch.qos.logback:logback-classic:$logbackVersion")
+    implementation("net.logstash.logback:logstash-logback-encoder:$logstashLogbackEncoderVersion")
+    implementation("io.opentelemetry.instrumentation:opentelemetry-logback-mdc-1.0:$opentelemetryLogbackMdcVersion")
 
     testImplementation("io.kotest:kotest-assertions-core:$kotestVersion")
     testImplementation("io.kotest:kotest-assertions-json:$kotestVersion")
