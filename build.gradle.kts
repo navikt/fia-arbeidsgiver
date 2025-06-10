@@ -1,5 +1,5 @@
 val ktorVersion = "3.1.3"
-val kafkClientVersion = "3.9.0"
+val kafkClientVersion = "3.9.1"
 val kotlinVersion = "2.1.20"
 val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
