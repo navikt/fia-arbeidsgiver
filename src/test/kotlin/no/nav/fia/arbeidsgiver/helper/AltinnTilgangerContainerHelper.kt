@@ -61,7 +61,13 @@ class AltinnTilgangerContainerHelper(
         overordnetEnhet: String = "400000000",
         underenhet: String,
         altinn3Rettighet: String = "",
+        erSlettet: Boolean? = false,
     ) {
+        val erSlettetJson = if (erSlettet != null) {
+            """ "erSlettet": $erSlettet, """
+        } else {
+            ""
+        }
         log.debug(
             "Oppretter MockServerClient med host '${container.host}' og port '${
                 container.getMappedPort(
@@ -96,10 +102,12 @@ class AltinnTilgangerContainerHelper(
                               "altinn2Tilganger": [],
                               "underenheter": [],
                               "navn": "NAVN TIL UNDERENHET",
+                              $erSlettetJson
                               "organisasjonsform": "BEDR"
                             }
                           ],
                           "navn": "NAVN TIL OVERORDNET ENHET",
+                          $erSlettetJson
                           "organisasjonsform": "ORGL"
                         }
                       ],

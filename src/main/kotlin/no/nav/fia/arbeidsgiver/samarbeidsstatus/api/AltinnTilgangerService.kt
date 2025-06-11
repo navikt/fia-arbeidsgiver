@@ -77,7 +77,8 @@ class AltinnTilgangerService {
                 accept(ContentType.Application.Json)
                 setBody("{}")
             }
-            Json.decodeFromString<AltinnTilganger>(response.body())
+            val jsonParser = Json { ignoreUnknownKeys = true }
+            jsonParser.decodeFromString<AltinnTilganger>(response.body())
         } catch (e: Exception) {
             log.error("Feil ved kall til Altinn tilganger", e)
             null
@@ -91,6 +92,7 @@ class AltinnTilgangerService {
         val underenheter: List<AltinnTilgang>,
         val navn: String,
         val organisasjonsform: String,
+        val erSlettet: Boolean = false,
     )
 
     @Serializable

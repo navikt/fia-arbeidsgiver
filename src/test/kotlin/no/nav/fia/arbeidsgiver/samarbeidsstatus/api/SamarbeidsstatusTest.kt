@@ -82,10 +82,11 @@ class SamarbeidsstatusTest {
     }
 
     @Test
-    fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn2 tilgang`() {
+    fun `skal få 200 (OK) dersom man går mot status med gyldig token og underenhet er slettet`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
             altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            erSlettet = true,
         )
         runBlocking {
             applikasjon.performGet(
