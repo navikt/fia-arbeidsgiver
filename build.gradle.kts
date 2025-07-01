@@ -111,20 +111,6 @@ dependencies {
             }
             because("xmlunit-core in Mockserver har sårbar versjon")
         }
-        implementation("net.minidev:json-smart") {
-            version {
-                require("2.5.2")
-            }
-            because(
-                "versjoner < 2.5.2 har diverse sårbarheter",
-            )
-        }
-        implementation("io.netty:netty-codec-http2") {
-            version {
-                require("4.2.2.Final")
-            }
-            because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
-        }
         testImplementation("org.apache.commons:commons-compress") {
             version {
                 require("1.27.1")
