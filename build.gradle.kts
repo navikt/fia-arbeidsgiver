@@ -87,6 +87,12 @@ dependencies {
             }
             because("Mockserver har sårbar guava versjon")
         }
+        testImplementation("commons-beanutils:commons-beanutils") {
+            version {
+                require("1.11.0")
+            }
+            because("mockserver-client-java imkluderer en sårbar versjon")
+        }
         testImplementation("org.bouncycastle:bcprov-jdk18on") {
             version {
                 require("1.81")
