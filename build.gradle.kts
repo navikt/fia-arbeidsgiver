@@ -1,13 +1,13 @@
 val ktorVersion = "3.2.0"
-val kafkClientVersion = "3.9.0"
+val kafkClientVersion = "3.9.1"
 val kotlinVersion = "2.2.0"
 val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.14.6"
+val prometheusVersion = "1.15.1"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
-val testcontainersVersion = "1.21.0"
+val testcontainersVersion = "1.21.3"
 val testMockServerVersion = "5.15.0"
 val valkeyVersion = "5.3.0"
 
@@ -57,7 +57,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.2")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.3.1")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -77,9 +77,9 @@ dependencies {
     testImplementation("org.testcontainers:mockserver:$testcontainersVersion")
     testImplementation("org.mock-server:mockserver-client-java:$testMockServerVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.13.0")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.1.10")
+    testImplementation("no.nav.security:mock-oauth2-server:2.2.1")
     constraints {
         testImplementation("com.google.guava:guava") {
             version {
@@ -89,19 +89,19 @@ dependencies {
         }
         testImplementation("org.bouncycastle:bcprov-jdk18on") {
             version {
-                require("1.80")
+                require("1.81")
             }
             because("bcprov-jdk18on in Mockserver har sårbar versjon")
         }
         testImplementation("org.bouncycastle:bcpkix-jdk18on") {
             version {
-                require("1.80")
+                require("1.81")
             }
             because("bcpkix-jdk18on in Mockserver har sårbar versjon")
         }
         testImplementation("org.xmlunit:xmlunit-core") {
             version {
-                require("2.10.0")
+                require("2.10.3")
             }
             because("xmlunit-core in Mockserver har sårbar versjon")
         }
@@ -115,7 +115,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.0.Final")
+                require("4.2.2.Final")
             }
             because("From Ktor version: 2.3.5 -> io.netty:netty-codec-http2 vulnerable to HTTP/2 Rapid Reset Attack")
         }
