@@ -1,6 +1,6 @@
 val ktorVersion = "3.1.3"
 val kafkClientVersion = "3.9.0"
-val kotlinVersion = "2.1.20"
+val kotlinVersion = "2.2.0"
 val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
@@ -12,8 +12,8 @@ val testMockServerVersion = "5.15.0"
 val valkeyVersion = "5.3.0"
 
 plugins {
-    kotlin("jvm") version "2.1.20"
-    kotlin("plugin.serialization") version "2.1.20"
+    kotlin("jvm") version "2.2.0"
+    kotlin("plugin.serialization") version "2.2.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
