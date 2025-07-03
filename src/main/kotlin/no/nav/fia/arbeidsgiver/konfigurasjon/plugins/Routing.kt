@@ -12,6 +12,7 @@ import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.organisasjoner.api.organisasjoner
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
@@ -43,11 +44,13 @@ fun Application.configureRouting(
 
         authenticate("tokenx") {
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
-                organisasjoner(altinnTilgangerService = altinnTilgangerService)
-                medVerifisertAltinnEnkeltrettighet(
-                    altinnTilgangerService = altinnTilgangerService,
-                ) {
-                    samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
+                medUthentingAvOrganisasjonerIAltinn(altinnTilgangerService = altinnTilgangerService) {
+                    organisasjoner()
+                    medVerifisertTilgangTilEnkeltrettighet(
+                        enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+                    ) {
+                        samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
+                    }
                 }
             }
         }
@@ -64,11 +67,19 @@ fun Route.auditLogged(
     authorizedRoutes()
 }
 
-fun Route.medVerifisertAltinnEnkeltrettighet(
+fun Route.medUthentingAvOrganisasjonerIAltinn(
     altinnTilgangerService: AltinnTilgangerService,
     authorizedRoutes: Route.() -> Unit,
 ) = (this as RoutingNode).createChild(selector).apply {
-    install(AltinnAuthorizationPlugin(altinnTilgangerService = altinnTilgangerService))
+    install(UthentingAvOrganisasjonerIAltinnPlugin(altinnTilgangerService = altinnTilgangerService))
+    authorizedRoutes()
+}
+
+fun Route.medVerifisertTilgangTilEnkeltrettighet(
+    enkeltrettighet: String,
+    authorizedRoutes: Route.() -> Unit,
+) = (this as RoutingNode).createChild(selector).apply {
+    install(AltinnAuthorizationPlugin(enkelrettighet = enkeltrettighet))
     authorizedRoutes()
 }
 
