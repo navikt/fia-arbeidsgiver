@@ -10,6 +10,7 @@ import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
+import no.nav.fia.arbeidsgiver.organisasjoner.api.organisasjoner
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
@@ -42,6 +43,7 @@ fun Application.configureRouting(
 
         authenticate("tokenx") {
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
+                organisasjoner(altinnTilgangerService = altinnTilgangerService)
                 medVerifisertAltinnEnkeltrettighet(
                     altinnTilgangerService = altinnTilgangerService,
                 ) {

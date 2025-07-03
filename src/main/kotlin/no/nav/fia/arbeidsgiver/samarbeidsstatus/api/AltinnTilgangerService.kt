@@ -22,19 +22,22 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 class AltinnTilgangerService {
+    private val altinnTilgangerUrl: String = "$altinnTilgangerProxyUrl/altinn-tilganger"
+
     companion object {
-        private val altinnTilgangerUrl: String = "$altinnTilgangerProxyUrl/altinn-tilganger"
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
-        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3 = "nav_forebygge-og-redusere-sykefravar_samarbeid"
+        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID = "nav_forebygge-og-redusere-sykefravar_samarbeid"
+        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK =
+            "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
 
         fun AltinnTilganger?.harTilgangTilOrgnr(orgnr: String?): Boolean =
             this?.virksomheterVedkommendeHarTilgangTil()?.contains(orgnr) ?: false
 
-        fun AltinnTilganger?.harEnkeltrettighet(orgnr: String?): Boolean =
-            harAltinn3Enkeltrettighet(orgnr)
-
-        private fun AltinnTilganger?.harAltinn3Enkeltrettighet(orgnr: String?): Boolean =
-            this?.orgNrTilTilganger?.get(orgnr)?.contains(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3) ?: false
+        fun AltinnTilganger?.harEnkeltrettighet(
+            orgnr: String?,
+            enkeltrettighet: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+        ): Boolean =
+            this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighet) ?: false
 
         private fun AltinnTilganger?.virksomheterVedkommendeHarTilgangTil(): List<String> =
             this?.hierarki?.flatMap {
