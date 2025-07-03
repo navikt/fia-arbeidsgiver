@@ -18,7 +18,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.kafka
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContainLog
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.SamarbeidsstatusDTO
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.dto.Samarbeidsstaus
 import org.junit.Before
@@ -85,7 +85,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og underenhet er slettet`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
             erSlettet = true,
         )
         runBlocking {
@@ -100,7 +100,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn3 tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet(
@@ -114,7 +114,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, gammel acr og altinn tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -137,7 +137,7 @@ class SamarbeidsstatusTest {
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, ny acr og altinn tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -189,7 +189,7 @@ class SamarbeidsstatusTest {
     fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VURDERES")
@@ -208,7 +208,7 @@ class SamarbeidsstatusTest {
     fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VI_BISTÅR")
@@ -227,7 +227,7 @@ class SamarbeidsstatusTest {
     fun `skal få samarbeidsstatus IKKE_I_SAMARBEID dersom vi ikke har noen data for virksomhet`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
             underenhet = ALTINN_ORGNR_2,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_ALTINN_3,
+            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             val orgnr = ALTINN_ORGNR_2

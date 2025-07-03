@@ -18,6 +18,7 @@ class AltinnTilgangerContainerHelper(
     companion object {
         const val ALTINN_ORGNR_1 = "311111111"
         const val ALTINN_ORGNR_2 = "322222222"
+        const val ALTINN_OVERORDNET_ENHET = "400000000"
         const val ORGNR_UTEN_TILKNYTNING = "300000000"
     }
 
@@ -58,7 +59,7 @@ class AltinnTilgangerContainerHelper(
     }
 
     internal fun leggTilRettigheter(
-        overordnetEnhet: String = "400000000",
+        overordnetEnhet: String = ALTINN_OVERORDNET_ENHET,
         underenhet: String,
         altinn3Rettighet: String = "",
         erSlettet: Boolean? = false,
