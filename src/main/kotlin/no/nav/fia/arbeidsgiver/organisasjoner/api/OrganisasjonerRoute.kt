@@ -4,18 +4,17 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
-import no.nav.fia.arbeidsgiver.http.hentToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
+import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.AltinnTilgangerKey
 
 const val ORGANISASJONER_PATH = "/fia-arbeidsgiver/organisasjoner"
 
-fun Route.organisasjoner(altinnTilgangerService: AltinnTilgangerService) {
+fun Route.organisasjoner() {
     get(path = ORGANISASJONER_PATH) {
-        val token = call.request.hentToken() ?: return@get call.respond(HttpStatusCode.Forbidden)
-        val sthg = altinnTilgangerService.hentAltinnTilganger(token = token)
+        val tilganger = call.attributes[AltinnTilgangerKey]
+
         call.respond(
             status = HttpStatusCode.OK,
-            message = sthg?.hierarki ?: emptyList(),
+            message = tilganger.altinnTilganger?.hierarki ?: emptyList(),
         )
     }
 }

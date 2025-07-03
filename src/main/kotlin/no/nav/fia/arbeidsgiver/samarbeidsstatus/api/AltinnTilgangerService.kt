@@ -27,6 +27,7 @@ class AltinnTilgangerService {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID = "nav_forebygge-og-redusere-sykefravar_samarbeid"
+        // Usikker om vi kommer til å bruke denne da det er en annen tjeneste som henter ut statistikk
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK =
             "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
 
