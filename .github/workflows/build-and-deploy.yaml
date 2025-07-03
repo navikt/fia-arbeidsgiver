@@ -70,7 +70,7 @@ jobs:
       id-token: write
     name: Deploy branch to dev
     needs: build
-    if: github.ref == 'refs/heads/slutt-a-verifisere-altinn2-tilgang'
+    if: github.ref == 'refs/heads/nytt-endepunkt-organisasjoner'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
