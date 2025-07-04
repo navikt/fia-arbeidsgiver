@@ -68,11 +68,16 @@ class OrganisasjonerEndepunktTest {
             val altinnOrganisasjonForOverordnetEnhet: AltinnTilgang =
                 altinnOrganisasjoner.find { it.orgnr == ALTINN_OVERORDNET_ENHET }!!
             altinnOrganisasjonForOverordnetEnhet.navn shouldBe "NAVN TIL OVERORDNET ENHET"
+            altinnOrganisasjonForOverordnetEnhet.altinn3Tilganger.size shouldBe 0
+            altinnOrganisasjonForOverordnetEnhet.erSlettet shouldBe false
             altinnOrganisasjonForOverordnetEnhet.underenheter.size shouldBe 1
+
             val altinnOrganisasjonForUnderenhet: AltinnTilgang =
                 altinnOrganisasjonForOverordnetEnhet.underenheter.find { it.orgnr == ALTINN_ORGNR_1 }!!
             altinnOrganisasjonForUnderenhet.navn shouldBe "NAVN TIL UNDERENHET"
             altinnOrganisasjonForUnderenhet.altinn3Tilganger.size shouldBe 1
+            altinnOrganisasjonForOverordnetEnhet.erSlettet shouldBe false
+            altinnOrganisasjonForUnderenhet.underenheter.size shouldBe 0
         }
     }
 }

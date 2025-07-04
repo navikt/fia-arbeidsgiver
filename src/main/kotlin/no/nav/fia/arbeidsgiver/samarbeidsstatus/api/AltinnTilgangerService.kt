@@ -96,7 +96,7 @@ class AltinnTilgangerService {
         val underenheter: List<AltinnTilgang>,
         val navn: String,
         val organisasjonsform: String,
-        val erSlettet: Boolean = false,
+        val erSlettet: Boolean,
     )
 
     @Serializable
