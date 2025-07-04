@@ -11,6 +11,7 @@ import io.ktor.client.request.HttpRequestBuilder
 import io.ktor.client.request.header
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
@@ -22,6 +23,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBEHANDLER_GROUP_ID
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
+import no.nav.fia.arbeidsgiver.organisasjoner.api.ORGANISASJONER_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
@@ -80,7 +82,15 @@ class TestContainerHelper {
                         .plus(valkey.envVars())
                         .plus(altinnTilgangerContainerHelper.envVars()),
                 )
-                .apply { start() }
+                .apply {
+                    start()
+                }
+
+        suspend fun hentOrganisasjonerTilgangResponse(config: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+            applikasjon.performGet(
+                url = ORGANISASJONER_PATH,
+                config = config,
+            )
 
         internal fun tokenXAccessToken(
             subject: String = "123",
@@ -137,6 +147,12 @@ private suspend fun GenericContainer<*>.performRequest(
 internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit =
     {
         header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
+    }
+
+val dummyJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+internal fun withoutGyldigTokenXToken(): HttpRequestBuilder.() -> Unit =
+    {
+        header(HttpHeaders.Authorization, "Bearer $dummyJwtToken")
     }
 
 internal fun HttpRequestBuilder.medAzureToken(token: String = TestContainerHelper.azureAccessToken().serialize()) {

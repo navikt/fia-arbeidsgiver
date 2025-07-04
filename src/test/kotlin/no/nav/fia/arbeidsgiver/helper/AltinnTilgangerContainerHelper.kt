@@ -18,6 +18,7 @@ class AltinnTilgangerContainerHelper(
     companion object {
         const val ALTINN_ORGNR_1 = "311111111"
         const val ALTINN_ORGNR_2 = "322222222"
+        const val ALTINN_OVERORDNET_ENHET = "400000000"
         const val ORGNR_UTEN_TILKNYTNING = "300000000"
     }
 
@@ -58,16 +59,11 @@ class AltinnTilgangerContainerHelper(
     }
 
     internal fun leggTilRettigheter(
-        overordnetEnhet: String = "400000000",
+        overordnetEnhet: String = ALTINN_OVERORDNET_ENHET,
         underenhet: String,
         altinn3Rettighet: String = "",
-        erSlettet: Boolean? = false,
+        erSlettet: Boolean = false,
     ) {
-        val erSlettetJson = if (erSlettet != null) {
-            """ "erSlettet": $erSlettet, """
-        } else {
-            ""
-        }
         log.debug(
             "Oppretter MockServerClient med host '${container.host}' og port '${
                 container.getMappedPort(
@@ -102,12 +98,12 @@ class AltinnTilgangerContainerHelper(
                               "altinn2Tilganger": [],
                               "underenheter": [],
                               "navn": "NAVN TIL UNDERENHET",
-                              $erSlettetJson
+                              "erSlettet": $erSlettet,
                               "organisasjonsform": "BEDR"
                             }
                           ],
                           "navn": "NAVN TIL OVERORDNET ENHET",
-                          $erSlettetJson
+                          "erSlettet": $erSlettet,
                           "organisasjonsform": "ORGL"
                         }
                       ],
