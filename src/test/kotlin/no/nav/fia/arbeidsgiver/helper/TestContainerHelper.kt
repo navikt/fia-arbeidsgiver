@@ -149,10 +149,10 @@ internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit =
         header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
     }
 
-val dummyJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+val ikkeGyldigJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 internal fun withoutGyldigTokenXToken(): HttpRequestBuilder.() -> Unit =
     {
-        header(HttpHeaders.Authorization, "Bearer $dummyJwtToken")
+        header(HttpHeaders.Authorization, "Bearer $ikkeGyldigJwtToken")
     }
 
 internal fun HttpRequestBuilder.medAzureToken(token: String = TestContainerHelper.azureAccessToken().serialize()) {
