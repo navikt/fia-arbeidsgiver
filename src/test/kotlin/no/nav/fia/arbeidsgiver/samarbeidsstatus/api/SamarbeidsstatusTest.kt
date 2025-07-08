@@ -83,9 +83,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og underenhet er slettet`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
             erSlettet = true,
         )
         runBlocking {
@@ -98,9 +98,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få 200 (OK) dersom man går mot status med gyldig token og altinn3 tilgang`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet(
@@ -112,9 +112,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, gammel acr og altinn tilgang`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -135,9 +135,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få 200 (OK) dersom man går mot status med gyldig token, ny acr og altinn tilgang`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1") {
@@ -171,8 +171,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få 403 (Forbidden) dersom man går mot status med gyldig token uten altinn enkelrettighet`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ORGNR_UTEN_TILKNYTNING,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ORGNR_UTEN_TILKNYTNING,
+            altinn3RettighetForUnderenhet = "Ikke en rettighet som gir tilgang til samarbeidsstatus",
         )
         runBlocking {
             val response = applikasjon.performGet(
@@ -187,9 +188,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få ut samarbeidsstatus IKKE_I_SAMARBEID for virksomhet i status != VI_BISTÅR`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VURDERES")
@@ -206,9 +207,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få ut samarbeidsstatus I_SAMARBEID for virksomhet i status VI_BISTÅR`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             kafka.sendStatusOppdateringForVirksomhet(ALTINN_ORGNR_1, "VI_BISTÅR")
@@ -225,9 +226,9 @@ class SamarbeidsstatusTest {
 
     @Test
     fun `skal få samarbeidsstatus IKKE_I_SAMARBEID dersom vi ikke har noen data for virksomhet`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_2,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_2,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             val orgnr = ALTINN_ORGNR_2

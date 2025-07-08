@@ -6,12 +6,16 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
+import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_2
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_OVERORDNET_ENHET
+import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.OrgnrMedEnkeltrettigheter
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgangerContainerHelper
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.AltinnTilgang
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -51,9 +55,19 @@ class OrganisasjonerEndepunktTest {
     @Test
     fun `Innlogget bruker får hente organisasjoner hen har tilgang til`() {
         altinnTilgangerContainerHelper.leggTilRettigheter(
-            overordnetEnhet = ALTINN_OVERORDNET_ENHET,
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = "En annen enkeltrettighet",
+            orgnrTilOverordnetEnhet = ALTINN_OVERORDNET_ENHET,
+            underenheterMedRettighet = listOf(
+                OrgnrMedEnkeltrettigheter(
+                    orgnr = ALTINN_ORGNR_1,
+                    altinn3Rettigheter = listOf(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID),
+                ),
+                OrgnrMedEnkeltrettigheter(
+                    orgnr = ALTINN_ORGNR_2,
+                    altinn3Rettigheter = listOf(
+                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID, ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK
+                    ),
+                )
+            ),
         )
 
         runBlocking {
@@ -70,14 +84,22 @@ class OrganisasjonerEndepunktTest {
             altinnOrganisasjonForOverordnetEnhet.navn shouldBe "NAVN TIL OVERORDNET ENHET"
             altinnOrganisasjonForOverordnetEnhet.altinn3Tilganger.size shouldBe 0
             altinnOrganisasjonForOverordnetEnhet.erSlettet shouldBe false
-            altinnOrganisasjonForOverordnetEnhet.underenheter.size shouldBe 1
+            altinnOrganisasjonForOverordnetEnhet.underenheter.size shouldBe 2
 
-            val altinnOrganisasjonForUnderenhet: AltinnTilgang =
+            val altinnOrganisasjonForUnderenhet1: AltinnTilgang =
                 altinnOrganisasjonForOverordnetEnhet.underenheter.find { it.orgnr == ALTINN_ORGNR_1 }!!
-            altinnOrganisasjonForUnderenhet.navn shouldBe "NAVN TIL UNDERENHET"
-            altinnOrganisasjonForUnderenhet.altinn3Tilganger.size shouldBe 1
-            altinnOrganisasjonForOverordnetEnhet.erSlettet shouldBe false
-            altinnOrganisasjonForUnderenhet.underenheter.size shouldBe 0
+            altinnOrganisasjonForUnderenhet1.navn shouldBe "NAVN TIL UNDERENHET"
+            altinnOrganisasjonForUnderenhet1.altinn3Tilganger.size shouldBe 1
+            altinnOrganisasjonForUnderenhet1.erSlettet shouldBe false
+            altinnOrganisasjonForUnderenhet1.underenheter.size shouldBe 0
+
+            val altinnOrganisasjonForUnderenhet2: AltinnTilgang =
+                altinnOrganisasjonForOverordnetEnhet.underenheter.find { it.orgnr == ALTINN_ORGNR_2 }!!
+            altinnOrganisasjonForUnderenhet2.navn shouldBe "NAVN TIL UNDERENHET"
+            altinnOrganisasjonForUnderenhet2.altinn3Tilganger.size shouldBe 2
+            altinnOrganisasjonForUnderenhet2.erSlettet shouldBe false
+            altinnOrganisasjonForUnderenhet2.underenheter.size shouldBe 0
+
         }
     }
 }

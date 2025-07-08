@@ -24,9 +24,9 @@ class AuditLogTest {
 
     @Test
     fun `det skal auditlogges (Permit) dersom man går mot status med gyldig token og altinn tilgang`() {
-        altinnTilgangerContainerHelper.leggTilRettigheter(
-            underenhet = ALTINN_ORGNR_1,
-            altinn3Rettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        altinnTilgangerContainerHelper.leggTilRettighet(
+            orgnrTilUnderenhet = ALTINN_ORGNR_1,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1", withTokenXToken())
