@@ -22,14 +22,15 @@ import org.slf4j.LoggerFactory
 class DokumentService {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
+        val FIA_ARBEIDSGIVER_DOKUMENT_API = "$fiaDokumentPubliseringUrl/dokument"
     }
 
     suspend fun hentDokumenter(token: String, orgnr: String): List<DokumentDto> =
         try {
-            log.debug("henter dokumenter på URL $fiaDokumentPubliseringUrl/dokumenter")
+            log.debug("henter dokumenter på URL $FIA_ARBEIDSGIVER_DOKUMENT_API")
             val client = getHttpClient(token)
             val response: HttpResponse = client.get {
-                url("$fiaDokumentPubliseringUrl/dokumenter/$orgnr")
+                url("$FIA_ARBEIDSGIVER_DOKUMENT_API/$orgnr")
                 accept(ContentType.Application.Json)
             }
             val jsonParser = Json { ignoreUnknownKeys = true }

@@ -74,7 +74,7 @@ class DokumentPubliseringContainerHelper(
             client.`when`(
                 request()
                     .withMethod("GET")
-                    .withPath("/dokumenter/$orgnr"),
+                    .withPath("/dokument/$orgnr"),
             ).respond(
                 response().withBody(
                     lagJsonForDokumenterMock(dokument = dokument)
