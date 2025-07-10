@@ -18,9 +18,16 @@ import java.util.UUID
 object TokenExchanger {
     private val privateKey = RSAKey.parse(Miljø.tokenxPrivateJwk).toRSAPrivateKey()
 
+    enum class Scope(val value: String) {
+        DOKUMENT_LESETILGANG("read:dokument"),
+        SYKEFRAVARSSTATISTIKK_LESETILGANG("read:sykefravarsstatistikk"),
+        SAMARBEID_LESESTILGANG("read:samarbeid"),
+    }
+
     internal suspend fun exchangeToken(
         token: String,
         audience: String,
+        scope: Scope? = null,
     ): String =
         try {
             client.post(URI.create(Miljø.tokenXTokenEndpoint).toURL()) {
@@ -33,6 +40,7 @@ object TokenExchanger {
                     withIssuedAt(Date.from(now))
                     withNotBefore(Date.from(now))
                     withExpiresAt(Date.from(now.plusSeconds(120)))
+                    if (scope != null) withClaim("tilgang_fia_ag", scope.value)
                 }.sign(Algorithm.RSA256(null, privateKey))
 
                 setBody(

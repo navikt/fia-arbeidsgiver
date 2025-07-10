@@ -41,6 +41,8 @@ spec:
       rules:
         - application: arbeidsgiver-altinn-tilganger
           namespace: fager
+        - application: fia-dokument-publisering
+          namespace: pia
   valkey:
     - instance: fia-samarbeidsstatus
       access: readwrite
@@ -62,6 +64,8 @@ spec:
   env:
     - name: ALTINN_TILGANGER_PROXY_URL
       value: http://arbeidsgiver-altinn-tilganger.fager
+    - name: FIA_DOKUMENT_PUBLISERING_URL
+      value: http://fia-dokument-publisering.pia
     - name: BLI_MED_LIMIT
       value: "5"
     - name: GENERELL_LIMIT

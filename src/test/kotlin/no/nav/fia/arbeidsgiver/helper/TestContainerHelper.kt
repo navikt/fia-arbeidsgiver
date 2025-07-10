@@ -24,6 +24,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBEHANDLER_GROUP_ID
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.organisasjoner.api.ORGANISASJONER_PATH
+import no.nav.fia.arbeidsgiver.proxy.dokument.DOKUMENT_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
@@ -54,6 +55,7 @@ class TestContainerHelper {
         val kafka = KafkaContainerHelper(network = network, log = log)
         val valkey = ValkeyContainer(network = network, log = log)
         val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network, log = log)
+        val dokumentPubliseringContainerHelper = DokumentPubliseringContainerHelper(network = network, log = log)
 
         const val VERT_NAV_IDENT = "Z12345"
 
@@ -62,6 +64,7 @@ class TestContainerHelper {
                 .dependsOn(
                     altinnTilgangerContainerHelper.container,
                     authContainerHelper.container,
+                    dokumentPubliseringContainerHelper.container,
                     kafka.container,
                     valkey.container,
                 )
@@ -80,6 +83,7 @@ class TestContainerHelper {
                         .plus(authContainerHelper.envVars())
                         .plus(kafka.envVars())
                         .plus(valkey.envVars())
+                        .plus(dokumentPubliseringContainerHelper.envVars())
                         .plus(altinnTilgangerContainerHelper.envVars()),
                 )
                 .apply {
@@ -89,6 +93,12 @@ class TestContainerHelper {
         suspend fun hentOrganisasjonerTilgangResponse(config: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
             applikasjon.performGet(
                 url = ORGANISASJONER_PATH,
+                config = config,
+            )
+
+        suspend fun hentDokumenterResponse(orgnr: String, config: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+            applikasjon.performGet(
+                url = "$DOKUMENT_PATH/$orgnr",
                 config = config,
             )
 
@@ -144,9 +154,12 @@ private suspend fun GenericContainer<*>.performRequest(
     }
 }
 
-internal fun withTokenXToken(): HttpRequestBuilder.() -> Unit =
+internal fun withTokenXToken(claims: Map<String, String> = mapOf(
+    "acr" to "Level4",
+    "pid" to "123",
+)): HttpRequestBuilder.() -> Unit =
     {
-        header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken().serialize()}")
+        header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken(claims = claims).serialize()}")
     }
 
 val ikkeGyldigJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"

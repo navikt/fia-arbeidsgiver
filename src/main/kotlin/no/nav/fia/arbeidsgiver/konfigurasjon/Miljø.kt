@@ -31,4 +31,5 @@ internal object Miljø {
     val superbrukerGruppe: String = System.getenv("FIA_SUPERBRUKER_GROUP_ID")
 
     val altinnTilgangerProxyUrl: String by lazy { System.getenv("ALTINN_TILGANGER_PROXY_URL") }
+    val fiaDokumentPubliseringUrl: String by lazy { System.getenv("FIA_DOKUMENT_PUBLISERING_URL") }
 }
