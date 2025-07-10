@@ -48,7 +48,8 @@ fun Application.configureRouting(
             auditLogged(spørreundersøkelseService = spørreundersøkelseService) {
                 medUthentingAvOrganisasjonerIAltinn(altinnTilgangerService = altinnTilgangerService) {
                     organisasjoner()
-                    medVerifisertTilgangTilEnkeltrettighet(
+                    // sjekker også at routes har 'orgnr' som path parameter
+                    medVerifisertTilgangTilEnkeltrettighetForOrgnr(
                         enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
                     ) {
                         samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
@@ -78,7 +79,7 @@ fun Route.medUthentingAvOrganisasjonerIAltinn(
     authorizedRoutes()
 }
 
-fun Route.medVerifisertTilgangTilEnkeltrettighet(
+fun Route.medVerifisertTilgangTilEnkeltrettighetForOrgnr(
     enkeltrettighet: String,
     authorizedRoutes: Route.() -> Unit,
 ) = (this as RoutingNode).createChild(selector).apply {
