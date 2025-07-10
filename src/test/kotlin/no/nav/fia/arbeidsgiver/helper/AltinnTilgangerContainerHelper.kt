@@ -27,34 +27,37 @@ class AltinnTilgangerContainerHelper(
             overordnetEnhet: String,
             underenheterMedRettighet: List<OrgnrMedEnkeltrettigheter>,
             erOverordnetEnhetSlettet: Boolean
-        ): String = Json.encodeToString(AltinnTilgangerService.AltinnTilganger(
-            hierarki = listOf(
-                AltinnTilgangerService.AltinnTilgang(
-                    orgnr = overordnetEnhet,
-                    altinn3Tilganger = emptySet(),
-                    altinn2Tilganger = emptySet(),
-                    underenheter = underenheterMedRettighet.map {
-                        AltinnTilgangerService.AltinnTilgang(
-                            orgnr = it.orgnr,
-                            altinn3Tilganger = it.altinn3Rettigheter.toSet(),
-                            altinn2Tilganger = emptySet(),
-                            underenheter = emptyList(),
-                            navn = "NAVN TIL UNDERENHET",
-                            erSlettet = it.erSlettet,
-                            organisasjonsform = "BEDR",
-                        )
-                    },
-                    navn = "NAVN TIL OVERORDNET ENHET",
-                    erSlettet = erOverordnetEnhetSlettet,
-                    organisasjonsform = "ORGL",
-                )
-            ),
-            orgNrTilTilganger = underenheterMedRettighet.associate { it.orgnr to it.altinn3Rettigheter.toSet() },
-            tilgangTilOrgNr = underenheterMedRettighet.groupBySingleRettighet().mapValues { it.value.map { it.orgnr }.toSet() },
-            isError = false,
-        ))
+        ): String = Json.encodeToString(
+            AltinnTilgangerService.AltinnTilganger(
+                hierarki = listOf(
+                    AltinnTilgangerService.AltinnTilgang(
+                        orgnr = overordnetEnhet,
+                        altinn3Tilganger = emptySet(),
+                        altinn2Tilganger = emptySet(),
+                        underenheter = underenheterMedRettighet.map {
+                            AltinnTilgangerService.AltinnTilgang(
+                                orgnr = it.orgnr,
+                                altinn3Tilganger = it.altinn3Rettigheter.toSet(),
+                                altinn2Tilganger = emptySet(),
+                                underenheter = emptyList(),
+                                navn = "NAVN TIL UNDERENHET",
+                                erSlettet = it.erSlettet,
+                                organisasjonsform = "BEDR",
+                            )
+                        },
+                        navn = "NAVN TIL OVERORDNET ENHET",
+                        erSlettet = erOverordnetEnhetSlettet,
+                        organisasjonsform = "ORGL",
+                    )
+                ),
+                orgNrTilTilganger = underenheterMedRettighet.associate { it.orgnr to it.altinn3Rettigheter.toSet() },
+                tilgangTilOrgNr = underenheterMedRettighet.groupBySingleRettighet()
+                    .mapValues { it.value.map { it.orgnr }.toSet() },
+                isError = false,
+            )
+        )
 
-        fun List<OrgnrMedEnkeltrettigheter>.groupBySingleRettighet() : Map<String, List<OrgnrMedEnkeltrettigheter>> =
+        fun List<OrgnrMedEnkeltrettigheter>.groupBySingleRettighet(): Map<String, List<OrgnrMedEnkeltrettigheter>> =
             this.flatMap { orgnrMedRettighet ->
                 orgnrMedRettighet.altinn3Rettigheter.map { rettighet ->
                     rettighet to orgnrMedRettighet
@@ -74,7 +77,7 @@ class AltinnTilgangerContainerHelper(
         .withEnv(
             mapOf(
                 "MOCKSERVER_LIVENESS_HTTP_GET_PATH" to "/isRunning",
-                "SERVER_PORT" to "7070",
+                "SERVER_PORT" to "$port",
                 "TZ" to "Europe/Oslo",
             ),
         )
@@ -93,7 +96,7 @@ class AltinnTilgangerContainerHelper(
     internal fun slettAlleRettigheter() {
         val client = MockServerClient(
             container.host,
-            container.getMappedPort(7070),
+            container.getMappedPort(port),
         )
         client.reset()
     }
@@ -120,13 +123,7 @@ class AltinnTilgangerContainerHelper(
         underenheterMedRettighet: List<OrgnrMedEnkeltrettigheter>,
         erOverordnetEnhetSlettet: Boolean = false,
     ) {
-        log.debug(
-            "Oppretter MockServerClient med host '${container.host}' og port '${
-                container.getMappedPort(
-                    7070,
-                )
-            }'. Legger til rettigheter for underenheter '$underenheterMedRettighet'",
-        )
+        log.info("Legger til rettigheter for underenheter '$underenheterMedRettighet'")
         val client = MockServerClient(
             container.host,
             container.getMappedPort(7070),
@@ -139,7 +136,11 @@ class AltinnTilgangerContainerHelper(
                     .withPath("/altinn-tilganger"),
             ).respond(
                 response().withBody(
-                    lagJsonForAltinnTilgangerMock(orgnrTilOverordnetEnhet, underenheterMedRettighet, erOverordnetEnhetSlettet),
+                    lagJsonForAltinnTilgangerMock(
+                        orgnrTilOverordnetEnhet,
+                        underenheterMedRettighet,
+                        erOverordnetEnhetSlettet
+                    ),
                 ),
             )
         }

@@ -50,25 +50,24 @@ class AltinnTilgangerService {
         ): Set<T> = setOf(mapFn(altinnTilgang)) + altinnTilgang.underenheter.flatMap { flatten(it, mapFn) }
     }
 
-    private fun getHttpClient(token: String): HttpClient =
-        client.config {
+    private fun getHttpClient(token: String): HttpClient {
+        return client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
+                        val exchangedToken = TokenExchanger.exchangeToken(
+                            token = token,
+                            audience = "$cluster:fager:arbeidsgiver-altinn-tilganger",
+                        )
                         BearerTokens(
-                            accessToken = TokenExchanger.exchangeToken(
-                                token = token,
-                                audience = "$cluster:fager:arbeidsgiver-altinn-tilganger",
-                            ),
-                            refreshToken = TokenExchanger.exchangeToken(
-                                token = token,
-                                audience = "$cluster:fager:arbeidsgiver-altinn-tilganger",
-                            ),
+                            accessToken = exchangedToken,
+                            refreshToken = exchangedToken,
                         )
                     }
                 }
             }
         }
+    }
 
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger? =
         try {

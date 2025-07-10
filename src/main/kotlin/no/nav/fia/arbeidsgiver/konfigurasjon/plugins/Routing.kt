@@ -11,6 +11,8 @@ import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.organisasjoner.api.organisasjoner
+import no.nav.fia.arbeidsgiver.proxy.dokument.DokumentService
+import no.nav.fia.arbeidsgiver.proxy.dokument.dokument
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
@@ -50,6 +52,7 @@ fun Application.configureRouting(
                         enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
                     ) {
                         samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
+                        dokument(dokumentService = DokumentService())
                     }
                 }
             }
