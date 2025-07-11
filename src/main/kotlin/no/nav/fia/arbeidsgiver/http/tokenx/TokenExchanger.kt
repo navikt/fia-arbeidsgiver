@@ -53,7 +53,7 @@ object TokenExchanger {
         now: Instant,
     ): String =
         try {
-            client.post(URI.create(Miljø.tokenXTokenEndpoint).toURL()) {
+            val postResponse = client.post(URI.create(Miljø.tokenXTokenEndpoint).toURL()) {
                 val clientAssertion = createJwt(atInstant = now)
                 setBody(
                     FormDataContent(
@@ -67,7 +67,13 @@ object TokenExchanger {
                         },
                     ),
                 )
-            }.body<Map<String, String>>()["access_token"] ?: throw IllegalStateException("Fikk ingen token i response")
+            }
+            val accessToken = postResponse.body<Map<String, String>>()["access_token"]
+            if (accessToken.isNullOrBlank()) {
+                throw IllegalStateException("Fikk ingen token i response, status i response: '${postResponse.status}'")
+            } else {
+                accessToken
+            }
         } catch (e: Exception) {
             throw RuntimeException("Token exchange feil", e)
         }
