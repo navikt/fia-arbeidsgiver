@@ -69,8 +69,19 @@ object TokenExchanger {
                 )
             }
             val accessToken = postResponse.body<Map<String, String>>()["access_token"]
-            if (accessToken.isNullOrBlank()) {
-                throw IllegalStateException("Fikk ingen token i response, status i response: '${postResponse.status}'")
+            val clientOrServerError = postResponse.status.value >= 400
+            if (clientOrServerError || accessToken.isNullOrBlank()) {
+                // Log response hvis vi får en 4xx eller 5xx statuskode
+                val responseInError = if (clientOrServerError) {
+                    "Response: '${postResponse.body<String>()}'"
+                } else {
+                    ""
+                }
+
+                throw IllegalStateException(
+                    "Fikk ingen token i response, " +
+                        "status i response: '${postResponse.status}', response: '$responseInError'"
+                )
             } else {
                 accessToken
             }
