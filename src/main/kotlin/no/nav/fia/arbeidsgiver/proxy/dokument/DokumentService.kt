@@ -13,7 +13,6 @@ import io.ktor.http.ContentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
-import no.nav.fia.arbeidsgiver.http.tokenx.Scope
 import no.nav.fia.arbeidsgiver.http.tokenx.TokenExchanger
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.cluster
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.fiaDokumentPubliseringUrl
@@ -26,10 +25,10 @@ class DokumentService {
         val FIA_ARBEIDSGIVER_DOKUMENT_API = "$fiaDokumentPubliseringUrl/dokument"
     }
 
-    suspend fun hentDokumenter(orgnr: String): List<DokumentDto> =
+    suspend fun hentDokumenter(token: String, orgnr: String): List<DokumentDto> =
         try {
             log.debug("henter dokumenter på URL $FIA_ARBEIDSGIVER_DOKUMENT_API")
-            val client = getHttpClient(orgnr)
+            val client = getHttpClient(token = token, orgnr = orgnr)
             val response: HttpResponse = client.get {
                 url("$FIA_ARBEIDSGIVER_DOKUMENT_API/$orgnr")
                 accept(ContentType.Application.Json)
@@ -41,15 +40,17 @@ class DokumentService {
             emptyList()
         }
 
-    private fun getHttpClient(orgnr: String): HttpClient {
+    private fun getHttpClient(token: String, orgnr: String): HttpClient {
         return client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val exchangedToken = TokenExchanger.exchangeMedSelfIssuedToken(
+                        //val exchangedToken = TokenExchanger.exchangeMedSelfIssuedToken(
+                        val exchangedToken = TokenExchanger.exchangeMedOpenIdToken(
                             audience = "$cluster:pia:fia-dokument-publisering",
-                            scope = Scope.DOKUMENT_LESETILGANG,
-                            orgnr = orgnr,
+                            openIdToken = token,
+                            //scope = Scope.DOKUMENT_LESETILGANG,
+                            //orgnr = orgnr,
                         )
                         BearerTokens(
                             accessToken = exchangedToken,
