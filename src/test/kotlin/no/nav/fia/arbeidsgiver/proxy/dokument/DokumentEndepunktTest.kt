@@ -72,7 +72,6 @@ class DokumentEndepunktTest {
                     mapOf(
                         "acr" to "Level4",
                         "pid" to "123",
-                        "testclaim" to "testvalue",
                     )
                 ),
             )

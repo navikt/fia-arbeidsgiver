@@ -55,9 +55,9 @@ class AltinnTilgangerService {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val exchangedToken = TokenExchanger.exchangeToken(
-                            token = token,
+                        val exchangedToken = TokenExchanger.exchangeMedOpenIdToken(
                             audience = "$cluster:fager:arbeidsgiver-altinn-tilganger",
+                            openIdToken = token,
                         )
                         BearerTokens(
                             accessToken = exchangedToken,

@@ -13,6 +13,7 @@ import io.ktor.http.ContentType
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
+import no.nav.fia.arbeidsgiver.http.tokenx.Scope
 import no.nav.fia.arbeidsgiver.http.tokenx.TokenExchanger
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.cluster
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.fiaDokumentPubliseringUrl
@@ -25,10 +26,10 @@ class DokumentService {
         val FIA_ARBEIDSGIVER_DOKUMENT_API = "$fiaDokumentPubliseringUrl/dokument"
     }
 
-    suspend fun hentDokumenter(token: String, orgnr: String): List<DokumentDto> =
+    suspend fun hentDokumenter(orgnr: String): List<DokumentDto> =
         try {
             log.debug("henter dokumenter på URL $FIA_ARBEIDSGIVER_DOKUMENT_API")
-            val client = getHttpClient(token)
+            val client = getHttpClient(orgnr)
             val response: HttpResponse = client.get {
                 url("$FIA_ARBEIDSGIVER_DOKUMENT_API/$orgnr")
                 accept(ContentType.Application.Json)
@@ -40,15 +41,15 @@ class DokumentService {
             emptyList()
         }
 
-    private fun getHttpClient(token: String): HttpClient {
+    private fun getHttpClient(orgnr: String): HttpClient {
         return client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        val exchangedToken = TokenExchanger.exchangeToken(
-                            token = token,
+                        val exchangedToken = TokenExchanger.exchangeMedSelfIssuedToken(
                             audience = "$cluster:pia:fia-dokument-publisering",
-                            scope = TokenExchanger.Scope.DOKUMENT_LESETILGANG
+                            scope = Scope.DOKUMENT_LESETILGANG,
+                            orgnr = orgnr,
                         )
                         BearerTokens(
                             accessToken = exchangedToken,
