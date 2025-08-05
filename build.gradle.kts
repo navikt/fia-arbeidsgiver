@@ -1,15 +1,15 @@
-val ktorVersion = "3.2.0"
-val kafkClientVersion = "3.9.1"
+val ktorVersion = "3.2.3"
+val kafkClientVersion = "4.0.0"
 val kotlinVersion = "2.2.0"
 val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.15.1"
+val prometheusVersion = "1.15.2"
 val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.21.3"
 val testMockServerVersion = "5.15.0"
-val valkeyVersion = "5.3.0"
+val valkeyVersion = "5.4.0"
 
 plugins {
     kotlin("jvm") version "2.2.0"
@@ -57,7 +57,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.3.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.4")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -113,13 +113,13 @@ dependencies {
         }
         testImplementation("org.apache.commons:commons-compress") {
             version {
-                require("1.27.1")
+                require("1.28.0")
             }
             because("testcontainers har sårbar versjon")
         }
         testImplementation("commons-io:commons-io") {
             version {
-                require("2.19.0")
+                require("2.20.0")
             }
             because("testcontainers har sårbar versjon")
         }
