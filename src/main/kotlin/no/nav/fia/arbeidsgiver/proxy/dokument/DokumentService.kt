@@ -28,7 +28,7 @@ class DokumentService {
     suspend fun hentDokumenter(token: String, orgnr: String): List<DokumentDto> =
         try {
             log.debug("henter dokumenter på URL $FIA_ARBEIDSGIVER_DOKUMENT_API")
-            val client = getHttpClient(token = token, orgnr = orgnr)
+            val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
                 url("$FIA_ARBEIDSGIVER_DOKUMENT_API/$orgnr")
                 accept(ContentType.Application.Json)
@@ -40,17 +40,14 @@ class DokumentService {
             emptyList()
         }
 
-    private fun getHttpClient(token: String, orgnr: String): HttpClient {
+    private fun getHttpClient(token: String): HttpClient {
         return client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
-                        //val exchangedToken = TokenExchanger.exchangeMedSelfIssuedToken(
-                        val exchangedToken = TokenExchanger.exchangeMedOpenIdToken(
+                        val exchangedToken = TokenExchanger.exchangeToken(
                             audience = "$cluster:pia:fia-dokument-publisering",
-                            openIdToken = token,
-                            //scope = Scope.DOKUMENT_LESETILGANG,
-                            //orgnr = orgnr,
+                            subjectToken = token,
                         )
                         BearerTokens(
                             accessToken = exchangedToken,
