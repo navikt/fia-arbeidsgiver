@@ -81,6 +81,14 @@ dependencies {
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:2.2.1")
     constraints {
+        implementation("commons-codec:commons-codec") {
+            version {
+                require("1.19.0")
+            }
+            because(
+                "ktor-client-apache:3.2.3 har en sårbar versjon av commons-codec",
+            )
+        }
         testImplementation("com.google.guava:guava") {
             version {
                 require("33.4.0-jre")
