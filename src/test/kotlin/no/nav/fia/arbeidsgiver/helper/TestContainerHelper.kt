@@ -162,7 +162,7 @@ internal fun withTokenXToken(claims: Map<String, String> = mapOf(
         header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken(claims = claims).serialize()}")
     }
 
-val ikkeGyldigJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+const val ikkeGyldigJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
 internal fun withoutGyldigTokenXToken(): HttpRequestBuilder.() -> Unit =
     {
         header(HttpHeaders.Authorization, "Bearer $ikkeGyldigJwtToken")
