@@ -10,6 +10,7 @@ import io.ktor.client.request.setBody
 import io.ktor.http.Parameters
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø
+import org.slf4j.LoggerFactory
 import java.net.URI
 import java.time.Instant
 import java.util.Date
@@ -17,6 +18,7 @@ import java.util.UUID
 
 object TokenExchanger {
     private val privateKey = RSAKey.parse(Miljø.tokenxPrivateJwk).toRSAPrivateKey()
+    private val logger = LoggerFactory.getLogger(this::class.java)
 
     internal suspend fun exchangeToken(
         subjectToken: String, // Claim-set i subject_token mappes til claim-set i exchange-tokenet
@@ -41,16 +43,9 @@ object TokenExchanger {
             val accessToken = postResponse.body<Map<String, String>>()["access_token"]
             val clientOrServerError = postResponse.status.value >= 400
             if (clientOrServerError || accessToken.isNullOrBlank()) {
-                // Log response hvis vi får en 4xx eller 5xx statuskode
-                val responseInError = if (clientOrServerError) {
-                    "Response: '${postResponse.body<String>()}'"
-                } else {
-                    ""
-                }
-
+                logger.warn("Token exchange feilet, status: '${postResponse.status}' ")
                 throw IllegalStateException(
-                    "Fikk ingen token i response, " +
-                        "status i response: '${postResponse.status}', response: '$responseInError'"
+                    "Fikk ingen token i response, status i response: '${postResponse.status}'"
                 )
             } else {
                 accessToken
