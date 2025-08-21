@@ -1,6 +1,7 @@
 package no.nav.fia.arbeidsgiver.proxy.dokument
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -26,8 +27,9 @@ class DokumentEndepunktTest {
     @Test
     fun `Uinnlogget bruker får en 401 - Not Authorized i response`() {
         runBlocking {
-            val response = TestContainerHelper.hentDokumenterResponse(
+            val response = TestContainerHelper.hentDokumentResponse(
                 orgnr = ALTINN_ORGNR_1,
+                dokumentId = UUID.randomUUID(),
                 config = withoutGyldigTokenXToken(),
             )
 
@@ -38,8 +40,9 @@ class DokumentEndepunktTest {
     @Test
     fun `Innlogget bruker som ikke har noen rettigheter får en 401 - Not Authorized i response`() {
         runBlocking {
-            val response = TestContainerHelper.hentDokumenterResponse(
+            val response = TestContainerHelper.hentDokumentResponse(
                 orgnr = ALTINN_ORGNR_1,
+                dokumentId = UUID.randomUUID(),
                 config = withoutGyldigTokenXToken(),
             )
 
@@ -49,25 +52,26 @@ class DokumentEndepunktTest {
 
     @Test
     fun `Innlogget bruker får hente organisasjoner hen har tilgang til`() {
+        val dokument = DokumentService.DokumentDto(
+            dokumentId = UUID.randomUUID().toString(),
+            type = "BEHOVSVURDERING",
+            samarbeidNavn = "Avdeling Oslo",
+            innhold = "{}",
+        )
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
             altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
             erSlettet = true,
         )
-
         dokumentPubliseringContainerHelper.leggTilDokument(
             orgnr = ALTINN_ORGNR_1,
-            dokument = DokumentService.DokumentDto(
-                dokumentId = UUID.randomUUID().toString(),
-                type = "BEHOVSVURDERING",
-                samarbeidNavn = "Avdeling Oslo",
-                innhold = "{}",
-            )
+            dokument = dokument
         )
 
         runBlocking {
-            val response = TestContainerHelper.hentDokumenterResponse(
+            val response = TestContainerHelper.hentDokumentResponse(
                 orgnr = ALTINN_ORGNR_1,
+                dokumentId = UUID.fromString(dokument.dokumentId),
                 config = withTokenXToken(
                     mapOf(
                         "acr" to "Level4",
@@ -77,9 +81,10 @@ class DokumentEndepunktTest {
             )
 
             response.status.value shouldBe 200
-            val dokumenter = Json.decodeFromString<List<DokumentService.DokumentDto>>(response.bodyAsText())
+            val hentetDokument = Json.decodeFromString<DokumentService.DokumentDto>(response.bodyAsText())
 
-            dokumenter.size shouldBe 1
+            hentetDokument shouldNotBe null
+            hentetDokument.dokumentId shouldBe dokument.dokumentId
         }
     }
 }

@@ -18,10 +18,9 @@ class DokumentPubliseringContainerHelper(
     private val log: Logger,
 ) {
     companion object {
-
-        fun lagJsonForDokumenterMock(
+        fun lagJsonForDokumentMock(
             dokument: DokumentService.DokumentDto
-        ): String = Json.encodeToString(listOf(dokument))
+        ): String = Json.encodeToString(dokument)
     }
 
     private val networkAlias = "mockFiaDokumentPubliseringContainer"
@@ -64,7 +63,7 @@ class DokumentPubliseringContainerHelper(
         orgnr: String,
         dokument: DokumentService.DokumentDto,
     ) {
-        log.info("Legger til et dokument for orgnr '$orgnr'")
+        log.info("Legger til et dokument med dokumentId '${dokument.dokumentId}' for orgnr '$orgnr' i mockserver")
         val client = MockServerClient(
             container.host,
             container.getMappedPort(port),
@@ -74,10 +73,10 @@ class DokumentPubliseringContainerHelper(
             client.`when`(
                 request()
                     .withMethod("GET")
-                    .withPath("/dokument/$orgnr"),
+                    .withPath("/dokument/${dokument.dokumentId}"),
             ).respond(
                 response().withBody(
-                    lagJsonForDokumenterMock(dokument = dokument)
+                    lagJsonForDokumentMock(dokument = dokument)
                 ),
             )
         }

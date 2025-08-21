@@ -24,7 +24,7 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBEHANDLER_GROUP_ID
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.organisasjoner.api.ORGANISASJONER_PATH
-import no.nav.fia.arbeidsgiver.proxy.dokument.DOKUMENT_PATH
+import no.nav.fia.arbeidsgiver.proxy.dokument.FIA_ARBEIDSGIVER_DOKUMENT_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
@@ -96,9 +96,13 @@ class TestContainerHelper {
                 config = config,
             )
 
-        suspend fun hentDokumenterResponse(orgnr: String, config: HttpRequestBuilder.() -> Unit = {}): HttpResponse =
+        suspend fun hentDokumentResponse(
+            orgnr: String,
+            dokumentId: UUID,
+            config: HttpRequestBuilder.() -> Unit = {}
+        ): HttpResponse =
             applikasjon.performGet(
-                url = "$DOKUMENT_PATH/$orgnr",
+                url = "$FIA_ARBEIDSGIVER_DOKUMENT_PATH/$orgnr/$dokumentId",
                 config = config,
             )
 

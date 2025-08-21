@@ -18,26 +18,26 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.cluster
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.fiaDokumentPubliseringUrl
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.util.UUID
 
 class DokumentService {
     companion object {
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
-        val FIA_ARBEIDSGIVER_DOKUMENT_API = "$fiaDokumentPubliseringUrl/dokument"
+        val FIA_DOKUMENT_PUBLISERING_API = "$fiaDokumentPubliseringUrl/dokument"
     }
 
-    suspend fun hentDokumenter(token: String, orgnr: String): List<DokumentDto> =
+    suspend fun hentDokument(token: String, dokumentId: UUID): DokumentDto? =
         try {
-            log.debug("henter dokumenter på URL $FIA_ARBEIDSGIVER_DOKUMENT_API")
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
-                url("$FIA_ARBEIDSGIVER_DOKUMENT_API/$orgnr")
+                url("$FIA_DOKUMENT_PUBLISERING_API/$dokumentId")
                 accept(ContentType.Application.Json)
             }
             val jsonParser = Json { ignoreUnknownKeys = true }
-            jsonParser.decodeFromString<List<DokumentDto>>(response.body())
+            jsonParser.decodeFromString<DokumentDto>(response.body())
         } catch (e: Exception) {
             log.warn("Feil ved kall til Fia dokument publisering", e)
-            emptyList()
+            null
         }
 
     private fun getHttpClient(token: String): HttpClient {
