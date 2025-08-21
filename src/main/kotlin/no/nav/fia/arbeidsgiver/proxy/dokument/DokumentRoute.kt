@@ -28,7 +28,7 @@ fun Route.dokument(dokumentService: DokumentService) {
         }
         return@get call.respond(
             status = HttpStatusCode.NotFound,
-            message = "Dokument med id $dokumentId ikke funnet",
+            message = "Ingen dokument med id '$dokumentId'",
         )
     }
 }
