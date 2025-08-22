@@ -25,6 +25,7 @@ import no.nav.fia.arbeidsgiver.helper.AuthContainerHelper.Companion.SAKSBEHANDLE
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.HEADER_SESJON_ID
 import no.nav.fia.arbeidsgiver.organisasjoner.api.ORGANISASJONER_PATH
 import no.nav.fia.arbeidsgiver.proxy.dokument.FIA_ARBEIDSGIVER_DOKUMENT_PATH
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.FIA_ARBEIDSGIVER_SAMARBEID_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.BLI_MED_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.DELTAKER_BASEPATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
@@ -56,6 +57,7 @@ class TestContainerHelper {
         val valkey = ValkeyContainer(network = network, log = log)
         val altinnTilgangerContainerHelper = AltinnTilgangerContainerHelper(network = network, log = log)
         val dokumentPubliseringContainerHelper = DokumentPubliseringContainerHelper(network = network, log = log)
+        val lydiaApiContainerHelper = LydiaApiContainerHelper(network = network, log = log)
 
         const val VERT_NAV_IDENT = "Z12345"
 
@@ -65,6 +67,7 @@ class TestContainerHelper {
                     altinnTilgangerContainerHelper.container,
                     authContainerHelper.container,
                     dokumentPubliseringContainerHelper.container,
+                    lydiaApiContainerHelper.container,
                     kafka.container,
                     valkey.container,
                 )
@@ -84,6 +87,7 @@ class TestContainerHelper {
                         .plus(kafka.envVars())
                         .plus(valkey.envVars())
                         .plus(dokumentPubliseringContainerHelper.envVars())
+                        .plus(lydiaApiContainerHelper.envVars())
                         .plus(altinnTilgangerContainerHelper.envVars()),
                 )
                 .apply {
@@ -103,6 +107,15 @@ class TestContainerHelper {
         ): HttpResponse =
             applikasjon.performGet(
                 url = "$FIA_ARBEIDSGIVER_DOKUMENT_PATH/$orgnr/$dokumentId",
+                config = config,
+            )
+
+        suspend fun hentListeAvSamarbeidResponse(
+            orgnr: String,
+            config: HttpRequestBuilder.() -> Unit = {}
+        ): HttpResponse =
+            applikasjon.performGet(
+                url = "$FIA_ARBEIDSGIVER_SAMARBEID_PATH/$orgnr",
                 config = config,
             )
 
