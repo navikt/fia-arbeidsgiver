@@ -103,7 +103,7 @@ class TestContainerHelper {
         suspend fun hentDokumentResponse(
             orgnr: String,
             dokumentId: UUID,
-            config: HttpRequestBuilder.() -> Unit = {}
+            config: HttpRequestBuilder.() -> Unit = {},
         ): HttpResponse =
             applikasjon.performGet(
                 url = "$FIA_ARBEIDSGIVER_DOKUMENT_PATH/$orgnr/$dokumentId",
@@ -112,7 +112,7 @@ class TestContainerHelper {
 
         suspend fun hentListeAvSamarbeidResponse(
             orgnr: String,
-            config: HttpRequestBuilder.() -> Unit = {}
+            config: HttpRequestBuilder.() -> Unit = {},
         ): HttpResponse =
             applikasjon.performGet(
                 url = "$FIA_ARBEIDSGIVER_SAMARBEID_PATH/$orgnr",
@@ -171,15 +171,19 @@ private suspend fun GenericContainer<*>.performRequest(
     }
 }
 
-internal fun withTokenXToken(claims: Map<String, String> = mapOf(
-    "acr" to "Level4",
-    "pid" to "123",
-)): HttpRequestBuilder.() -> Unit =
+internal fun withTokenXToken(
+    claims: Map<String, String> = mapOf(
+        "acr" to "Level4",
+        "pid" to "123",
+    ),
+): HttpRequestBuilder.() -> Unit =
     {
         header(HttpHeaders.Authorization, "Bearer ${TestContainerHelper.tokenXAccessToken(claims = claims).serialize()}")
     }
 
-const val ikkeGyldigJwtToken = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+const val ikkeGyldigJwtToken =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30"
+
 internal fun withoutGyldigTokenXToken(): HttpRequestBuilder.() -> Unit =
     {
         header(HttpHeaders.Authorization, "Bearer $ikkeGyldigJwtToken")

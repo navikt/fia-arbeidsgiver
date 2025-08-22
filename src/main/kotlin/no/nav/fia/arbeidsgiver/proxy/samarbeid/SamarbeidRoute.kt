@@ -10,10 +10,9 @@ import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.ORGNR
 const val FIA_ARBEIDSGIVER_SAMARBEID_PATH = "/api/samarbeid"
 
 fun Route.samarbeid(samarbeidService: SamarbeidService) {
-
     get(path = "$FIA_ARBEIDSGIVER_SAMARBEID_PATH/{$ORGNR}") {
         val token = call.request.hentToken() ?: return@get call.respond(HttpStatusCode.Forbidden)
-        val orgnr = call.parameters["orgnr"] ?: return@get call.respond(HttpStatusCode.BadRequest)
+        val orgnr = call.parameters[ORGNR] ?: return@get call.respond(HttpStatusCode.BadRequest)
 
         samarbeidService.hentSamarbeid(token = token, orgnr = orgnr).let { listeAvSamarbeid ->
             return@get call.respond(

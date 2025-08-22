@@ -64,9 +64,10 @@ class OrganisasjonerEndepunktTest {
                 OrgnrMedEnkeltrettigheter(
                     orgnr = ALTINN_ORGNR_2,
                     altinn3Rettigheter = listOf(
-                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID, ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK
+                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK,
                     ),
-                )
+                ),
             ),
         )
 
@@ -99,7 +100,6 @@ class OrganisasjonerEndepunktTest {
             altinnOrganisasjonForUnderenhet2.altinn3Tilganger.size shouldBe 2
             altinnOrganisasjonForUnderenhet2.erSlettet shouldBe false
             altinnOrganisasjonForUnderenhet2.underenheter.size shouldBe 0
-
         }
     }
 }

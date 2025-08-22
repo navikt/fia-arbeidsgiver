@@ -65,7 +65,7 @@ class DokumentEndepunktTest {
         )
         dokumentPubliseringContainerHelper.leggTilDokument(
             orgnr = ALTINN_ORGNR_1,
-            dokument = dokument
+            dokument = dokument,
         )
 
         runBlocking {
@@ -77,7 +77,7 @@ class DokumentEndepunktTest {
                     mapOf(
                         "acr" to "Level4",
                         "pid" to "123",
-                    )
+                    ),
                 ),
             )
 
@@ -103,7 +103,7 @@ class DokumentEndepunktTest {
         )
         dokumentPubliseringContainerHelper.leggTilDokument(
             orgnr = ALTINN_ORGNR_1,
-            dokument = dokument
+            dokument = dokument,
         )
 
         runBlocking {
@@ -114,7 +114,7 @@ class DokumentEndepunktTest {
                     mapOf(
                         "acr" to "Level4",
                         "pid" to "123",
-                    )
+                    ),
                 ),
             )
 

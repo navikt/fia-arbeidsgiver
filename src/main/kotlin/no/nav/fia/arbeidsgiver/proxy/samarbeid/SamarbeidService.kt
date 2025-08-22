@@ -22,31 +22,34 @@ import org.slf4j.LoggerFactory
 
 class SamarbeidService {
     companion object {
+        val json = Json { ignoreUnknownKeys = true }
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
         val FIA_SAMARBEID_API = "$fiaSamarbeidApiUrl/api/arbeidsgiver/samarbeid"
     }
 
-    suspend fun hentSamarbeid(token: String, orgnr: String): List<IASamarbeidDto> =
+    suspend fun hentSamarbeid(
+        token: String,
+        orgnr: String,
+    ): List<IASamarbeidDto> =
         try {
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
                 url("$FIA_SAMARBEID_API/$orgnr")
                 accept(ContentType.Application.Json)
             }
-            val jsonParser = Json { ignoreUnknownKeys = true }
-            jsonParser.decodeFromString<List<IASamarbeidDto>>(response.body())
+            json.decodeFromString<List<IASamarbeidDto>>(response.body())
         } catch (e: Exception) {
             log.warn("Feil ved kall til Fia samarbeid api", e)
             emptyList()
         }
 
-    private fun getHttpClient(token: String): HttpClient {
-        return client.config {
+    private fun getHttpClient(token: String): HttpClient =
+        client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
                         val exchangedToken = TokenExchanger.exchangeToken(
-                            audience = "$cluster:pia:fia-dokument-publisering",
+                            audience = "$cluster:pia:lydia-api",
                             subjectToken = token,
                         )
                         BearerTokens(
@@ -57,8 +60,6 @@ class SamarbeidService {
                 }
             }
         }
-    }
-
 
     @Serializable
     data class IASamarbeidDto(

@@ -63,7 +63,7 @@ class SamarbeidEndepunktTest {
                 status = SamarbeidService.IASamarbeidDto.Status.AKTIV,
                 saksnummer = "S123456",
                 opprettet = now().toKotlinLocalDateTime(),
-            )
+            ),
         )
 
         runBlocking {
@@ -73,7 +73,7 @@ class SamarbeidEndepunktTest {
                     mapOf(
                         "acr" to "Level4",
                         "pid" to "123",
-                    )
+                    ),
                 ),
             )
 
@@ -98,7 +98,7 @@ class SamarbeidEndepunktTest {
                 status = SamarbeidService.IASamarbeidDto.Status.AKTIV,
                 saksnummer = "S123456",
                 opprettet = now().toKotlinLocalDateTime(),
-            )
+            ),
         )
 
         runBlocking {
@@ -108,7 +108,7 @@ class SamarbeidEndepunktTest {
                     mapOf(
                         "acr" to "Level4",
                         "pid" to "123",
-                    )
+                    ),
                 ),
             )
 

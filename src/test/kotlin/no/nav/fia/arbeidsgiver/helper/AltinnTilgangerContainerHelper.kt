@@ -26,36 +26,37 @@ class AltinnTilgangerContainerHelper(
         fun lagJsonForAltinnTilgangerMock(
             overordnetEnhet: String,
             underenheterMedRettighet: List<OrgnrMedEnkeltrettigheter>,
-            erOverordnetEnhetSlettet: Boolean
-        ): String = Json.encodeToString(
-            AltinnTilgangerService.AltinnTilganger(
-                hierarki = listOf(
-                    AltinnTilgangerService.AltinnTilgang(
-                        orgnr = overordnetEnhet,
-                        altinn3Tilganger = emptySet(),
-                        altinn2Tilganger = emptySet(),
-                        underenheter = underenheterMedRettighet.map {
-                            AltinnTilgangerService.AltinnTilgang(
-                                orgnr = it.orgnr,
-                                altinn3Tilganger = it.altinn3Rettigheter.toSet(),
-                                altinn2Tilganger = emptySet(),
-                                underenheter = emptyList(),
-                                navn = "NAVN TIL UNDERENHET",
-                                erSlettet = it.erSlettet,
-                                organisasjonsform = "BEDR",
-                            )
-                        },
-                        navn = "NAVN TIL OVERORDNET ENHET",
-                        erSlettet = erOverordnetEnhetSlettet,
-                        organisasjonsform = "ORGL",
-                    )
+            erOverordnetEnhetSlettet: Boolean,
+        ): String =
+            Json.encodeToString(
+                AltinnTilgangerService.AltinnTilganger(
+                    hierarki = listOf(
+                        AltinnTilgangerService.AltinnTilgang(
+                            orgnr = overordnetEnhet,
+                            altinn3Tilganger = emptySet(),
+                            altinn2Tilganger = emptySet(),
+                            underenheter = underenheterMedRettighet.map {
+                                AltinnTilgangerService.AltinnTilgang(
+                                    orgnr = it.orgnr,
+                                    altinn3Tilganger = it.altinn3Rettigheter.toSet(),
+                                    altinn2Tilganger = emptySet(),
+                                    underenheter = emptyList(),
+                                    navn = "NAVN TIL UNDERENHET",
+                                    erSlettet = it.erSlettet,
+                                    organisasjonsform = "BEDR",
+                                )
+                            },
+                            navn = "NAVN TIL OVERORDNET ENHET",
+                            erSlettet = erOverordnetEnhetSlettet,
+                            organisasjonsform = "ORGL",
+                        ),
+                    ),
+                    orgNrTilTilganger = underenheterMedRettighet.associate { it.orgnr to it.altinn3Rettigheter.toSet() },
+                    tilgangTilOrgNr = underenheterMedRettighet.groupBySingleRettighet()
+                        .mapValues { it.value.map { it.orgnr }.toSet() },
+                    isError = false,
                 ),
-                orgNrTilTilganger = underenheterMedRettighet.associate { it.orgnr to it.altinn3Rettigheter.toSet() },
-                tilgangTilOrgNr = underenheterMedRettighet.groupBySingleRettighet()
-                    .mapValues { it.value.map { it.orgnr }.toSet() },
-                isError = false,
             )
-        )
 
         fun List<OrgnrMedEnkeltrettigheter>.groupBySingleRettighet(): Map<String, List<OrgnrMedEnkeltrettigheter>> =
             this.flatMap { orgnrMedRettighet ->
@@ -139,7 +140,7 @@ class AltinnTilgangerContainerHelper(
                     lagJsonForAltinnTilgangerMock(
                         orgnrTilOverordnetEnhet,
                         underenheterMedRettighet,
-                        erOverordnetEnhetSlettet
+                        erOverordnetEnhetSlettet,
                     ),
                 ),
             )
