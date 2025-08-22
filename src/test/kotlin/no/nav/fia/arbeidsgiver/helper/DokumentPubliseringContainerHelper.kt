@@ -18,9 +18,7 @@ class DokumentPubliseringContainerHelper(
     private val log: Logger,
 ) {
     companion object {
-        fun lagJsonForDokumentMock(
-            dokument: DokumentService.DokumentDto
-        ): String = Json.encodeToString(dokument)
+        fun lagJsonForDokumentMock(dokument: DokumentService.DokumentDto): String = Json.encodeToString(dokument)
     }
 
     private val networkAlias = "mockFiaDokumentPubliseringContainer"
@@ -76,7 +74,7 @@ class DokumentPubliseringContainerHelper(
                     .withPath("/dokument/${dokument.dokumentId}"),
             ).respond(
                 response().withBody(
-                    lagJsonForDokumentMock(dokument = dokument)
+                    lagJsonForDokumentMock(dokument = dokument),
                 ),
             )
         }

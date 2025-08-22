@@ -30,6 +30,6 @@ fun Spørreundersøkelse.tilDeltakerSpørsmål(spørsmålId: UUID): DeltakerSpø
         spørsmålnummer = tema.indeksFraSpørsmålId(spørsmålId = spørsmålId) + 1,
         antallSpørsmål = tema.spørsmål.size,
         spørsmål = temaer.spørsmålFraId(spørsmålId = spørsmålId).tilDto(),
-        type = type
+        type = type,
     )
 }

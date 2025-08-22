@@ -31,7 +31,7 @@ fun AltinnAuthorizationPlugin(enkelrettighet: String) =
 
                 if (!altinnTilganger.harEnkeltrettighet(
                         orgnr = orgnr,
-                        enkeltrettighet = enkelrettighet
+                        enkeltrettighet = enkelrettighet,
                     )
                 ) {
                     logger.debug("Ikke tilgang til ressurs pga manglende enkeltrettighet '$enkelrettighet'")

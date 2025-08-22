@@ -52,7 +52,7 @@ fun Application.configureRouting(
                     organisasjoner()
                     // sjekker også at routes har 'orgnr' som path parameter
                     medVerifisertTilgangTilEnkeltrettighetForOrgnr(
-                        enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+                        enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
                     ) {
                         samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                         dokument(dokumentService = DokumentService())

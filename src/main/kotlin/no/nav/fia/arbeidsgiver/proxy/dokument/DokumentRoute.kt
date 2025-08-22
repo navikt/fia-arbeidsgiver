@@ -15,7 +15,6 @@ const val FIA_ARBEIDSGIVER_DOKUMENT_PATH = "/fia-arbeidsgiver/dokument"
 const val DOKUMENT_ID = "dokumentId"
 
 fun Route.dokument(dokumentService: DokumentService) {
-
     get(path = "$FIA_ARBEIDSGIVER_DOKUMENT_PATH/{$ORGNR}/{$DOKUMENT_ID}") {
         val token = call.request.hentToken() ?: return@get call.respond(HttpStatusCode.Forbidden)
         val dokumentId = call.dokumentId

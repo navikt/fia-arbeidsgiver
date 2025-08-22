@@ -70,7 +70,7 @@ class LydiaApiContainerHelper(
                     .withPath("/api/arbeidsgiver/samarbeid/$orgnr"),
             ).respond(
                 response().withBody(
-                    Json.encodeToString(listOf(iaSamarbeidDto))
+                    Json.encodeToString(listOf(iaSamarbeidDto)),
                 ),
             )
         }

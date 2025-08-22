@@ -45,7 +45,7 @@ object TokenExchanger {
             if (clientOrServerError || accessToken.isNullOrBlank()) {
                 logger.warn("Token exchange feilet, status: '${postResponse.status}' ")
                 throw IllegalStateException(
-                    "Fikk ingen token i response, status i response: '${postResponse.status}'"
+                    "Fikk ingen token i response, status i response: '${postResponse.status}'",
                 )
             } else {
                 accessToken
@@ -54,10 +54,8 @@ object TokenExchanger {
             throw RuntimeException("Token exchange feil", e)
         }
 
-    private fun createJwt(
-        atInstant: Instant,
-    ): String {
-        return JWT.create().apply {
+    private fun createJwt(atInstant: Instant): String =
+        JWT.create().apply {
             withSubject(Miljø.tokenxClientId)
             withIssuer(Miljø.tokenxClientId)
             withAudience(Miljø.tokenXTokenEndpoint)
@@ -66,5 +64,4 @@ object TokenExchanger {
             withNotBefore(Date.from(atInstant))
             withExpiresAt(Date.from(atInstant.plusSeconds(120)))
         }.sign(Algorithm.RSA256(null, privateKey))
-    }
 }

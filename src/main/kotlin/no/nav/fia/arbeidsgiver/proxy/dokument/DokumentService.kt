@@ -26,7 +26,10 @@ class DokumentService {
         val FIA_DOKUMENT_PUBLISERING_API = "$fiaDokumentPubliseringUrl/dokument"
     }
 
-    suspend fun hentDokument(token: String, dokumentId: UUID): DokumentDto? =
+    suspend fun hentDokument(
+        token: String,
+        dokumentId: UUID,
+    ): DokumentDto? =
         try {
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
@@ -40,8 +43,8 @@ class DokumentService {
             null
         }
 
-    private fun getHttpClient(token: String): HttpClient {
-        return client.config {
+    private fun getHttpClient(token: String): HttpClient =
+        client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
@@ -57,8 +60,6 @@ class DokumentService {
                 }
             }
         }
-    }
-
 
     @Serializable
     data class DokumentDto(

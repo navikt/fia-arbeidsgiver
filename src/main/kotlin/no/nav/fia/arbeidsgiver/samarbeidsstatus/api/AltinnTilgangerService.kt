@@ -35,9 +35,8 @@ class AltinnTilgangerService {
 
         fun AltinnTilganger?.harEnkeltrettighet(
             orgnr: String?,
-            enkeltrettighet: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
-        ): Boolean =
-            this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighet) ?: false
+            enkeltrettighet: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+        ): Boolean = this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighet) ?: false
 
         private fun AltinnTilganger?.virksomheterVedkommendeHarTilgangTil(): List<String> =
             this?.hierarki?.flatMap {
@@ -50,8 +49,8 @@ class AltinnTilgangerService {
         ): Set<T> = setOf(mapFn(altinnTilgang)) + altinnTilgang.underenheter.flatMap { flatten(it, mapFn) }
     }
 
-    private fun getHttpClient(token: String): HttpClient {
-        return client.config {
+    private fun getHttpClient(token: String): HttpClient =
+        client.config {
             install(Auth) {
                 bearer {
                     loadTokens {
@@ -67,7 +66,6 @@ class AltinnTilgangerService {
                 }
             }
         }
-    }
 
     suspend fun hentAltinnTilganger(token: String): AltinnTilganger? =
         try {
