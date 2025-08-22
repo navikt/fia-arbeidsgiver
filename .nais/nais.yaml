@@ -42,7 +42,7 @@ spec:
         - application: arbeidsgiver-altinn-tilganger
           namespace: fager
         - application: fia-dokument-publisering
-          namespace: pia
+        - application: lydia-api
   valkey:
     - instance: fia-samarbeidsstatus
       access: readwrite
@@ -66,6 +66,8 @@ spec:
       value: http://arbeidsgiver-altinn-tilganger.fager
     - name: FIA_DOKUMENT_PUBLISERING_URL
       value: http://fia-dokument-publisering.pia
+    - name: FIA_SAMARBEID_API_URL
+      value: http://lydia-api.pia
     - name: BLI_MED_LIMIT
       value: "5"
     - name: GENERELL_LIMIT

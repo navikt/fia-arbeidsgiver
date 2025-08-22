@@ -70,7 +70,7 @@ jobs:
       id-token: write
     name: Deploy branch to dev
     needs: build
-    if: github.ref == 'refs/heads/proxy-til-dokument-publisering'
+    if: github.ref == 'refs/heads/hent-samarbeid-i-lydia-api'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

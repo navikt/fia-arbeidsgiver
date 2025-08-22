@@ -13,6 +13,8 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
 import no.nav.fia.arbeidsgiver.organisasjoner.api.organisasjoner
 import no.nav.fia.arbeidsgiver.proxy.dokument.DokumentService
 import no.nav.fia.arbeidsgiver.proxy.dokument.dokument
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidService
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.samarbeid
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
@@ -54,6 +56,7 @@ fun Application.configureRouting(
                     ) {
                         samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                         dokument(dokumentService = DokumentService())
+                        samarbeid(samarbeidService = SamarbeidService())
                     }
                 }
             }

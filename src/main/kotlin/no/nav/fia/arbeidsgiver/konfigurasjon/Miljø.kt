@@ -32,4 +32,5 @@ internal object Miljø {
 
     val altinnTilgangerProxyUrl: String by lazy { System.getenv("ALTINN_TILGANGER_PROXY_URL") }
     val fiaDokumentPubliseringUrl: String by lazy { System.getenv("FIA_DOKUMENT_PUBLISERING_URL") }
+    val fiaSamarbeidApiUrl: String by lazy { System.getenv("FIA_SAMARBEID_API_URL") }
 }
