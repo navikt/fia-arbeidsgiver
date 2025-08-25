@@ -28,12 +28,13 @@ class DokumentService {
 
     suspend fun hentDokument(
         token: String,
+        orgnr: String,
         dokumentId: UUID,
     ): DokumentDto? =
         try {
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
-                url("$FIA_DOKUMENT_PUBLISERING_API/$dokumentId")
+                url("$FIA_DOKUMENT_PUBLISERING_API/orgnr/$orgnr/dokumentId/$dokumentId")
                 accept(ContentType.Application.Json)
             }
             val jsonParser = Json { ignoreUnknownKeys = true }

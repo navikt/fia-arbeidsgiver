@@ -7,6 +7,7 @@ import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.fia.arbeidsgiver.http.Feil
 import no.nav.fia.arbeidsgiver.http.hentToken
+import no.nav.fia.arbeidsgiver.http.orgnr
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.ORGNR
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import java.util.UUID
@@ -17,9 +18,10 @@ const val DOKUMENT_ID = "dokumentId"
 fun Route.dokument(dokumentService: DokumentService) {
     get(path = "$FIA_ARBEIDSGIVER_DOKUMENT_PATH/{$ORGNR}/{$DOKUMENT_ID}") {
         val token = call.request.hentToken() ?: return@get call.respond(HttpStatusCode.Forbidden)
+        val orgnr = call.orgnr ?: return@get call.respond(HttpStatusCode.Forbidden)
         val dokumentId = call.dokumentId
 
-        dokumentService.hentDokument(token = token, dokumentId = dokumentId)?.let { dokumentDto ->
+        dokumentService.hentDokument(token = token, orgnr = orgnr, dokumentId = dokumentId)?.let { dokumentDto ->
             return@get call.respond(
                 status = HttpStatusCode.OK,
                 message = dokumentDto,
