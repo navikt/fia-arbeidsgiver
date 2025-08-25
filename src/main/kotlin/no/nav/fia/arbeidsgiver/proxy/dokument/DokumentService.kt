@@ -10,6 +10,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
+import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
@@ -22,6 +23,7 @@ import java.util.UUID
 
 class DokumentService {
     companion object {
+        val json = Json { ignoreUnknownKeys = true }
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
         val FIA_DOKUMENT_PUBLISERING_API = "$fiaDokumentPubliseringUrl/dokument"
     }
@@ -37,8 +39,12 @@ class DokumentService {
                 url("$FIA_DOKUMENT_PUBLISERING_API/orgnr/$orgnr/dokumentId/$dokumentId")
                 accept(ContentType.Application.Json)
             }
-            val jsonParser = Json { ignoreUnknownKeys = true }
-            jsonParser.decodeFromString<DokumentDto>(response.body())
+            if (response.status == HttpStatusCode.OK) {
+                json.decodeFromString<DokumentDto>(response.body())
+            } else {
+                log.warn("Kunne ikke hente dokument fra Fia dokument publisering, ${response.status}")
+                null
+            }
         } catch (e: Exception) {
             log.warn("Feil ved kall til Fia dokument publisering", e)
             null
