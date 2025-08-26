@@ -2,7 +2,7 @@ package no.nav.fia.arbeidsgiver.helper
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
-import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidService
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto
 import org.mockserver.client.MockServerClient
 import org.mockserver.model.HttpRequest.request
 import org.mockserver.model.HttpResponse.response
@@ -55,7 +55,7 @@ class LydiaApiContainerHelper(
 
     internal fun leggTilSamarbeid(
         orgnr: String,
-        iaSamarbeidDto: SamarbeidService.IASamarbeidDto,
+        iaSamarbeidDto: SamarbeidMedDokumenterDto,
     ) {
         log.info("Legger til et samarbeid med id '${iaSamarbeidDto.id}' for orgnr '$orgnr' i mockserver")
         val client = MockServerClient(

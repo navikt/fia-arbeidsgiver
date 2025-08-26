@@ -10,8 +10,6 @@ import io.ktor.client.request.get
 import io.ktor.client.request.url
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.ContentType
-import kotlinx.datetime.LocalDateTime
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
 import no.nav.fia.arbeidsgiver.http.tokenx.TokenExchanger
@@ -27,17 +25,17 @@ class SamarbeidService {
         val FIA_SAMARBEID_API = "$fiaSamarbeidApiUrl/api/arbeidsgiver/samarbeid"
     }
 
-    suspend fun hentSamarbeid(
+    suspend fun hentSamarbeidMedDokumenter(
         token: String,
         orgnr: String,
-    ): List<IASamarbeidDto> =
+    ): List<SamarbeidMedDokumenterDto> =
         try {
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
                 url("$FIA_SAMARBEID_API/$orgnr")
                 accept(ContentType.Application.Json)
             }
-            json.decodeFromString<List<IASamarbeidDto>>(response.body())
+            json.decodeFromString<List<SamarbeidMedDokumenterDto>>(response.body())
         } catch (e: Exception) {
             log.warn("Feil ved kall til Fia samarbeid api", e)
             emptyList()
@@ -60,23 +58,4 @@ class SamarbeidService {
                 }
             }
         }
-
-    @Serializable
-    data class IASamarbeidDto(
-        val id: Int,
-        val saksnummer: String,
-        val navn: String,
-        val status: Status?,
-        val opprettet: LocalDateTime,
-        val avbrutt: LocalDateTime? = null,
-        val fullført: LocalDateTime? = null,
-        val sistEndret: LocalDateTime? = null,
-    ) {
-        enum class Status {
-            AKTIV,
-            FULLFØRT,
-            SLETTET,
-            AVBRUTT,
-        }
-    }
 }

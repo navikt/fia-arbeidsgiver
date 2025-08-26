@@ -3,7 +3,6 @@ package no.nav.fia.arbeidsgiver.proxy.samarbeid
 import io.kotest.matchers.shouldBe
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.toKotlinLocalDateTime
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
@@ -11,8 +10,8 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgan
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.lydiaApiContainerHelper
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto.Companion.Status.AKTIV
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
-import java.time.LocalDateTime.now
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -57,12 +56,10 @@ class SamarbeidEndepunktTest {
         )
         lydiaApiContainerHelper.leggTilSamarbeid(
             orgnr = "999888777",
-            iaSamarbeidDto = SamarbeidService.IASamarbeidDto(
+            iaSamarbeidDto = SamarbeidMedDokumenterDto(
                 id = 1234,
                 navn = "Avdeling Oslo",
-                status = SamarbeidService.IASamarbeidDto.Status.AKTIV,
-                saksnummer = "S123456",
-                opprettet = now().toKotlinLocalDateTime(),
+                status = AKTIV,
             ),
         )
 
@@ -78,7 +75,7 @@ class SamarbeidEndepunktTest {
             )
 
             response.status.value shouldBe 200
-            val result = Json.decodeFromString<List<SamarbeidService.IASamarbeidDto>>(response.bodyAsText())
+            val result = Json.decodeFromString<List<SamarbeidMedDokumenterDto>>(response.bodyAsText())
             result shouldBe emptyList()
         }
     }
@@ -92,12 +89,10 @@ class SamarbeidEndepunktTest {
         )
         lydiaApiContainerHelper.leggTilSamarbeid(
             orgnr = ALTINN_ORGNR_1,
-            iaSamarbeidDto = SamarbeidService.IASamarbeidDto(
+            iaSamarbeidDto = SamarbeidMedDokumenterDto(
                 id = 1234,
                 navn = "Avdeling Oslo",
-                status = SamarbeidService.IASamarbeidDto.Status.AKTIV,
-                saksnummer = "S123456",
-                opprettet = now().toKotlinLocalDateTime(),
+                status = AKTIV,
             ),
         )
 
@@ -113,9 +108,9 @@ class SamarbeidEndepunktTest {
             )
 
             response.status.value shouldBe 200
-            val result = Json.decodeFromString<List<SamarbeidService.IASamarbeidDto>>(response.bodyAsText())
+            val result = Json.decodeFromString<List<SamarbeidMedDokumenterDto>>(response.bodyAsText())
             result.size shouldBe 1
-            result.first().status shouldBe SamarbeidService.IASamarbeidDto.Status.AKTIV
+            result.first().status shouldBe AKTIV
         }
     }
 }

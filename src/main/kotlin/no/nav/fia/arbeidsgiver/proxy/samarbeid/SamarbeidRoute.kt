@@ -14,7 +14,7 @@ fun Route.samarbeid(samarbeidService: SamarbeidService) {
         val token = call.request.hentToken() ?: return@get call.respond(HttpStatusCode.Forbidden)
         val orgnr = call.parameters[ORGNR] ?: return@get call.respond(HttpStatusCode.BadRequest)
 
-        samarbeidService.hentSamarbeid(token = token, orgnr = orgnr).let { listeAvSamarbeid ->
+        samarbeidService.hentSamarbeidMedDokumenter(token = token, orgnr = orgnr).let { listeAvSamarbeid ->
             return@get call.respond(
                 status = HttpStatusCode.OK,
                 message = listeAvSamarbeid,
