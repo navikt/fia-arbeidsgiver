@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.vert
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
 import io.kotest.inspectors.forAll
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.collections.shouldContainInOrder
@@ -38,6 +37,7 @@ import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsm
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.TemaDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.tilSpørreundersøkelseKontekstDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.TemaStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseHendelseProdusent.StengTema
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument.TemaResultatDto
@@ -547,7 +547,7 @@ class SpørreundersøkelseVertTest {
         val pågåendeSpørreundersøkelse = kafka.sendSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         val spørreundersøkelse = kafka.sendSpørreundersøkelse(
             spørreundersøkelseId = spørreundersøkelseId,
-            spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = AVSLUTTET),
+            spørreundersøkelse = pågåendeSpørreundersøkelse.copy(status = Spørreundersøkelse.Status.AVSLUTTET),
         ).tilDomene()
 
         runBlocking {

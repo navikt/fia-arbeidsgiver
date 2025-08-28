@@ -1,8 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.PÅBEGYNT
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.http.Feil
@@ -91,9 +88,9 @@ class SpørreundersøkelseService(
         return undersøkelse
     }
 
-    private fun SpørreundersøkelseStatus.kanVisesForVert() =
+    private fun Spørreundersøkelse.Status.kanVisesForVert() =
         when (this) {
-            PÅBEGYNT, AVSLUTTET -> true
+            Spørreundersøkelse.Status.PÅBEGYNT, Spørreundersøkelse.Status.AVSLUTTET -> true
             else -> false
         }
 
@@ -112,8 +109,8 @@ class SpørreundersøkelseService(
     fun hentePågåendeSpørreundersøkelse(spørreundersøkelseId: UUID): Spørreundersøkelse {
         val undersøkelse = henteSpørreundersøkelse(spørreundersøkelseId = spørreundersøkelseId)
         return when (undersøkelse.status) {
-            PÅBEGYNT -> undersøkelse.tilDomene()
-            AVSLUTTET -> throw Feil(
+            Spørreundersøkelse.Status.PÅBEGYNT -> undersøkelse.tilDomene()
+            Spørreundersøkelse.Status.AVSLUTTET -> throw Feil(
                 feilmelding = "Spørreundersøkelse med id '$spørreundersøkelseId' er avsluttet",
                 feilkode = HttpStatusCode.Gone,
             )

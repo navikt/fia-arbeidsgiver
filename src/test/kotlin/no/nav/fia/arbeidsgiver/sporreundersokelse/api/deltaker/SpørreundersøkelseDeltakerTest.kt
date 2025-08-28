@@ -1,7 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api.deltaker
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.assertions.shouldFail
 import io.kotest.inspectors.forAtLeastOne
 import io.kotest.matchers.collections.shouldContain
@@ -90,7 +88,7 @@ class SpørreundersøkelseDeltakerTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = kafka.enStandardSpørreundersøkelse(
                 id = spørreundersøkelseId,
-                spørreundersøkelseStatus = OPPRETTET,
+                spørreundersøkelseStatus = Spørreundersøkelse.Status.OPPRETTET,
             ),
         )
 
@@ -108,7 +106,7 @@ class SpørreundersøkelseDeltakerTest {
 
             kafka.sendSpørreundersøkelse(
                 spørreundersøkelseId = spørreundersøkelseId,
-                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = AVSLUTTET),
+                spørreundersøkelse = spørreundersøkelseFraKafka.copy(status = Spørreundersøkelse.Status.AVSLUTTET),
             )
 
             shouldFail {

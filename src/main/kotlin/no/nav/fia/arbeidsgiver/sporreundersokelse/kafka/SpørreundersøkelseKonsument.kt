@@ -1,11 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseMelding
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.SLETTET
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørsmålMelding
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SvaralternativMelding
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.TemaMelding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -78,7 +72,7 @@ class SpørreundersøkelseKonsument(
                                 logger.debug("Mottok spørreundersøkelse med type: '${spørreundersøkelse.type}'")
                                 when (spørreundersøkelse.type) {
                                     "Evaluering", "Behovsvurdering" -> {
-                                        if (spørreundersøkelse.status == SLETTET) {
+                                        if (spørreundersøkelse.status == Spørreundersøkelse.Status.SLETTET) {
                                             logger.info("Sletter spørreundersøkelse med id: ${spørreundersøkelse.id}")
                                             spørreundersøkelseService.slett(spørreundersøkelse)
                                         } else {
@@ -96,7 +90,7 @@ class SpørreundersøkelseKonsument(
                         }
                         logger.debug("Prosesserte ${records.count()} meldinger i topic: ${topic.navn}")
                     } catch (e: WakeupException) {
-                        logger.info("SpørreundersøkelseKonsument is shutting down")
+                        logger.info("SpørreundersøkelseKonsument is shutting down", e)
                     } catch (e: RetriableException) {
                         logger.warn("Had a retriable exception, retrying", e)
                     } catch (e: Exception) {
@@ -111,15 +105,15 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableSpørreundersøkelse(
-        override val id: String,
-        override val orgnummer: String,
-        override val samarbeidsNavn: String,
-        override val virksomhetsNavn: String,
-        override val status: SpørreundersøkelseStatus,
-        override val temaer: List<SerializableTema>,
-        override val type: String,
+        val id: String,
+        val orgnummer: String,
+        val samarbeidsNavn: String,
+        val virksomhetsNavn: String,
+        val status: Spørreundersøkelse.Status,
+        val temaer: List<SerializableTema>,
+        val type: String,
         val plan: PlanDto?,
-    ) : SpørreundersøkelseMelding {
+    ) {
         fun tilDomene() =
             Spørreundersøkelse(
                 id = UUID.fromString(id),
@@ -135,10 +129,10 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableTema(
-        override val id: Int,
-        override val navn: String,
-        override val spørsmål: List<SerializableSpørsmål>,
-    ) : TemaMelding {
+        val id: Int,
+        val navn: String,
+        val spørsmål: List<SerializableSpørsmål>,
+    ) {
         fun tilDomene() =
             Tema(
                 id = id,
@@ -149,12 +143,12 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableSpørsmål(
-        override val id: String,
-        override val tekst: String,
-        override val flervalg: Boolean,
-        override val svaralternativer: List<SerializableSvaralternativ>,
+        val id: String,
+        val tekst: String,
+        val flervalg: Boolean,
+        val svaralternativer: List<SerializableSvaralternativ>,
         val kategori: String? = null,
-    ) : SpørsmålMelding {
+    ) {
         fun tilDomene() =
             Spørsmål(
                 id = UUID.fromString(id),
@@ -167,9 +161,9 @@ class SpørreundersøkelseKonsument(
 
     @Serializable
     data class SerializableSvaralternativ(
-        override val id: String,
-        override val tekst: String,
-    ) : SvaralternativMelding {
+        val id: String,
+        val tekst: String,
+    ) {
         fun tilDomene() =
             Svaralternativ(
                 id = UUID.fromString(id),

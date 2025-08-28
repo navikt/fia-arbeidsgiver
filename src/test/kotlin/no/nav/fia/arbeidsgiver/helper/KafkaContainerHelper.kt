@@ -1,8 +1,5 @@
 package no.nav.fia.arbeidsgiver.helper
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.PÅBEGYNT
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.SLETTET
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -15,6 +12,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Svaralternativ
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Tema
@@ -241,7 +239,7 @@ class KafkaContainerHelper(
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = enStandardSpørreundersøkelse(
                 id = spørreundersøkelseId,
-                spørreundersøkelseStatus = SLETTET,
+                spørreundersøkelseStatus = Spørreundersøkelse.Status.SLETTET,
             ),
         )
 
@@ -249,7 +247,7 @@ class KafkaContainerHelper(
         id: UUID,
         orgnummer: String = ALTINN_ORGNR_1,
         virksomhetsNavn: String = "Navn $ALTINN_ORGNR_1",
-        spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
+        spørreundersøkelseStatus: Spørreundersøkelse.Status = Spørreundersøkelse.Status.PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Sykefravær", "Arbeidsmiljø"),
         flervalg: Boolean = false,
         type: String = "Behovsvurdering",
@@ -306,7 +304,7 @@ class KafkaContainerHelper(
         id: UUID,
         orgnummer: String = ALTINN_ORGNR_1,
         virksomhetsNavn: String = "Navn $ALTINN_ORGNR_1",
-        spørreundersøkelseStatus: SpørreundersøkelseStatus = PÅBEGYNT,
+        spørreundersøkelseStatus: Spørreundersøkelse.Status = Spørreundersøkelse.Status.PÅBEGYNT,
         temanavn: List<String> = listOf("Partssamarbeid", "Arbeidsmiljø"),
         flervalg: Boolean = false,
         type: String = "Evaluering",

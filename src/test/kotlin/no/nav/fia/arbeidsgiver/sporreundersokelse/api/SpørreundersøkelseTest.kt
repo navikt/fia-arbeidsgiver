@@ -1,7 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.api
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.AVSLUTTET
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus.OPPRETTET
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldHaveLength
 import io.ktor.client.statement.bodyAsText
@@ -15,6 +13,7 @@ import no.nav.fia.arbeidsgiver.helper.bliMed
 import no.nav.fia.arbeidsgiver.helper.performPost
 import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.BliMedRequest
+import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import org.junit.After
 import org.junit.Before
 import java.util.UUID
@@ -93,7 +92,7 @@ class SpørreundersøkelseTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 id = spørreundersøkelseId,
-                spørreundersøkelseStatus = AVSLUTTET,
+                spørreundersøkelseStatus = Spørreundersøkelse.Status.AVSLUTTET,
             ),
         )
 
@@ -114,7 +113,7 @@ class SpørreundersøkelseTest {
             spørreundersøkelseId = spørreundersøkelseId,
             spørreundersøkelse = TestContainerHelper.kafka.enStandardSpørreundersøkelse(
                 id = spørreundersøkelseId,
-                spørreundersøkelseStatus = OPPRETTET,
+                spørreundersøkelseStatus = Spørreundersøkelse.Status.OPPRETTET,
             ),
         )
 

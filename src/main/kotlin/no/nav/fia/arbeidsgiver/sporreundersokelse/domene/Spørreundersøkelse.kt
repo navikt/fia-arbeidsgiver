@@ -1,6 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.domene
 
-import ia.felles.integrasjoner.kafkameldinger.spørreundersøkelse.SpørreundersøkelseStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.IdentifiserbartSpørsmålDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import java.util.UUID
@@ -10,11 +9,18 @@ data class Spørreundersøkelse(
     val orgnummer: String,
     val virksomhetsNavn: String,
     val samarbeidsNavn: String,
-    val status: SpørreundersøkelseStatus,
+    val status: Status,
     val type: String,
     val temaer: List<Tema>,
     val plan: PlanDto?,
 ) {
+    enum class Status {
+        OPPRETTET,
+        PÅBEGYNT,
+        AVSLUTTET,
+        SLETTET,
+    }
+
     fun hentNesteSpørsmålOgTema(nåværendeSpørmålId: UUID): IdentifiserbartSpørsmålDto? {
         val gjeldendeTema = temaer.temaFraSpørsmålId(nåværendeSpørmålId)
         val gjeldeneTemaIdx = temaer.indexOfFirst { it.id == gjeldendeTema.id }

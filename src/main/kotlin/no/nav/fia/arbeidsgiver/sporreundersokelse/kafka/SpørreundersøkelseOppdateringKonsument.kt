@@ -1,8 +1,5 @@
 package no.nav.fia.arbeidsgiver.sporreundersokelse.kafka
 
-import ia.felles.integrasjoner.kafkameldinger.oppdatering.SpørsmålResultatMelding
-import ia.felles.integrasjoner.kafkameldinger.oppdatering.SvarResultatMelding
-import ia.felles.integrasjoner.kafkameldinger.oppdatering.TemaResultatMelding
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -121,26 +118,26 @@ class SpørreundersøkelseOppdateringKonsument(
 
     @Serializable
     data class TemaResultatDto(
-        override val id: Int,
-        override val navn: String,
-        override val spørsmålMedSvar: List<SpørsmålResultatDto>,
-    ) : TemaResultatMelding
+        val id: Int,
+        val navn: String,
+        val spørsmålMedSvar: List<SpørsmålResultatDto>,
+    )
 
     @Serializable
     data class SpørsmålResultatDto(
-        override val id: String,
-        override val tekst: String,
-        override val flervalg: Boolean,
-        override val svarListe: List<SvarResultatDto>,
+        val id: String,
+        val tekst: String,
+        val flervalg: Boolean,
+        val svarListe: List<SvarResultatDto>,
         val kategori: String? = null,
-    ) : SpørsmålResultatMelding
+    )
 
     @Serializable
     data class SvarResultatDto(
-        override val id: String,
-        override val tekst: String,
-        override val antallSvar: Int,
-    ) : SvarResultatMelding
+        val id: String,
+        val tekst: String,
+        val antallSvar: Int,
+    )
 
     private fun cancel() =
         runBlocking {
