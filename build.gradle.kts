@@ -5,7 +5,6 @@ val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
 val prometheusVersion = "1.15.2"
-val iaFellesVersion = "1.10.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.21.3"
 val testMockServerVersion = "5.15.0"
@@ -27,9 +26,6 @@ repositories {
 }
 
 dependencies {
-    // Felles definisjoner for IA-domenet
-    implementation("com.github.navikt:ia-felles:$iaFellesVersion")
-
     implementation("io.micrometer:micrometer-registry-prometheus:$prometheusVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json-jvm:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson-jvm:$ktorVersion")
