@@ -2,16 +2,20 @@ package no.nav.fia.arbeidsgiver.helper
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.createMockServerClient
+import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.resetAllExpectations
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
-import org.mockserver.client.MockServerClient
-import org.mockserver.model.HttpRequest.request
-import org.mockserver.model.HttpResponse.response
 import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
+import software.xdev.mockserver.client.MockServerClient
+import software.xdev.mockserver.model.HttpRequest.request
+import software.xdev.mockserver.model.HttpResponse.response
+import software.xdev.testcontainers.mockserver.containers.MockServerContainer
+import software.xdev.testcontainers.mockserver.containers.MockServerContainer.PORT
 
 class AltinnTilgangerContainerHelper(
     network: Network = Network.newNetwork(),
@@ -66,11 +70,13 @@ class AltinnTilgangerContainerHelper(
             }.groupBy(keySelector = { it.first }, valueTransform = { it.second })
     }
 
-    private val networkAlias = "mockAltinnTilgangerContainer"
-    private val port = 7070
+    private val networkAlias = "altinn-tilganger-container"
+    private val port =
+        PORT // mockserver default port er 1080 som MockServerContainer() eksponerer selv med "this.addExposedPort(1080);"
+    private var mockServerClient: MockServerClient? = null
 
-    private val dockerImageName = DockerImageName.parse("mockserver/mockserver")
-    val container: GenericContainer<*> = GenericContainer(dockerImageName)
+    private val dockerImageName = DockerImageName.parse("xdevsoftware/mockserver:1.0.19")
+    val container: GenericContainer<*> = MockServerContainer(dockerImageName)
         .withNetwork(network)
         .withNetworkAliases(networkAlias)
         .withExposedPorts(port)
@@ -86,6 +92,7 @@ class AltinnTilgangerContainerHelper(
         .apply {
             start()
         }.also {
+            mockServerClient = createMockServerClient(container = it, port = port)
             log.info("Startet (mock) altinnTilganger container for network '$network' og port '$port'")
         }
 
@@ -94,13 +101,7 @@ class AltinnTilgangerContainerHelper(
             "ALTINN_TILGANGER_PROXY_URL" to "http://$networkAlias:$port",
         )
 
-    internal fun slettAlleRettigheter() {
-        val client = MockServerClient(
-            container.host,
-            container.getMappedPort(port),
-        )
-        client.reset()
-    }
+    internal fun slettAlleRettigheter() = resetAllExpectations(client = mockServerClient!!)
 
     internal fun leggTilRettighet(
         orgnrTilOverordnetEnhet: String = ALTINN_OVERORDNET_ENHET,
@@ -125,13 +126,9 @@ class AltinnTilgangerContainerHelper(
         erOverordnetEnhetSlettet: Boolean = false,
     ) {
         log.info("Legger til rettigheter for underenheter '$underenheterMedRettighet'")
-        val client = MockServerClient(
-            container.host,
-            container.getMappedPort(7070),
-        )
 
         runBlocking {
-            client.`when`(
+            mockServerClient!!.`when`(
                 request()
                     .withMethod("POST")
                     .withPath("/altinn-tilganger"),

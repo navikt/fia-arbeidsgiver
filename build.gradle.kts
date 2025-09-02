@@ -7,7 +7,7 @@ val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
 val prometheusVersion = "1.15.2"
 val kotestVersion = "5.9.1"
 val testcontainersVersion = "1.21.3"
-val testMockServerVersion = "5.15.0"
+val mockServerVersion = "1.0.19"
 val valkeyVersion = "5.4.0"
 
 plugins {
@@ -70,8 +70,9 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
     testImplementation("org.testcontainers:kafka:$testcontainersVersion")
-    testImplementation("org.testcontainers:mockserver:$testcontainersVersion")
-    testImplementation("org.mock-server:mockserver-client-java:$testMockServerVersion")
+    // Mockserver neolight
+    testImplementation("software.xdev.mockserver:testcontainers:$mockServerVersion")
+    testImplementation("software.xdev.mockserver:client:$mockServerVersion")
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.1")
     // Mock-oauth2-server
