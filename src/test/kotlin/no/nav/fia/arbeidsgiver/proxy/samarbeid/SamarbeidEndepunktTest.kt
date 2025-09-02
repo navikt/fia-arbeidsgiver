@@ -1,6 +1,8 @@
 package no.nav.fia.arbeidsgiver.proxy.samarbeid
 
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.UUIDVersion
+import io.kotest.matchers.string.shouldBeUUID
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
@@ -12,6 +14,7 @@ import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto.Companion.Status.AKTIV
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
 
@@ -58,6 +61,7 @@ class SamarbeidEndepunktTest {
             orgnr = "999888777",
             iaSamarbeidDto = SamarbeidMedDokumenterDto(
                 id = 1234,
+                offentligId = UUID.randomUUID().toString(),
                 navn = "Avdeling Oslo",
                 status = AKTIV,
             ),
@@ -91,6 +95,7 @@ class SamarbeidEndepunktTest {
             orgnr = ALTINN_ORGNR_1,
             iaSamarbeidDto = SamarbeidMedDokumenterDto(
                 id = 1234,
+                offentligId = UUID.randomUUID().toString(),
                 navn = "Avdeling Oslo",
                 status = AKTIV,
             ),
@@ -111,6 +116,8 @@ class SamarbeidEndepunktTest {
             val result = Json.decodeFromString<List<SamarbeidMedDokumenterDto>>(response.bodyAsText())
             result.size shouldBe 1
             result.first().status shouldBe AKTIV
+            result.first().navn shouldBe "Avdeling Oslo"
+            result.first().offentligId.shouldBeUUID(version = UUIDVersion.ANY)
         }
     }
 }
