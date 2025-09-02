@@ -2,27 +2,32 @@ package no.nav.fia.arbeidsgiver.helper
 
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
+import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.createMockServerClient
+import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.resetAllExpectations
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto
-import org.mockserver.client.MockServerClient
-import org.mockserver.model.HttpRequest.request
-import org.mockserver.model.HttpResponse.response
 import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
 import org.testcontainers.containers.output.Slf4jLogConsumer
 import org.testcontainers.containers.wait.strategy.Wait
 import org.testcontainers.utility.DockerImageName
+import software.xdev.mockserver.client.MockServerClient
+import software.xdev.mockserver.model.HttpRequest.request
+import software.xdev.mockserver.model.HttpResponse.response
+import software.xdev.testcontainers.mockserver.containers.MockServerContainer
+import software.xdev.testcontainers.mockserver.containers.MockServerContainer.PORT
 
 class LydiaApiContainerHelper(
     network: Network = Network.newNetwork(),
     private val log: Logger,
 ) {
-    private val networkAlias = "mockLydiaApiContainer"
-    private val port = 7272
+    private val networkAlias = "lydia-api-container"
+    private val port =
+        PORT // mockserver default port er 1080 som MockServerContainer() eksponerer selv med "this.addExposedPort(1080);"
+    private var mockServerClient: MockServerClient? = null
 
-    private val dockerImageName = DockerImageName.parse("mockserver/mockserver")
-    val container: GenericContainer<*> = GenericContainer(dockerImageName)
-        .withNetwork(network)
+    private val dockerImageName = DockerImageName.parse("xdevsoftware/mockserver:1.0.19")
+    val container: GenericContainer<*> = MockServerContainer(dockerImageName).withNetwork(network)
         .withNetworkAliases(networkAlias)
         .withExposedPorts(port)
         .withLogConsumer(Slf4jLogConsumer(log).withPrefix(networkAlias).withSeparateOutputStreams())
@@ -37,6 +42,7 @@ class LydiaApiContainerHelper(
         .apply {
             start()
         }.also {
+            mockServerClient = createMockServerClient(container = it, port = port)
             log.info("Startet (mock) lydia-api container for network '$network' og port '$port'")
         }
 
@@ -45,26 +51,16 @@ class LydiaApiContainerHelper(
             "FIA_SAMARBEID_API_URL" to "http://$networkAlias:$port",
         )
 
-    internal fun slettAlleSamarbeid() {
-        val client = MockServerClient(
-            container.host,
-            container.getMappedPort(port),
-        )
-        client.reset()
-    }
+    internal fun slettAlleSamarbeid() = resetAllExpectations(client = mockServerClient!!)
 
     internal fun leggTilSamarbeid(
         orgnr: String,
         iaSamarbeidDto: SamarbeidMedDokumenterDto,
     ) {
-        log.info("Legger til et samarbeid med offentligIg '${iaSamarbeidDto.offentligId}' for orgnr '$orgnr' i mockserver")
-        val client = MockServerClient(
-            container.host,
-            container.getMappedPort(port),
-        )
+        log.info("Legger til et samarbeid med offentligId '${iaSamarbeidDto.offentligId}' for orgnr '$orgnr' i mockserver")
 
         runBlocking {
-            client.`when`(
+            mockServerClient!!.`when`(
                 request()
                     .withMethod("GET")
                     .withPath("/api/arbeidsgiver/samarbeid/$orgnr"),
