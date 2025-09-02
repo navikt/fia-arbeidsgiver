@@ -5,7 +5,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class SamarbeidMedDokumenterDto(
-    val id: Int, // TODO: uuid etc...
+    @Deprecated("Bruk offentligId istedenfor id")
+    val id: Int,
+    val offentligId: String,
     val navn: String,
     val status: Status,
     val sistEndret: LocalDateTime? = null,

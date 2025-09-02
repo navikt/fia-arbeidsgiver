@@ -57,7 +57,7 @@ class LydiaApiContainerHelper(
         orgnr: String,
         iaSamarbeidDto: SamarbeidMedDokumenterDto,
     ) {
-        log.info("Legger til et samarbeid med id '${iaSamarbeidDto.id}' for orgnr '$orgnr' i mockserver")
+        log.info("Legger til et samarbeid med offentligIg '${iaSamarbeidDto.offentligId}' for orgnr '$orgnr' i mockserver")
         val client = MockServerClient(
             container.host,
             container.getMappedPort(port),
