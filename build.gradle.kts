@@ -86,36 +86,6 @@ dependencies {
                 "ktor-client-apache:3.2.3 har en sårbar versjon av commons-codec",
             )
         }
-        testImplementation("com.google.guava:guava") {
-            version {
-                require("33.4.0-jre")
-            }
-            because("Mockserver har sårbar guava versjon")
-        }
-        testImplementation("commons-beanutils:commons-beanutils") {
-            version {
-                require("1.11.0")
-            }
-            because("mockserver-client-java imkluderer en sårbar versjon")
-        }
-        testImplementation("org.bouncycastle:bcprov-jdk18on") {
-            version {
-                require("1.81")
-            }
-            because("bcprov-jdk18on in Mockserver har sårbar versjon")
-        }
-        testImplementation("org.bouncycastle:bcpkix-jdk18on") {
-            version {
-                require("1.81")
-            }
-            because("bcpkix-jdk18on in Mockserver har sårbar versjon")
-        }
-        testImplementation("org.xmlunit:xmlunit-core") {
-            version {
-                require("2.10.3")
-            }
-            because("xmlunit-core in Mockserver har sårbar versjon")
-        }
         testImplementation("org.apache.commons:commons-compress") {
             version {
                 require("1.28.0")
@@ -127,17 +97,6 @@ dependencies {
                 require("2.20.0")
             }
             because("testcontainers har sårbar versjon")
-        }
-        testImplementation("com.jayway.jsonpath:json-path") {
-            version {
-                require("2.9.0")
-            }
-            because(
-                """
-                json-path v2.8.0 was discovered to contain a stack overflow via the Criteria.parse() method.
-                introdusert gjennom io.kotest:kotest-assertions-json:5.8.0 (Mockserver)
-                """.trimIndent(),
-            )
         }
     }
 }
