@@ -7,6 +7,7 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
+import no.nav.fia.arbeidsgiver.helper.LydiaApiContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgangerContainerHelper
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.lydiaApiContainerHelper
@@ -59,7 +60,7 @@ class SamarbeidEndepunktTest {
         )
         lydiaApiContainerHelper.leggTilSamarbeid(
             orgnr = "999888777",
-            iaSamarbeidDto = SamarbeidMedDokumenterDto(
+            iaSamarbeidDto = LydiaApiContainerHelper.SamarbeidMedDokumenterV1Dto(
                 id = 1234,
                 offentligId = UUID.randomUUID().toString(),
                 navn = "Avdeling Oslo",
@@ -93,7 +94,7 @@ class SamarbeidEndepunktTest {
         )
         lydiaApiContainerHelper.leggTilSamarbeid(
             orgnr = ALTINN_ORGNR_1,
-            iaSamarbeidDto = SamarbeidMedDokumenterDto(
+            iaSamarbeidDto = LydiaApiContainerHelper.SamarbeidMedDokumenterV1Dto(
                 id = 1234,
                 offentligId = UUID.randomUUID().toString(),
                 navn = "Avdeling Oslo",

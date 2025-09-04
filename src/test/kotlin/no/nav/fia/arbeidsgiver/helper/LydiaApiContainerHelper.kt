@@ -1,10 +1,13 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.LocalDateTime
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.createMockServerClient
 import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.resetAllExpectations
-import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.DokumentMetadata
+import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto.Companion.Status
 import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network
@@ -55,7 +58,7 @@ class LydiaApiContainerHelper(
 
     internal fun leggTilSamarbeid(
         orgnr: String,
-        iaSamarbeidDto: SamarbeidMedDokumenterDto,
+        iaSamarbeidDto: SamarbeidMedDokumenterV1Dto,
     ) {
         log.info("Legger til et samarbeid med offentligId '${iaSamarbeidDto.offentligId}' for orgnr '$orgnr' i mockserver")
 
@@ -71,4 +74,16 @@ class LydiaApiContainerHelper(
             )
         }
     }
+
+    @Serializable
+    data class SamarbeidMedDokumenterV1Dto(
+        // Ved å bruke denne versjonen av DTOen i testene sjekker vi at APIet ikke er avhengig av felter som ikke er i bruk
+        @Deprecated("Blir fjernet i en senere versjon. Bruk offentligId istedenfor id")
+        val id: Int,
+        val offentligId: String,
+        val navn: String,
+        val status: Status,
+        val sistEndret: LocalDateTime? = null,
+        val dokumenter: List<DokumentMetadata> = emptyList(),
+    )
 }
