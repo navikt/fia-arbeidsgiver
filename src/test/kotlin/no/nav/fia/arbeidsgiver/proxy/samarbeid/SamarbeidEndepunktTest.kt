@@ -14,7 +14,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.lydiaApiCont
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidMedDokumenterDto.Companion.Status.AKTIV
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -55,7 +55,7 @@ class SamarbeidEndepunktTest {
     fun `Innlogget bruker får 200 OK og en tom liste dersom ingen samarbeid finnes`() {
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
-            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
             erSlettet = true,
         )
         lydiaApiContainerHelper.leggTilSamarbeid(
@@ -89,7 +89,7 @@ class SamarbeidEndepunktTest {
     fun `Innlogget bruker får hente et samarbeid i den organisasjonen hen har tilgang til`() {
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
-            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
             erSlettet = true,
         )
         lydiaApiContainerHelper.leggTilSamarbeid(

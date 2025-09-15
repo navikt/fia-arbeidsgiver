@@ -26,7 +26,7 @@ class AltinnTilgangerService {
 
     companion object {
         private val log: Logger = LoggerFactory.getLogger(this::class.java)
-        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID = "nav_forebygge-og-redusere-sykefravar_samarbeid"
+        const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID = "nav_forebygge-og-redusere-sykefravar_ia-samarbeid"
         const val ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK =
             "nav_forebygge-og-redusere-sykefravar_sykefravarsstatistikk"
 
@@ -35,7 +35,7 @@ class AltinnTilgangerService {
 
         fun AltinnTilganger?.harEnkeltrettighet(
             orgnr: String?,
-            enkeltrettighet: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            enkeltrettighet: String = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
         ): Boolean = this?.orgNrTilTilganger?.get(orgnr)?.contains(enkeltrettighet) ?: false
 
         private fun AltinnTilganger?.virksomheterVedkommendeHarTilgangTil(): List<String> =

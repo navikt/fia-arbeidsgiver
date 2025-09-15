@@ -16,7 +16,7 @@ import no.nav.fia.arbeidsgiver.proxy.dokument.dokument
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidService
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.samarbeid
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
@@ -52,7 +52,7 @@ fun Application.configureRouting(
                     organisasjoner()
                     // sjekker også at routes har 'orgnr' som path parameter
                     medVerifisertTilgangTilEnkeltrettighetForOrgnr(
-                        enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+                        enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
                     ) {
                         samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                         dokument(dokumentService = DokumentService())

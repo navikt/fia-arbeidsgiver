@@ -11,7 +11,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgan
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.dokumentPubliseringContainerHelper
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -60,7 +60,7 @@ class DokumentEndepunktTest {
         )
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
-            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
             erSlettet = true,
         )
         dokumentPubliseringContainerHelper.leggTilDokument(
@@ -98,7 +98,7 @@ class DokumentEndepunktTest {
         )
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
-            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
             erSlettet = true,
         )
         dokumentPubliseringContainerHelper.leggTilDokument(

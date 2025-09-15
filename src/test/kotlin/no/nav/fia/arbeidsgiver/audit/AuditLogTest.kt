@@ -11,7 +11,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.shouldContai
 import no.nav.fia.arbeidsgiver.helper.performGet
 import no.nav.fia.arbeidsgiver.helper.stengTema
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.SAMARBEIDSSTATUS_PATH
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.VERT_BASEPATH
 import org.junit.Before
@@ -26,7 +26,7 @@ class AuditLogTest {
     fun `det skal auditlogges (Permit) dersom man går mot status med gyldig token og altinn tilgang`() {
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
-            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+            altinn3RettighetForUnderenhet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
         )
         runBlocking {
             applikasjon.performGet("$SAMARBEIDSSTATUS_PATH/$ALTINN_ORGNR_1", withTokenXToken())

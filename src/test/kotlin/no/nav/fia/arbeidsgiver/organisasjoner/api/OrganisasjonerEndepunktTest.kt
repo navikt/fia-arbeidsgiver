@@ -14,7 +14,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgan
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.AltinnTilgang
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID
+import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK
 import kotlin.test.BeforeTest
 import kotlin.test.Test
@@ -59,12 +59,12 @@ class OrganisasjonerEndepunktTest {
             underenheterMedRettighet = listOf(
                 OrgnrMedEnkeltrettigheter(
                     orgnr = ALTINN_ORGNR_1,
-                    altinn3Rettigheter = listOf(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID),
+                    altinn3Rettigheter = listOf(ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID),
                 ),
                 OrgnrMedEnkeltrettigheter(
                     orgnr = ALTINN_ORGNR_2,
                     altinn3Rettigheter = listOf(
-                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SAMARBEID,
+                        ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
                         ENKELRETTIGHET_FOREBYGGE_FRAVÆR_SYKEFRAVÆRSSTATISTIKK,
                     ),
                 ),
