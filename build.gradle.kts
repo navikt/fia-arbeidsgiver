@@ -1,18 +1,18 @@
-val ktorVersion = "3.2.3"
-val kafkClientVersion = "4.0.0"
-val kotlinVersion = "2.2.0"
+val ktorVersion = "3.3.0"
+val kafkClientVersion = "4.1.0"
+val kotlinVersion = "2.2.20"
 val logbackVersion = "1.5.18"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.15.2"
-val kotestVersion = "5.9.1"
+val prometheusVersion = "1.15.4"
+val kotestVersion = "6.0.3"
 val testcontainersVersion = "1.21.3"
-val mockServerVersion = "1.0.19"
+val mockServerVersion = "1.1.3"
 val valkeyVersion = "5.4.0"
 
 plugins {
-    kotlin("jvm") version "2.2.0"
-    kotlin("plugin.serialization") version "2.2.0"
+    kotlin("jvm") version "2.2.20"
+    kotlin("plugin.serialization") version "2.2.20"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -53,7 +53,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.4")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -76,7 +76,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.2.1")
+    testImplementation("no.nav.security:mock-oauth2-server:2.3.0")
     constraints {
         implementation("commons-codec:commons-codec") {
             version {
