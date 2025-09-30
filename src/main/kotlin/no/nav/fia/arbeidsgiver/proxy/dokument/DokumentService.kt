@@ -33,7 +33,7 @@ class DokumentService {
         token: String,
         orgnr: String,
         dokumentId: UUID,
-    ): DokumentDto? =
+    ): DokumentSvarTilFrontendDto? =
         try {
             val client = getHttpClient(token = token)
             val response: HttpResponse = client.get {
@@ -41,7 +41,7 @@ class DokumentService {
                 accept(ContentType.Application.Json)
             }
             if (response.status == HttpStatusCode.OK) {
-                json.decodeFromString<DokumentDto>(response.body())
+                json.decodeFromString<DokumentDto>(response.body()).tilDokumentFrontendDto()
             } else {
                 log.warn("Kunne ikke hente dokument fra Fia dokument publisering, ${response.status}")
                 null
@@ -76,4 +76,21 @@ class DokumentService {
         val samarbeidNavn: String,
         val innhold: JsonObject,
     )
+
+    @Serializable
+    data class DokumentSvarTilFrontendDto(
+        val dokumentId: String,
+        val type: String,
+        val samarbeidNavn: String,
+        val innhold: String,
+    )
+
+    @Deprecated("Få frontend til å håndtere innhold som JsonObject og bruk DokumentDto i stedet")
+    private fun DokumentDto.tilDokumentFrontendDto(): DokumentSvarTilFrontendDto =
+        DokumentSvarTilFrontendDto(
+            dokumentId = dokumentId,
+            type = type,
+            samarbeidNavn = samarbeidNavn,
+            innhold = innhold.toString(),
+        )
 }
