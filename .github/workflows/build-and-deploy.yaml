@@ -70,7 +70,7 @@ jobs:
       id-token: write
     name: Deploy branch to dev
     needs: build
-    if: github.ref == 'refs/heads/offentlig-id-til-samarbeid'
+    if: github.ref == 'refs/heads/innhold-i-dokument-som-json'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

@@ -13,6 +13,7 @@ import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 import no.nav.fia.arbeidsgiver.http.HttpClient.client
 import no.nav.fia.arbeidsgiver.http.tokenx.TokenExchanger
 import no.nav.fia.arbeidsgiver.konfigurasjon.Miljø.cluster
@@ -73,6 +74,6 @@ class DokumentService {
         val dokumentId: String,
         val type: String,
         val samarbeidNavn: String,
-        val innhold: String,
+        val innhold: JsonObject,
     )
 }

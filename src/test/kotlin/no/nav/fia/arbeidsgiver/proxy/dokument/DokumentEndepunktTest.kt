@@ -56,7 +56,7 @@ class DokumentEndepunktTest {
             dokumentId = UUID.randomUUID().toString(),
             type = "BEHOVSVURDERING",
             samarbeidNavn = "Avdeling Oslo",
-            innhold = "{}",
+            innhold = Json.decodeFromString("{}"),
         )
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
@@ -94,7 +94,7 @@ class DokumentEndepunktTest {
             dokumentId = UUID.randomUUID().toString(),
             type = "BEHOVSVURDERING",
             samarbeidNavn = "Avdeling Oslo",
-            innhold = "{}",
+            innhold = Json.decodeFromString("{}"),
         )
         altinnTilgangerContainerHelper.leggTilRettighet(
             orgnrTilUnderenhet = ALTINN_ORGNR_1,
