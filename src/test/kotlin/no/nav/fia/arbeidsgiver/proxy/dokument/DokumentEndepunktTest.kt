@@ -119,7 +119,7 @@ class DokumentEndepunktTest {
             )
 
             response.status.value shouldBe 200
-            val hentetDokument = Json.decodeFromString<DokumentService.DokumentDto>(response.bodyAsText())
+            val hentetDokument = Json.decodeFromString<DokumentService.DokumentSvarTilFrontendDto>(response.bodyAsText())
 
             hentetDokument shouldNotBe null
             hentetDokument.dokumentId shouldBe dokument.dokumentId
