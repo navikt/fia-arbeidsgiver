@@ -1,18 +1,18 @@
-val ktorVersion = "3.3.0"
+val ktorVersion = "3.3.1"
 val kafkClientVersion = "4.1.0"
-val kotlinVersion = "2.2.20"
-val logbackVersion = "1.5.18"
+val kotlinVersion = "2.2.21"
+val logbackVersion = "1.5.20"
 val logstashLogbackEncoderVersion = "8.1"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.15.4"
-val kotestVersion = "6.0.3"
+val prometheusVersion = "1.15.5"
+val kotestVersion = "6.0.4"
 val testcontainersVersion = "1.21.3"
-val mockServerVersion = "1.1.3"
-val valkeyVersion = "5.4.0"
+val mockServerVersion = "1.3.0"
+val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.2.20"
-    kotlin("plugin.serialization") version "2.2.20"
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.serialization") version "2.2.21"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -76,11 +76,11 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:2.3.0")
+    testImplementation("no.nav.security:mock-oauth2-server:3.0.0")
     constraints {
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.6.Final")
+                require("4.2.7.Final")
             }
             because(
                 "ktor-server-netty har sårbar versjon",
