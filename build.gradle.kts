@@ -1,13 +1,13 @@
-val ktorVersion = "3.3.1"
-val kafkClientVersion = "4.1.0"
+val ktorVersion = "3.3.2"
+val kafkaClientVersion = "4.1.0"
 val kotlinVersion = "2.2.21"
 val logbackVersion = "1.5.20"
-val logstashLogbackEncoderVersion = "8.1"
+val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
 val prometheusVersion = "1.15.5"
 val kotestVersion = "6.0.4"
-val testcontainersVersion = "1.21.3"
-val mockServerVersion = "1.3.0"
+val testcontainersVersion = "2.0.1"
+val mockServerVersion = "1.1.3"
 val valkeyVersion = "5.5.0"
 
 plugins {
@@ -47,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:$kafkClientVersion")
+    implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion")
 
     // Valkey client
     implementation("io.valkey:valkey-java:$valkeyVersion")
@@ -69,14 +69,14 @@ dependencies {
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit:$kotlinVersion")
 
     testImplementation("org.testcontainers:testcontainers:$testcontainersVersion")
-    testImplementation("org.testcontainers:kafka:$testcontainersVersion")
+    testImplementation("org.testcontainers:testcontainers-kafka:$testcontainersVersion")
     // Mockserver neolight
     testImplementation("software.xdev.mockserver:testcontainers:$mockServerVersion")
     testImplementation("software.xdev.mockserver:client:$mockServerVersion")
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.1")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:3.0.0")
+    testImplementation("no.nav.security:mock-oauth2-server:3.0.1")
     constraints {
         implementation("io.netty:netty-codec-http2") {
             version {
