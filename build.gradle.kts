@@ -13,7 +13,7 @@ val valkeyVersion = "5.5.0"
 plugins {
     kotlin("jvm") version "2.2.21"
     kotlin("plugin.serialization") version "2.2.21"
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("application")
 }
 
 group = "no.nav"
@@ -110,12 +110,7 @@ dependencies {
 }
 
 tasks {
-    shadowJar {
-        manifest {
-            attributes("Main-Class" to "no.nav.fia.arbeidsgiver.ApplicationKt")
-        }
-    }
     test {
-        dependsOn(shadowJar)
+        dependsOn(installDist)
     }
 }
