@@ -17,17 +17,13 @@ import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidService
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.samarbeid
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.samarbeidsstatus
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltaker
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVertStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
-import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 
 fun Application.configureRouting(
-    valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
     altinnTilgangerService: AltinnTilgangerService,
     spørreundersøkelseService: SpørreundersøkelseService,
@@ -54,7 +50,6 @@ fun Application.configureRouting(
                     medVerifisertTilgangTilEnkeltrettighetForOrgnr(
                         enkeltrettighet = ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID,
                     ) {
-                        samarbeidsstatus(samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService))
                         dokument(dokumentService = DokumentService())
                         samarbeid(samarbeidService = SamarbeidService())
                     }

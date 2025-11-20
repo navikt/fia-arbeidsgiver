@@ -53,7 +53,6 @@ fun main() {
         host = "0.0.0.0",
     ) {
         configure(
-            valkeyService = valkeyService,
             applikasjonsHelse = applikasjonsHelse,
             altinnTilgangerService = altinnTilgangerService,
             spørreundersøkelseService = spørreundersøkelseService,
@@ -72,7 +71,6 @@ fun main() {
 }
 
 fun Application.configure(
-    valkeyService: ValkeyService,
     applikasjonsHelse: ApplikasjonsHelse,
     altinnTilgangerService: AltinnTilgangerService,
     spørreundersøkelseService: SpørreundersøkelseService,
@@ -82,7 +80,6 @@ fun Application.configure(
     configureSecurity()
     configureStatusPages()
     configureRouting(
-        valkeyService = valkeyService,
         applikasjonsHelse = applikasjonsHelse,
         altinnTilgangerService = altinnTilgangerService,
         spørreundersøkelseService = spørreundersøkelseService,

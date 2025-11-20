@@ -4,8 +4,8 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
+import no.nav.fia.arbeidsgiver.http.ORGNR
 import no.nav.fia.arbeidsgiver.http.hentToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.ORGNR
 
 const val FIA_ARBEIDSGIVER_SAMARBEID_PATH = "/api/samarbeid"
 

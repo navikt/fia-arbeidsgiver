@@ -6,9 +6,9 @@ import io.ktor.server.response.respond
 import io.ktor.server.routing.Route
 import io.ktor.server.routing.get
 import no.nav.fia.arbeidsgiver.http.Feil
+import no.nav.fia.arbeidsgiver.http.ORGNR
 import no.nav.fia.arbeidsgiver.http.hentToken
 import no.nav.fia.arbeidsgiver.http.orgnr
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.ORGNR
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.tilUUID
 import java.util.UUID
 
