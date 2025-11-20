@@ -11,9 +11,7 @@ import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureRouting
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureSecurity
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureSerialization
 import no.nav.fia.arbeidsgiver.konfigurasjon.plugins.configureStatusPages
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.kafka.FiaStatusKonsument
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseKonsument
 import no.nav.fia.arbeidsgiver.sporreundersokelse.kafka.SpørreundersøkelseOppdateringKonsument
@@ -37,12 +35,6 @@ fun main() {
 
     SpørreundersøkelseOppdateringKonsument(
         spørreundersøkelseService = spørreundersøkelseService,
-        applikasjonsHelse = applikasjonsHelse,
-        kafka = kafka,
-    ).run()
-
-    FiaStatusKonsument(
-        samarbeidsstatusService = SamarbeidsstatusService(valkeyService = valkeyService),
         applikasjonsHelse = applikasjonsHelse,
         kafka = kafka,
     ).run()

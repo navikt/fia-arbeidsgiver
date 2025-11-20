@@ -10,13 +10,13 @@ import io.ktor.server.routing.RoutingResolveContext
 import io.ktor.server.routing.routing
 import no.nav.fia.arbeidsgiver.http.helse
 import no.nav.fia.arbeidsgiver.konfigurasjon.ApplikasjonsHelse
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import no.nav.fia.arbeidsgiver.organisasjoner.api.organisasjoner
 import no.nav.fia.arbeidsgiver.proxy.dokument.DokumentService
 import no.nav.fia.arbeidsgiver.proxy.dokument.dokument
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.SamarbeidService
 import no.nav.fia.arbeidsgiver.proxy.samarbeid.samarbeid
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseDeltaker
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.spørreundersøkelseVert

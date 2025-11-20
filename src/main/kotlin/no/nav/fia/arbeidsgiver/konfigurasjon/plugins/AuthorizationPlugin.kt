@@ -6,8 +6,8 @@ import io.ktor.server.auth.AuthenticationChecked
 import io.ktor.server.response.respond
 import kotlinx.serialization.Serializable
 import no.nav.fia.arbeidsgiver.http.orgnr
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.harEnkeltrettighet
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.harTilgangTilOrgnr
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService.Companion.harEnkeltrettighet
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService.Companion.harTilgangTilOrgnr
 import org.slf4j.LoggerFactory
 
 @Suppress("ktlint:standard:function-naming")

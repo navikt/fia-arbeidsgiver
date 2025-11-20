@@ -36,7 +36,6 @@ class ValkeyService(
 }
 
 enum class Type {
-    SAMARBEIDSSTATUS,
     SPØRREUNDERSØKELSE_RESULTAT,
     SPØRREUNDERSØKELSE,
     SESJON,

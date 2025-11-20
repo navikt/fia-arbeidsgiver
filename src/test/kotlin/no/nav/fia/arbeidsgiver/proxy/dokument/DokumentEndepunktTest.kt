@@ -11,7 +11,7 @@ import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.altinnTilgan
 import no.nav.fia.arbeidsgiver.helper.TestContainerHelper.Companion.dokumentPubliseringContainerHelper
 import no.nav.fia.arbeidsgiver.helper.withTokenXToken
 import no.nav.fia.arbeidsgiver.helper.withoutGyldigTokenXToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService.Companion.ENKELRETTIGHET_FOREBYGGE_FRAVÆR_IA_SAMARBEID
 import java.util.UUID
 import kotlin.test.BeforeTest
 import kotlin.test.Test

@@ -1,7 +1,6 @@
 package no.nav.fia.arbeidsgiver.helper
 
 import no.nav.fia.arbeidsgiver.konfigurasjon.jedisPool
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.SamarbeidsstatusService
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.SpørreundersøkelseService
 import no.nav.fia.arbeidsgiver.valkey.ValkeyService
 import org.slf4j.Logger
@@ -58,9 +57,5 @@ class ValkeyContainer(
 
     val spørreundersøkelseService by lazy {
         SpørreundersøkelseService(valkeyService)
-    }
-
-    val samarbeidsstatusService by lazy {
-        SamarbeidsstatusService(valkeyService)
     }
 }

@@ -10,7 +10,6 @@ import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.AltinnTilgangerContainerHelper.Companion.ALTINN_ORGNR_1
 import no.nav.fia.arbeidsgiver.konfigurasjon.Kafka
 import no.nav.fia.arbeidsgiver.konfigurasjon.Topic
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.domene.IASakStatus
 import no.nav.fia.arbeidsgiver.sporreundersokelse.api.dto.evaluering.PlanDto
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørreundersøkelse
 import no.nav.fia.arbeidsgiver.sporreundersokelse.domene.Spørsmål
@@ -95,24 +94,6 @@ class KafkaContainerHelper(
             "KAFKA_KEYSTORE_PATH" to "",
             "KAFKA_CREDSTORE_PASSWORD" to "",
         )
-
-    fun sendStatusOppdateringForVirksomhet(
-        orgnr: String,
-        status: String,
-        sistOppdatert: LocalDateTime = LocalDateTime.now(),
-    ) {
-        val iaStatusOppdatering = IASakStatus(
-            orgnr = orgnr,
-            saksnummer = "sak",
-            status = status,
-            sistOppdatert = sistOppdatert.toKotlinLocalDateTime(),
-        )
-        sendOgVent(
-            nøkkel = orgnr,
-            melding = json.encodeToString(iaStatusOppdatering),
-            topic = Topic.SAK_STATUS,
-        )
-    }
 
     fun sendSpørreundersøkelse(
         spørreundersøkelseId: UUID,

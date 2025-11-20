@@ -6,7 +6,7 @@ import io.ktor.server.auth.AuthenticationChecked
 import io.ktor.server.response.respond
 import io.ktor.util.AttributeKey
 import no.nav.fia.arbeidsgiver.http.hentToken
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService
 import org.slf4j.LoggerFactory
 
 @Suppress("ktlint:standard:function-naming")

@@ -1,4 +1,4 @@
-package no.nav.fia.arbeidsgiver.samarbeidsstatus.api
+package no.nav.fia.arbeidsgiver.organisasjoner.api
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body

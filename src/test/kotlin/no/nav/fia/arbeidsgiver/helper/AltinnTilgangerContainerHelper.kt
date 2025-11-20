@@ -4,7 +4,7 @@ import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.createMockServerClient
 import no.nav.fia.arbeidsgiver.helper.HttpMockServerContainerUtils.Companion.resetAllExpectations
-import no.nav.fia.arbeidsgiver.samarbeidsstatus.api.AltinnTilgangerService
+import no.nav.fia.arbeidsgiver.organisasjoner.api.AltinnTilgangerService
 import org.slf4j.Logger
 import org.testcontainers.containers.GenericContainer
 import org.testcontainers.containers.Network

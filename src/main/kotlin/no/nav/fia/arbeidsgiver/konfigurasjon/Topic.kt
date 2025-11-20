@@ -21,8 +21,4 @@ enum class Topic(
         navn = "pia.sporreundersokelse-v1",
         konsumentGruppe = "fia-arbeidsgiver-sporreundersokelse-consumer",
     ),
-    SAK_STATUS(
-        navn = "pia.ia-sak-status-v1",
-        konsumentGruppe = "fia-arbeidsgiver-ia-sak-status-consumer",
-    ),
 }
