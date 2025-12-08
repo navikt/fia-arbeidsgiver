@@ -47,7 +47,11 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
-    implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion")
+    implementation("at.yawk.lz4:lz4-java:1.10.1")
+    implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
+        // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
+        exclude("org.lz4", "lz4-java")
+    }
 
     // Valkey client
     implementation("io.valkey:valkey-java:$valkeyVersion")
@@ -78,19 +82,6 @@ dependencies {
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:3.0.1")
     constraints {
-        implementation("org.lz4:lz4-java") {
-            modules {
-                module("org.lz4:lz4-java") {
-                    replacedBy("at.yawk.lz4:lz4-java", "Fork of the original unmaintained lz4-java library that fixes a CVE")
-                }
-            }
-            version {
-                require("1.8.1")
-            }
-            because(
-                "Fikser CVE-2025-12183 - lz4-java 1.8.0 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)",
-            )
-        }
         implementation("io.netty:netty-codec-http2") {
             version {
                 require("4.2.7.Final")
