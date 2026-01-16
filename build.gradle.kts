@@ -1,13 +1,13 @@
-val ktorVersion = "3.3.2"
-val kafkaClientVersion = "4.1.0"
+val ktorVersion = "3.3.3"
+val kafkaClientVersion = "4.1.1"
 val kotlinVersion = "2.2.21"
-val logbackVersion = "1.5.20"
+val logbackVersion = "1.5.24"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.15.5"
-val kotestVersion = "6.0.4"
-val testcontainersVersion = "2.0.1"
-val mockServerVersion = "1.1.3"
+val prometheusVersion = "1.16.2"
+val kotestVersion = "6.0.7"
+val testcontainersVersion = "2.0.3"
+val mockServerVersion = "1.3.0"
 val valkeyVersion = "5.5.0"
 
 plugins {
@@ -47,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.10.1")
+    implementation("at.yawk.lz4:lz4-java:1.10.2")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -57,7 +57,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.5")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.7")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -78,13 +78,13 @@ dependencies {
     testImplementation("software.xdev.mockserver:testcontainers:$mockServerVersion")
     testImplementation("software.xdev.mockserver:client:$mockServerVersion")
 
-    testImplementation("org.wiremock:wiremock-standalone:3.13.1")
+    testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:3.0.1")
     constraints {
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.7.Final")
+                require("4.2.9.Final")
             }
             because(
                 "ktor-server-netty har sårbar versjon",
@@ -92,7 +92,7 @@ dependencies {
         }
         implementation("commons-codec:commons-codec") {
             version {
-                require("1.19.0")
+                require("1.20.0")
             }
             because(
                 "ktor-client-apache:3.2.3 har en sårbar versjon av commons-codec",
@@ -106,7 +106,7 @@ dependencies {
         }
         testImplementation("commons-io:commons-io") {
             version {
-                require("2.20.0")
+                require("2.21.0")
             }
             because("testcontainers har sårbar versjon")
         }
