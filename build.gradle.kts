@@ -1,18 +1,18 @@
-val ktorVersion = "3.3.3"
-val kafkaClientVersion = "4.1.1"
-val kotlinVersion = "2.2.21"
-val logbackVersion = "1.5.24"
+val ktorVersion = "3.4.0"
+val kafkaClientVersion = "4.2.0"
+val kotlinVersion = "2.3.10"
+val logbackVersion = "1.5.32"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
-val prometheusVersion = "1.16.2"
-val kotestVersion = "6.0.7"
+val prometheusVersion = "1.16.3"
+val kotestVersion = "6.1.4"
 val testcontainersVersion = "2.0.3"
-val mockServerVersion = "1.3.0"
+val mockServerVersion = "2.0.3"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.2.21"
-    kotlin("plugin.serialization") version "2.2.21"
+    kotlin("jvm") version "2.3.10"
+    kotlin("plugin.serialization") version "2.3.10"
     id("application")
 }
 
@@ -40,14 +40,13 @@ dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
-    implementation("io.ktor:ktor-client-apache:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.10.2")
+    implementation("at.yawk.lz4:lz4-java:1.10.4")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -57,7 +56,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.7")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.8")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -81,34 +80,15 @@ dependencies {
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
     testImplementation("no.nav.security:mock-oauth2-server:3.0.1")
+
     constraints {
-        implementation("io.netty:netty-codec-http2") {
-            version {
-                require("4.2.9.Final")
-            }
-            because(
-                "ktor-server-netty har sårbar versjon",
-            )
+        implementation("com.fasterxml.jackson.core:jackson-core") {
+            version { require("2.21.1") }
+            because("versjoner < 2.21.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
-        implementation("commons-codec:commons-codec") {
-            version {
-                require("1.20.0")
-            }
-            because(
-                "ktor-client-apache:3.2.3 har en sårbar versjon av commons-codec",
-            )
-        }
-        testImplementation("org.apache.commons:commons-compress") {
-            version {
-                require("1.28.0")
-            }
-            because("testcontainers har sårbar versjon")
-        }
-        testImplementation("commons-io:commons-io") {
-            version {
-                require("2.21.0")
-            }
-            because("testcontainers har sårbar versjon")
+        implementation("tools.jackson.core:jackson-core") {
+            version { require("3.1.0") }
+            because("versjoner < 3.1.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
     }
 }
