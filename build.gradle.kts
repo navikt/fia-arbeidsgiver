@@ -3,7 +3,7 @@ val kafkaClientVersion = "4.2.0"
 val kotlinVersion = "2.3.10"
 val logbackVersion = "1.5.32"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.16.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.25.0-alpha"
 val prometheusVersion = "1.16.3"
 val kotestVersion = "6.1.4"
 val testcontainersVersion = "2.0.3"
@@ -43,7 +43,7 @@ dependencies {
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
 
     // Kafka
     implementation("at.yawk.lz4:lz4-java:1.10.4")
