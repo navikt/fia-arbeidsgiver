@@ -1,18 +1,18 @@
-val ktorVersion = "3.4.1"
+val ktorVersion = "3.4.2"
 val kafkaClientVersion = "4.2.0"
-val kotlinVersion = "2.3.10"
+val kotlinVersion = "2.3.20"
 val logbackVersion = "1.5.32"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.26.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.26.1-alpha"
 val prometheusVersion = "1.16.4"
-val kotestVersion = "6.1.7"
-val testcontainersVersion = "2.0.3"
-val mockServerVersion = "2.0.3"
+val kotestVersion = "6.1.10"
+val testcontainersVersion = "2.0.4"
+val mockServerVersion = "2.0.4"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.serialization") version "2.3.10"
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
     id("application")
 }
 
