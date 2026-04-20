@@ -1,18 +1,18 @@
-val ktorVersion = "3.4.1"
+val ktorVersion = "3.4.2"
 val kafkaClientVersion = "4.2.0"
-val kotlinVersion = "2.3.10"
+val kotlinVersion = "2.3.20"
 val logbackVersion = "1.5.32"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.26.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.26.1-alpha"
 val prometheusVersion = "1.16.4"
-val kotestVersion = "6.1.7"
-val testcontainersVersion = "2.0.3"
-val mockServerVersion = "2.0.3"
+val kotestVersion = "6.1.11"
+val testcontainersVersion = "2.0.4"
+val mockServerVersion = "2.50.5"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.3.10"
-    kotlin("plugin.serialization") version "2.3.10"
+    kotlin("jvm") version "2.3.20"
+    kotlin("plugin.serialization") version "2.3.20"
     id("application")
 }
 
@@ -46,7 +46,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.10.4")
+    implementation("at.yawk.lz4:lz4-java:1.11.0")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -56,7 +56,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.8")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.9")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
