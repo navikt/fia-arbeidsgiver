@@ -87,8 +87,32 @@ dependencies {
             because("versjoner < 2.21.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.1.0") }
-            because("versjoner < 3.1.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
+            version { require("3.1.1") }
+            because("versjoner <= 3.1.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
+        }
+        implementation("io.netty:netty-codec-http2") {
+            version {
+                require("4.2.11.Final")
+            }
+            because(
+                "versjoner < 4.2.10.Final har sårbarhet. inkludert i ktor-server-netty-jvm:3.4.2",
+            )
+        }
+        testImplementation("org.bouncycastle:bcprov-jdk18on") {
+            version {
+                require("1.84")
+            }
+            because(
+                "versjoner < 1.84 har sårbarhet. inkludert i no.nav.security:mock-oauth2-server:3.0.1",
+            )
+        }
+        testImplementation("org.bouncycastle:bcpkix-jdk18on") {
+            version {
+                require("1.84")
+            }
+            because(
+                "versjoner < 1.84 har sårbarhet. inkludert i no.nav.security:mock-oauth2-server:3.0.1",
+            )
         }
     }
 }
