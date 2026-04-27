@@ -4,10 +4,10 @@ val kotlinVersion = "2.3.20"
 val logbackVersion = "1.5.32"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.26.1-alpha"
-val prometheusVersion = "1.16.4"
+val prometheusVersion = "1.16.5"
 val kotestVersion = "6.1.11"
 val testcontainersVersion = "2.0.4"
-val mockServerVersion = "2.50.5"
+val mockServerVersion = "2.50.6"
 val valkeyVersion = "5.5.0"
 
 plugins {
