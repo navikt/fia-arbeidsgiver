@@ -1,4 +1,4 @@
-val ktorVersion = "3.4.3"
+val ktorVersion = "3.5.0"
 val kafkaClientVersion = "4.2.0"
 val kotlinVersion = "2.3.21"
 val logbackVersion = "1.5.32"
@@ -7,7 +7,7 @@ val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
 val prometheusVersion = "1.16.5"
 val kotestVersion = "6.1.11"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.50.6"
+val mockServerVersion = "2.50.8"
 val valkeyVersion = "5.5.0"
 
 plugins {
@@ -39,11 +39,10 @@ dependencies {
     implementation("io.ktor:ktor-server-status-pages-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-cio:$ktorVersion")
-    implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-auth:$ktorVersion")
     implementation("io.ktor:ktor-client-content-negotiation-jvm:$ktorVersion")
     implementation("io.ktor:ktor-client-jackson-jvm:$ktorVersion")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.7.1-0.6.x-compat")
+    implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat")
 
     // Kafka
     implementation("at.yawk.lz4:lz4-java:1.11.0")
@@ -79,23 +78,23 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:3.0.1")
+    testImplementation("no.nav.security:mock-oauth2-server:3.0.3")
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.21.1") }
+            version { require("2.21.3") }
             because("versjoner < 2.21.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.1.1") }
+            version { require("3.1.3") }
             because("versjoner <= 3.1.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.11.Final")
+                require("4.2.13.Final")
             }
             because(
-                "versjoner < 4.2.10.Final har sårbarhet. inkludert i ktor-server-netty-jvm:3.4.2",
+                "versjoner < 4.2.12.Final har sårbarhet. inkludert i ktor-server-netty-jvm:3.4.3",
             )
         }
         testImplementation("org.bouncycastle:bcprov-jdk18on") {
