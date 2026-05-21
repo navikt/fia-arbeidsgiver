@@ -8,6 +8,6 @@ import kotlinx.serialization.Serializable
 data class PlanDto(
     val id: String,
     val sistEndret: LocalDateTime,
-    val sistPublisert: LocalDate?,
+    val sistPublisert: LocalDate? = null,
     val temaer: List<PlanTemaDto>,
 )
