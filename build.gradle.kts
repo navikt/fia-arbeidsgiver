@@ -1,13 +1,13 @@
 val ktorVersion = "3.5.0"
 val kafkaClientVersion = "4.2.0"
 val kotlinVersion = "2.3.21"
-val logbackVersion = "1.5.32"
+val logbackVersion = "1.5.34"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
 val prometheusVersion = "1.16.5"
 val kotestVersion = "6.1.11"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.50.8"
+val mockServerVersion = "2.50.9"
 val valkeyVersion = "5.5.0"
 
 plugins {
@@ -55,7 +55,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.9")
+    implementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -91,7 +91,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.13.Final")
+                require("4.2.15.Final")
             }
             because(
                 "versjoner < 4.2.12.Final har sårbarhet. inkludert i ktor-server-netty-jvm:3.4.3",
