@@ -1,11 +1,11 @@
 val ktorVersion = "3.5.0"
-val kafkaClientVersion = "4.2.0"
+val kafkaClientVersion = "4.3.0"
 val kotlinVersion = "2.3.21"
 val logbackVersion = "1.5.34"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
-val prometheusVersion = "1.16.5"
-val kotestVersion = "6.1.11"
+val prometheusVersion = "1.17.0"
+val kotestVersion = "6.2.1"
 val testcontainersVersion = "2.0.5"
 val mockServerVersion = "2.50.9"
 val valkeyVersion = "5.5.0"
@@ -78,15 +78,15 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:3.0.3")
+    testImplementation("no.nav.security:mock-oauth2-server:4.0.1")
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.21.3") }
+            version { require("2.22.0") }
             because("versjoner < 2.21.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.1.3") }
+            version { require("3.2.0") }
             because("versjoner <= 3.1.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
