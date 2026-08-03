@@ -35,7 +35,7 @@ class AuthContainerHelper(
         const val FNR = "12345678901"
     }
 
-    val container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:2.1.10"))
+    val container: GenericContainer<*> = GenericContainer(DockerImageName.parse("ghcr.io/navikt/mock-oauth2-server:5.0.2"))
         .withNetwork(network)
         .waitingFor(Wait.forHttp("/default/.well-known/openid-configuration").forStatusCode(200))
         .withExposedPorts(port)
