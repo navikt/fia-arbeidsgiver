@@ -1,4 +1,4 @@
-val ktorVersion = "3.5.0"
+val ktorVersion = "3.5.1"
 val kafkaClientVersion = "4.3.0"
 val kotlinVersion = "2.3.21"
 val logbackVersion = "1.5.34"
