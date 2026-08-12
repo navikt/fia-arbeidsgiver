@@ -1,18 +1,18 @@
-val ktorVersion = "3.5.1"
-val kafkaClientVersion = "4.3.0"
-val kotlinVersion = "2.3.21"
-val logbackVersion = "1.5.34"
+val ktorVersion = "3.5.2"
+val kafkaClientVersion = "4.3.1"
+val kotlinVersion = "2.4.10"
+val logbackVersion = "1.6.1"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.30.0-alpha"
 val prometheusVersion = "1.17.0"
-val kotestVersion = "6.2.1"
+val kotestVersion = "6.2.3"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.50.9"
+val mockServerVersion = "2.51.1"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
     id("application")
 }
 
@@ -78,7 +78,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:5.0.2")
+    testImplementation("no.nav.security:mock-oauth2-server:6.0.0")
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
