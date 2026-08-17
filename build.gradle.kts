@@ -1,18 +1,18 @@
-val ktorVersion = "3.5.1"
-val kafkaClientVersion = "4.3.0"
-val kotlinVersion = "2.3.21"
-val logbackVersion = "1.5.34"
+val ktorVersion = "3.5.2"
+val kafkaClientVersion = "4.3.1"
+val kotlinVersion = "2.4.10"
+val logbackVersion = "1.6.1"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.30.0-alpha"
 val prometheusVersion = "1.17.0"
-val kotestVersion = "6.2.1"
+val kotestVersion = "6.2.3"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.50.9"
+val mockServerVersion = "2.51.1"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
     id("application")
 }
 
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.11.1")
+    implementation("at.yawk.lz4:lz4-java:1.11.2")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -78,7 +78,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:5.0.2")
+    testImplementation("no.nav.security:mock-oauth2-server:6.0.0")
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
