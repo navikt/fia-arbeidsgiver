@@ -1,18 +1,18 @@
-val ktorVersion = "3.5.1"
-val kafkaClientVersion = "4.3.0"
-val kotlinVersion = "2.3.21"
-val logbackVersion = "1.5.34"
+val ktorVersion = "3.5.2"
+val kafkaClientVersion = "4.3.1"
+val kotlinVersion = "2.4.10"
+val logbackVersion = "1.6.3"
 val logstashLogbackEncoderVersion = "9.0"
 val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
-val prometheusVersion = "1.17.0"
-val kotestVersion = "6.2.1"
+val prometheusVersion = "1.17.1"
+val kotestVersion = "6.2.4"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.50.9"
+val mockServerVersion = "2.51.1"
 val valkeyVersion = "5.5.0"
 
 plugins {
-    kotlin("jvm") version "2.3.21"
-    kotlin("plugin.serialization") version "2.3.21"
+    kotlin("jvm") version "2.4.10"
+    kotlin("plugin.serialization") version "2.4.10"
     id("application")
 }
 
@@ -45,7 +45,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.11.1")
+    implementation("at.yawk.lz4:lz4-java:1.11.2")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -82,16 +82,16 @@ dependencies {
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.22.1") }
+            version { require("2.22.2") }
             because("versjoner < 2.22.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.2.1") }
+            version { require("3.2.2") }
             because("versjoner <= 3.2.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.16.Final")
+                require("4.2.17.Final")
             }
             because(
                 "versjoner < 4.2.16.Final har sårbarhet.",
