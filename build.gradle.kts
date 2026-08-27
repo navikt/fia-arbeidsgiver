@@ -78,7 +78,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:5.0.2")
+    testImplementation("no.nav.security:mock-oauth2-server:6.0.2")
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
