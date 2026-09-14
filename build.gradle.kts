@@ -3,11 +3,11 @@ val kafkaClientVersion = "4.3.1"
 val kotlinVersion = "2.4.10"
 val logbackVersion = "1.6.3"
 val logstashLogbackEncoderVersion = "9.0"
-val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.31.1-alpha"
 val prometheusVersion = "1.17.1"
 val kotestVersion = "6.2.4"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.51.1"
+val mockServerVersion = "2.51.2"
 val valkeyVersion = "5.5.0"
 
 plugins {
