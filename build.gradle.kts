@@ -83,6 +83,10 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:6.0.2")
 
     constraints {
+        implementation("org.freemarker:freemarker") {
+            version { require("2.3.35") }
+            because("versjoner <= 2.3.34 har kritisk sårbarhet")
+        }
         implementation("com.fasterxml.jackson.core:jackson-core") {
             version { require("2.22.3") }
             because("versjoner < 2.22.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
