@@ -1,14 +1,16 @@
-val ktorVersion = "3.5.2"
+val ktorVersion = "3.6.0"
 val kafkaClientVersion = "4.3.1"
-val kotlinVersion = "2.4.10"
-val logbackVersion = "1.6.3"
+val kotlinVersion = "2.4.10" // CodeQL støtter ikke enda kotlin > 2.4.10
+val logbackVersion = "1.6.4"
 val logstashLogbackEncoderVersion = "9.0"
+val nimbusJoseJwtVersion = "10.10"
 val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
 val prometheusVersion = "1.17.1"
-val kotestVersion = "6.2.4"
+val kotestVersion = "6.2.5"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.51.1"
+val mockServerVersion = "2.52.1"
 val valkeyVersion = "5.5.0"
+val yawkLz4JavaVersion = "1.11.3"
 
 plugins {
     kotlin("jvm") version "2.4.10"
@@ -45,7 +47,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.8.0-0.6.x-compat")
 
     // Kafka
-    implementation("at.yawk.lz4:lz4-java:1.11.2")
+    implementation("at.yawk.lz4:lz4-java:$yawkLz4JavaVersion")
     implementation("org.apache.kafka:kafka-clients:$kafkaClientVersion") {
         // "Fikser CVE-2025-12183 - lz4-java >1.8.1 har sårbar versjon (transitive dependency fra kafka-clients:4.1.0)"
         exclude("org.lz4", "lz4-java")
@@ -55,7 +57,7 @@ dependencies {
     implementation("io.valkey:valkey-java:$valkeyVersion")
 
     // JWT utilities
-    implementation("com.nimbusds:nimbus-jose-jwt:10.9.1")
+    implementation("com.nimbusds:nimbus-jose-jwt:$nimbusJoseJwtVersion")
 
     // audit log
     implementation("com.papertrailapp:logback-syslog4j:1.0.0")
@@ -82,16 +84,16 @@ dependencies {
 
     constraints {
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.22.2") }
+            version { require("2.22.3") }
             because("versjoner < 2.22.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.2.2") }
+            version { require("3.2.3") }
             because("versjoner <= 3.2.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.17.Final")
+                require("4.2.18.Final")
             }
             because(
                 "versjoner < 4.2.16.Final har sårbarhet.",
