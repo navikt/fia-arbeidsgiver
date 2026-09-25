@@ -1,10 +1,10 @@
 val ktorVersion = "3.6.0"
 val kafkaClientVersion = "4.3.1"
-val kotlinVersion = "2.4.10" // CodeQL støtter ikke enda kotlin > 2.4.10
+val kotlinVersion = "2.4.20" // CodeQL støtter ikke enda kotlin > 2.4.10
 val logbackVersion = "1.6.4"
 val logstashLogbackEncoderVersion = "9.0"
 val nimbusJoseJwtVersion = "10.10"
-val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.31.1-alpha"
 val prometheusVersion = "1.17.1"
 val kotestVersion = "6.2.5"
 val testcontainersVersion = "2.0.5"
@@ -13,8 +13,8 @@ val valkeyVersion = "5.5.0"
 val yawkLz4JavaVersion = "1.11.3"
 
 plugins {
-    kotlin("jvm") version "2.4.10"
-    kotlin("plugin.serialization") version "2.4.10"
+    kotlin("jvm") version "2.4.20"
+    kotlin("plugin.serialization") version "2.4.20"
     id("application")
 }
 
