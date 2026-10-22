@@ -10,7 +10,7 @@ val kotestVersion = "6.2.5"
 val testcontainersVersion = "2.0.5"
 val mockServerVersion = "2.52.1"
 val valkeyVersion = "5.5.0"
-val yawkLz4JavaVersion = "1.11.3"
+val yawkLz4JavaVersion = "1.11.4"
 
 plugins {
     kotlin("jvm") version "2.4.10"
