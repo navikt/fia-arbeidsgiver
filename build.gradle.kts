@@ -83,6 +83,14 @@ dependencies {
     testImplementation("no.nav.security:mock-oauth2-server:6.0.2")
 
     constraints {
+        implementation("org.xerial.snappy:snappy-java") {
+            version { require("1.1.10.12") }
+            because("CVE-2026-93451")
+        }
+        implementation("com.google.guava:guava") {
+            version { require("33.7.2-jre") }
+            because("CVE-2026-102554")
+        }
         implementation("org.freemarker:freemarker") {
             version { require("2.3.35") }
             because("versjoner <= 2.3.34 har kritisk sårbarhet")
