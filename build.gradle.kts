@@ -1,10 +1,10 @@
-val ktorVersion = "3.6.0"
-val kafkaClientVersion = "4.3.1"
+val ktorVersion = "3.6.1"
+val kafkaClientVersion = "4.4.0"
 val kotlinVersion = "2.4.10" // CodeQL støtter ikke enda kotlin > 2.4.10
-val logbackVersion = "1.6.4"
+val logbackVersion = "1.6.6"
 val logstashLogbackEncoderVersion = "9.0"
 val nimbusJoseJwtVersion = "10.10"
-val opentelemetryLogbackMdcVersion = "2.27.0-alpha"
+val opentelemetryLogbackMdcVersion = "2.33.1-alpha"
 val prometheusVersion = "1.17.1"
 val kotestVersion = "6.2.5"
 val testcontainersVersion = "2.0.5"
@@ -80,7 +80,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:6.0.2")
+    testImplementation("no.nav.security:mock-oauth2-server:6.1.4")
 
     constraints {
         implementation("org.xerial.snappy:snappy-java") {
@@ -105,7 +105,7 @@ dependencies {
         }
         implementation("io.netty:netty-codec-http2") {
             version {
-                require("4.2.18.Final")
+                require("4.2.20.Final")
             }
             because(
                 "versjoner < 4.2.16.Final har sårbarhet.",
