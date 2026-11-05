@@ -10,7 +10,7 @@ val kotestVersion = "6.2.5"
 val testcontainersVersion = "2.0.5"
 val mockServerVersion = "2.52.1"
 val valkeyVersion = "5.5.0"
-val yawkLz4JavaVersion = "1.11.3"
+val yawkLz4JavaVersion = "1.11.4"
 
 plugins {
     kotlin("jvm") version "2.4.10"
@@ -96,11 +96,11 @@ dependencies {
             because("versjoner <= 2.3.34 har kritisk sårbarhet")
         }
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.22.3") }
+            version { require("2.22.4") }
             because("versjoner < 2.22.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.2.3") }
+            version { require("3.2.4") }
             because("versjoner <= 3.2.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
