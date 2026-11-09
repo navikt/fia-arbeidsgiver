@@ -5,12 +5,12 @@ val logbackVersion = "1.6.6"
 val logstashLogbackEncoderVersion = "9.0"
 val nimbusJoseJwtVersion = "10.10"
 val opentelemetryLogbackMdcVersion = "2.33.1-alpha"
-val prometheusVersion = "1.17.1"
-val kotestVersion = "6.2.5"
+val prometheusVersion = "1.17.2"
+val kotestVersion = "6.2.6"
 val testcontainersVersion = "2.0.5"
-val mockServerVersion = "2.52.1"
+val mockServerVersion = "2.52.2"
 val valkeyVersion = "5.5.0"
-val yawkLz4JavaVersion = "1.11.4"
+val yawkLz4JavaVersion = "1.14.0"
 
 plugins {
     kotlin("jvm") version "2.4.10"
@@ -88,7 +88,7 @@ dependencies {
             because("CVE-2026-93451")
         }
         implementation("com.google.guava:guava") {
-            version { require("33.7.2-jre") }
+            version { require("33.8.0-jre") }
             because("CVE-2026-102554")
         }
         implementation("org.freemarker:freemarker") {
@@ -96,11 +96,11 @@ dependencies {
             because("versjoner <= 2.3.34 har kritisk sårbarhet")
         }
         implementation("com.fasterxml.jackson.core:jackson-core") {
-            version { require("2.22.4") }
+            version { require("2.23.0") }
             because("versjoner < 2.22.1 har sårbarhet. inkludert i ktor-server-auth:3.4.0")
         }
         implementation("tools.jackson.core:jackson-core") {
-            version { require("3.2.4") }
+            version { require("3.3.0") }
             because("versjoner <= 3.2.0 har sårbarhet. inkludert i logstash-logback-encoder:9.0")
         }
         implementation("io.netty:netty-codec-http2") {
