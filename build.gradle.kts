@@ -1,6 +1,6 @@
 val ktorVersion = "3.6.1"
 val kafkaClientVersion = "4.4.0"
-val kotlinVersion = "2.4.10" // CodeQL støtter ikke enda kotlin > 2.4.10
+val kotlinVersion = "2.4.21" // CodeQL støtter ikke enda kotlin > 2.4.10
 val logbackVersion = "1.6.6"
 val logstashLogbackEncoderVersion = "9.0"
 val nimbusJoseJwtVersion = "10.10"
@@ -13,8 +13,8 @@ val valkeyVersion = "5.5.0"
 val yawkLz4JavaVersion = "1.14.0"
 
 plugins {
-    kotlin("jvm") version "2.4.10"
-    kotlin("plugin.serialization") version "2.4.10"
+    kotlin("jvm") version "2.4.21"
+    kotlin("plugin.serialization") version "2.4.21"
     id("application")
 }
 
