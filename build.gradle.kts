@@ -1,20 +1,20 @@
 val ktorVersion = "3.6.1"
 val kafkaClientVersion = "4.4.0"
-val kotlinVersion = "2.4.10" // CodeQL støtter ikke enda kotlin > 2.4.10
-val logbackVersion = "1.6.6"
+val kotlinVersion = "2.4.21" // CodeQL støtter ikke enda kotlin > 2.4.10
+val logbackVersion = "1.6.7"
 val logstashLogbackEncoderVersion = "9.0"
 val nimbusJoseJwtVersion = "10.10"
 val opentelemetryLogbackMdcVersion = "2.33.1-alpha"
 val prometheusVersion = "1.17.2"
-val kotestVersion = "6.2.6"
+val kotestVersion = "6.2.7"
 val testcontainersVersion = "2.0.5"
 val mockServerVersion = "2.52.2"
 val valkeyVersion = "5.5.0"
 val yawkLz4JavaVersion = "1.14.0"
 
 plugins {
-    kotlin("jvm") version "2.4.10"
-    kotlin("plugin.serialization") version "2.4.10"
+    kotlin("jvm") version "2.4.21"
+    kotlin("plugin.serialization") version "2.4.21"
     id("application")
 }
 
@@ -80,7 +80,7 @@ dependencies {
 
     testImplementation("org.wiremock:wiremock-standalone:3.13.2")
     // Mock-oauth2-server
-    testImplementation("no.nav.security:mock-oauth2-server:6.1.4")
+    testImplementation("no.nav.security:mock-oauth2-server:7.0.0")
 
     constraints {
         implementation("org.xerial.snappy:snappy-java") {
